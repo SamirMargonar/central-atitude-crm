@@ -1,0 +1,49 @@
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:35px;
+}
+
+.header h1{
+    color:white;
+    font-size:34px;
+    margin-bottom:5px;
+}
+
+.header p{
+    color:#aeb8c5;
+    font-size:15px;
+}
+
+.headerDireita{
+    display:flex;
+    align-items:center;
+    gap:20px;
+}
+
+.btnNovoLead{
+    background:#33cf61;
+    color:white;
+    border:none;
+    padding:14px 24px;
+    border-radius:12px;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:.25s;
+}
+
+.btnNovoLead:hover{
+    transform:translateY(-2px);
+    background:#28b554;
+    box-shadow:0 8px 20px rgba(51,207,97,.35);
+}
+
+.usuario{
+    background:#162844;
+    color:white;
+    padding:12px 22px;
+    border-radius:12px;
+    font-weight:bold;
+}

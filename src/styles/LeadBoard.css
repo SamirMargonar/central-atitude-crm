@@ -1,0 +1,52 @@
+.leadBoard {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+
+    margin-top: 30px;
+    align-items: start;
+}
+
+.leadColumn {
+
+    background: #f7f8fc;
+
+    border-radius: 16px;
+
+    padding: 18px;
+
+    min-height: 600px;
+
+    box-shadow: 0 6px 18px rgba(0,0,0,.08);
+
+}
+
+.leadColumnHeader{
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    margin-bottom: 18px;
+
+    border-bottom: 2px solid #ececec;
+
+    padding-bottom: 12px;
+
+}
+
+.leadColumn .leadCard{
+
+    margin-bottom:16px;
+
+}
+
+@media (max-width:1200px){
+
+    .leadBoard{
+
+        grid-template-columns:1fr;
+
+    }
+
+}

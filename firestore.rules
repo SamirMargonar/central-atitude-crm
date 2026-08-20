@@ -1,0 +1,386 @@
+rules_version = '2';
+
+// ==============================================================
+// CANDIDATA OFICIAL CONSOLIDADA — AINDA NÃO PUBLICADA
+// ==============================================================
+//
+// Este arquivo consolida, em um único lugar, todas as decisões
+// arquiteturais já validadas isoladamente ao longo desta sessão de
+// trabalho, cada uma no Firestore Local Emulator, nunca publicadas:
+//
+//   1. usuarios/{uid} — proteção do Admin (Coordenador não pode
+//      alterar/bloquear/desbloquear/promover-se a Admin).
+//   2. leads/{leadId} — visibilidade (dono / fila Recebidos),
+//      criação, edição, "assumir" via responsavelUid.
+//   3. leads/{leadId}/eventos/{eventoId} — decisão da fila:
+//      leitura da timeline de um lead na fila Recebidos = ALLOW
+//      (possoVerLead); criação de evento nesse lead antes de
+//      assumir = DENY (podeAgirNoLead). Validada isoladamente em
+//      firestore-v2-decisao-eventos.rules.
+//   4. visitas/{visitaId} — visibilidade e operação por turno da
+//      recepcionista (turno normal e atravessando meia-noite),
+//      acesso completo para admin/coordenador. Validada em
+//      firestore-v3-visitas.rules.
+//   5. Hardening de auditoria dos campos de rastreabilidade da
+//      visita (confirmadoPor/confirmadoPorNome/confirmadoEm,
+//      atendidoPor/atendidoPorNome/atendidoEm) — exige que o valor
+//      gravado represente o próprio chamador, e que timestamps
+//      sejam gravados via serverTimestamp() real (comparados contra
+//      request.time). Validada em firestore-v4-visitas-auditoria.rules.
+//   6. Comparecimento cross-turno — permite que uma recepcionista
+//      que está operando (dentro do próprio turno) uma visita de um
+//      Lead de outro responsável grave SOMENTE os campos
+//      estritamente necessários do fluxo COMPARECEU/NAO_COMPARECEU
+//      no Lead e nos eventos da timeline — nunca responsavelUid,
+//      responsavel ou consultora, nunca outro campo, nunca outro
+//      valor de etapa além do exigido por cada ramo. Validada em
+//      firestore-v6-comparecimento-cross-turno.rules (145 testes:
+//      116 da suíte geral + 29 específicos deste cenário).
+//
+// O código React correspondente (responsavelUid em Leads.jsx:
+// assumirLead(), e ultimaVisitaId em Agenda/DetalhesVisita.jsx)
+// já foi implementado e commitado separadamente.
+//
+// Dependência conhecida e aceita: os valores 3 (VISITA) e 4
+// (NEGOCIACAO) usados no comparecimento cross-turno estão fixos
+// aqui, replicando core/LeadFlow.js:ETAPAS — não há vínculo
+// automático entre os dois; se o enum mudar, esta Rule precisa ser
+// atualizada junto.
+//
+// AINDA NÃO PUBLICADA. Este arquivo vive fora do repositório do
+// projeto, no scratchpad, e não foi copiado para dentro dele nem
+// enviado ao Firebase.
+// ==============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ==========================================================
+    // FUNÇÕES AUXILIARES
+    // ==========================================================
+
+    function estaLogado() {
+      return request.auth != null;
+    }
+
+    function ehEuMesmo(uid) {
+      return estaLogado() && request.auth.uid == uid;
+    }
+
+    function perfilDoChamador() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.perfil;
+    }
+
+    function nomeDoChamador() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data.nome;
+    }
+
+    function ehAdmin() {
+      return estaLogado() && perfilDoChamador() == 'admin';
+    }
+
+    function ehCoordenador() {
+      return estaLogado() && perfilDoChamador() == 'coordenador';
+    }
+
+    function ehAdminOuCoordenador() {
+      return ehAdmin() || ehCoordenador();
+    }
+
+    function ehRecepcionista() {
+      return estaLogado() && perfilDoChamador() == 'recepcionista';
+    }
+
+    function perfilValido(dados) {
+      return dados.perfil in ['admin', 'coordenador', 'recepcionista'];
+    }
+
+    // ==========================================================
+    // USUARIOS/{UID}
+    // ==========================================================
+
+    match /usuarios/{uid} {
+
+      allow get: if ehEuMesmo(uid) || ehAdminOuCoordenador();
+
+      allow list: if ehAdminOuCoordenador();
+
+      allow create: if ehAdminOuCoordenador()
+                    && perfilValido(request.resource.data)
+                    && (ehAdmin() || request.resource.data.perfil != 'admin');
+
+      allow update: if ehAdminOuCoordenador()
+                    && perfilValido(request.resource.data)
+                    && (
+                         ehAdmin()
+                         || (resource.data.perfil != 'admin' && request.resource.data.perfil != 'admin')
+                       );
+
+      allow delete: if false;
+
+    }
+
+    // ==========================================================
+    // FUNÇÕES DE LEADS
+    // ==========================================================
+
+    function valorOuVazio(dados, chave) {
+      return chave in dados ? dados[chave] : '';
+    }
+
+    function leadSemResponsavel(dados) {
+      return valorOuVazio(dados, 'responsavelUid') == ''
+          && valorOuVazio(dados, 'consultora') == ''
+          && valorOuVazio(dados, 'responsavel') == '';
+    }
+
+    function leadNaFilaRecebidos(dados) {
+      return dados.etapa == 0
+          && dados.assumido == false
+          && leadSemResponsavel(dados);
+    }
+
+    function souDonoDoLead(dados) {
+      return estaLogado() && (
+           valorOuVazio(dados, 'responsavelUid') == request.auth.uid
+        || (valorOuVazio(dados, 'consultora') != '' && valorOuVazio(dados, 'consultora') == nomeDoChamador())
+        || (valorOuVazio(dados, 'responsavel') != '' && valorOuVazio(dados, 'responsavel') == nomeDoChamador())
+      );
+    }
+
+    function possoVerLead(dados) {
+      return ehAdminOuCoordenador()
+          || souDonoDoLead(dados)
+          || (ehRecepcionista() && leadNaFilaRecebidos(dados));
+    }
+
+    function podeAgirNoLead(dados) {
+      return ehAdminOuCoordenador() || souDonoDoLead(dados);
+    }
+
+    function propriedadeMudou(antes, depois) {
+      return valorOuVazio(antes, 'responsavelUid') != valorOuVazio(depois, 'responsavelUid')
+          || valorOuVazio(antes, 'consultora')      != valorOuVazio(depois, 'consultora')
+          || valorOuVazio(antes, 'responsavel')      != valorOuVazio(depois, 'responsavel');
+    }
+
+    function ehAssumirValido(antes, depois) {
+      return leadSemResponsavel(antes)
+          && valorOuVazio(depois, 'responsavelUid') == request.auth.uid;
+    }
+
+    function podeEditarLead(antes, depois) {
+      return ehAdminOuCoordenador()
+          || (souDonoDoLead(antes) && !propriedadeMudou(antes, depois))
+          || (ehRecepcionista() && ehAssumirValido(antes, depois));
+    }
+
+    // ----------------------------------------------------------
+    // COMPARECIMENTO CROSS-TURNO
+    //
+    // Permite que uma recepcionista que NÃO é dona do Lead, mas que
+    // está operando (dentro do próprio turno) uma visita realmente
+    // vinculada a este Lead, grave SOMENTE os campos do fluxo de
+    // comparecimento — nunca responsavelUid/responsavel/consultora,
+    // nunca outro campo, nunca outro valor de etapa além do exato
+    // esperado por cada ramo.
+    //
+    // A ligação lead<->visita é provada via get() na visita cujo ID
+    // o próprio payload já carrega (ultimaVisitaId no ramo
+    // COMPARECEU, alertaNaoCompareceuVisitaId no ramo
+    // NAO_COMPARECEU — ambos já fazem parte do payload real do app).
+    //
+    // Dependência conhecida e aceita: os valores 3 (VISITA) e 4
+    // (NEGOCIACAO) estão fixos aqui, replicando core/LeadFlow.js:
+    // ETAPAS. Se esse enum mudar no futuro, esta Rule precisa ser
+    // atualizada junto — não há vínculo automático entre os dois.
+    // ----------------------------------------------------------
+
+    function visitaLigadaAoLeadDentroDoTurno(leadId, visitaId) {
+      let visita = get(/databases/$(database)/documents/visitas/$(visitaId)).data;
+      return visita.leadId == leadId && visitaDentroDoTurnoDoChamador(visita);
+    }
+
+    function podeAtualizarLeadViaComparecimento(leadId, antes, depois) {
+      let alterados = depois.diff(antes).affectedKeys();
+
+      let camposCompareceuOk =
+        alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'ultimaVisitaId'])
+        && depois.etapa == 4
+        && ('ultimaVisitaId' in depois)
+        && visitaLigadaAoLeadDentroDoTurno(leadId, depois.ultimaVisitaId);
+
+      let camposNaoCompareceuOk =
+        alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'alertaNaoCompareceuEm', 'alertaNaoCompareceuVisitaId', 'pendenciaComercial'])
+        && depois.etapa == 3
+        && depois.pendenciaComercial == 'NOVO_CONTATO_NAO_COMPARECIMENTO'
+        && ('alertaNaoCompareceuVisitaId' in depois)
+        && visitaLigadaAoLeadDentroDoTurno(leadId, depois.alertaNaoCompareceuVisitaId);
+
+      return ehRecepcionista() && (camposCompareceuOk || camposNaoCompareceuOk);
+    }
+
+    function eventoDeComparecimentoValido(leadId, dadosEvento) {
+      return dadosEvento.tipo in ['VISITA', 'JORNADA', 'PENDENCIA']
+          && ('dados' in dadosEvento)
+          && ('visitaId' in dadosEvento.dados)
+          && visitaLigadaAoLeadDentroDoTurno(leadId, dadosEvento.dados.visitaId);
+    }
+
+    // ==========================================================
+    // LEADS/{LEADID}
+    // ==========================================================
+
+    match /leads/{leadId} {
+
+      allow get: if possoVerLead(resource.data);
+
+      allow list: if possoVerLead(resource.data);
+
+      allow create: if estaLogado()
+                    && perfilDoChamador() in ['admin', 'coordenador', 'recepcionista'];
+
+      allow update: if podeEditarLead(resource.data, request.resource.data)
+                    || podeAtualizarLeadViaComparecimento(leadId, resource.data, request.resource.data);
+
+      allow delete: if false;
+
+      match /eventos/{eventoId} {
+
+        // Decisão arquitetural aprovada:
+        // - leitura de eventos de lead na fila Recebidos = ALLOW
+        //   (usa possoVerLead, que inclui a fila para recepcionista)
+        // - criação de evento em lead da fila, antes de assumir = DENY
+        //   (usa podeAgirNoLead, que exige ser dono/admin/coordenador)
+
+        allow read: if possoVerLead(
+          get(/databases/$(database)/documents/leads/$(leadId)).data
+        );
+
+        // Segundo caminho: recepcionista cross-turno pode criar
+        // SOMENTE eventos VISITA/JORNADA/PENDENCIA genuinamente
+        // vinculados a uma visita real deste Lead, dentro do
+        // próprio turno. Não abre leitura nem escrita geral da
+        // timeline — o caminho normal (podeAgirNoLead) continua
+        // exatamente como estava.
+        allow create: if podeAgirNoLead(
+          get(/databases/$(database)/documents/leads/$(leadId)).data
+        ) || (
+          ehRecepcionista() &&
+          eventoDeComparecimentoValido(leadId, request.resource.data)
+        );
+
+        allow update: if false;
+
+        allow delete: if false;
+
+      }
+
+    }
+
+    // ==========================================================
+    // FUNÇÕES DE VISITAS
+    // ==========================================================
+
+    function horarioDentroDoTurno(horaVisita, horaEntrada, horaSaida) {
+      return horaEntrada <= horaSaida
+        ? (horaVisita >= horaEntrada && horaVisita <= horaSaida)
+        : (horaVisita >= horaEntrada || horaVisita <= horaSaida);
+    }
+
+    function dadosDoChamador() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    function visitaDentroDoTurnoDoChamador(dadosVisita) {
+      let usuario = dadosDoChamador();
+      return ('hora' in dadosVisita)
+          && ('horaEntrada' in usuario)
+          && ('horaSaida' in usuario)
+          && horarioDentroDoTurno(dadosVisita.hora, usuario.horaEntrada, usuario.horaSaida);
+    }
+
+    function podeVerVisita(dadosVisita) {
+      return ehAdminOuCoordenador()
+          || (ehRecepcionista() && visitaDentroDoTurnoDoChamador(dadosVisita));
+    }
+
+    // ----------------------------------------------------------
+    // AUDITORIA — CAMPOS DE AUTORIA
+    //
+    // Regra: quando um campo de autoria é alterado por esta
+    // escrita (está em affectedKeys()), o valor gravado precisa
+    // representar o próprio chamador (request.auth.uid /
+    // nomeDoChamador()) — nunca outra pessoa. Se o campo NÃO está
+    // sendo alterado por esta escrita, nada é exigido dele (assim
+    // reagendamento, que não toca nesses campos, continua livre).
+    //
+    // confirmadoEm/atendidoEm: só podem ser gravados via
+    // serverTimestamp() do SDK, que a Rule reconhece comparando o
+    // valor final contra request.time (o timestamp real do
+    // servidor no momento do commit) — não é uma comparação de
+    // relógio/turno, é a forma padrão e documentada do Firestore
+    // de confirmar que um campo foi realmente gravado com
+    // serverTimestamp(). Não envolve timezone: request.time é um
+    // Timestamp (UTC internamente), comparado por igualdade contra
+    // outro Timestamp, sem conversão para hora local em nenhum
+    // momento.
+    // ----------------------------------------------------------
+
+    function camposAlterados(antes, depois) {
+      return depois.diff(antes).affectedKeys();
+    }
+
+    function autoriaValida(antes, depois) {
+      let alterados = camposAlterados(antes, depois);
+
+      let confirmadoPorOk =
+        !('confirmadoPor' in alterados) || depois.confirmadoPor == request.auth.uid;
+
+      let confirmadoPorNomeOk =
+        !('confirmadoPorNome' in alterados) || depois.confirmadoPorNome == nomeDoChamador();
+
+      let confirmadoEmOk =
+        !('confirmadoEm' in alterados) || depois.confirmadoEm == request.time;
+
+      let atendidoPorOk =
+        !('atendidoPor' in alterados) || depois.atendidoPor == request.auth.uid;
+
+      let atendidoPorNomeOk =
+        !('atendidoPorNome' in alterados) || depois.atendidoPorNome == nomeDoChamador();
+
+      let atendidoEmOk =
+        !('atendidoEm' in alterados) || depois.atendidoEm == request.time;
+
+      return confirmadoPorOk && confirmadoPorNomeOk && confirmadoEmOk
+          && atendidoPorOk && atendidoPorNomeOk && atendidoEmOk;
+    }
+
+    // ==========================================================
+    // VISITAS/{VISITAID}
+    // ==========================================================
+
+    match /visitas/{visitaId} {
+
+      allow get: if podeVerVisita(resource.data);
+
+      allow list: if podeVerVisita(resource.data);
+
+      allow create: if estaLogado()
+                    && perfilDoChamador() in ['admin', 'coordenador', 'recepcionista']
+                    && podeAgirNoLead(
+                         get(/databases/$(database)/documents/leads/$(request.resource.data.leadId)).data
+                       );
+
+      allow update: if (
+                         ehAdminOuCoordenador()
+                         || (ehRecepcionista() && visitaDentroDoTurnoDoChamador(resource.data))
+                       )
+                    && autoriaValida(resource.data, request.resource.data);
+
+      allow delete: if false;
+
+    }
+
+  }
+}

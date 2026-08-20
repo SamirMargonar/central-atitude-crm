@@ -387,6 +387,9 @@ export default function DetalhesVisita({
               alertaNaoCompareceu:
                 false,
 
+              ultimaVisitaId:
+                visita.id,
+
             }
           );
 

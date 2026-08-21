@@ -179,6 +179,28 @@ export default function LeadTimeline({ lead }) {
         return "📝 Observação";
 
 
+      case "RENOVACAO_CONTATO":
+
+        return "📱 Contato de Renovação";
+
+
+      case "RENOVACAO_RESPOSTA":
+
+        return evento.dados?.resposta === "POSITIVA"
+          ? "🟢 Resposta da Renovação"
+          : "🔴 Resposta da Renovação";
+
+
+      case "RENOVACAO_CONFIRMADA":
+
+        return "🔄 Renovação Confirmada";
+
+
+      case "RENOVACAO_RECUSADA":
+
+        return "❌ Não Renovação";
+
+
       default:
 
         return "📌 Evento";

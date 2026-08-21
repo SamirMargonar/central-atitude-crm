@@ -2,6 +2,8 @@ import { useMemo } from "react";
 
 import "./Renovacoes.css";
 
+import RenovacaoAcoes from "./RenovacaoAcoes";
+
 
 export default function Renovacoes({
   leads = [],
@@ -719,32 +721,9 @@ export default function Renovacoes({
                   </button>
 
 
-                  <button
-                    className="btnRenovacaoContato"
-                    onClick={() => {
-
-                      alert(
-                        `Entrar em contato com ${cliente.nome || "o aluno"}.`
-                      );
-
-                    }}
-                  >
-                    📞 Entrar em contato
-                  </button>
-
-
-                  <button
-                    className="btnRenovacao"
-                    onClick={() => {
-
-                      alert(
-                        "A etapa de renovação será conectada aqui."
-                      );
-
-                    }}
-                  >
-                    🔄 Renovar plano
-                  </button>
+                  <RenovacaoAcoes
+                    cliente={cliente}
+                  />
 
                 </div>
 

@@ -5,6 +5,7 @@ import {
 } from "firebase/firestore";
 
 import {
+  useEffect,
   useState,
 } from "react";
 
@@ -30,9 +31,19 @@ import {
 } from "../utils/leadFilters";
 
 import {
+  filtrarNaoCompareceram,
+} from "../utils/naoCompareceramFilters";
+
+import {
+  buscarVisitasPorPerfil,
+} from "../Agenda/VisitaEngine";
+
+import {
   ETAPAS,
   JORNADA,
 } from "../core/LeadFlow";
+
+import "../styles/leadsNaoCompareceram.css";
 
 
 export default function Leads({
@@ -45,8 +56,141 @@ export default function Leads({
   // ==========================================================
 
   const {
+    isAdmin,
     perfilUsuario,
   } = useAuth();
+
+
+  // ==========================================================
+  // VISITAS (fonte da verdade do "Não Compareceram")
+  // ==========================================================
+
+  const [visitas, setVisitas] =
+    useState([]);
+
+  useEffect(() => {
+
+    let ativo = true;
+
+    async function carregar() {
+
+      try {
+
+        const resultado =
+          await buscarVisitasPorPerfil({
+
+            isAdmin,
+
+            perfil:
+              perfilUsuario?.perfil,
+
+            horaEntrada:
+              perfilUsuario?.horaEntrada,
+
+            horaSaida:
+              perfilUsuario?.horaSaida,
+
+          });
+
+        if (ativo) {
+
+          setVisitas(resultado);
+
+        }
+
+      } catch (erro) {
+
+        console.error(
+          "Erro ao carregar visitas:",
+          erro
+        );
+
+        if (ativo) {
+
+          setVisitas([]);
+
+        }
+
+      }
+
+    }
+
+    carregar();
+
+    return () => {
+
+      ativo = false;
+
+    };
+
+  }, [isAdmin, perfilUsuario]);
+
+
+  const naoCompareceram =
+    filtrarNaoCompareceram(visitas);
+
+
+  // ==========================================================
+  // ABRE O LEAD A PARTIR DE UMA VISITA
+  // ==========================================================
+
+  function abrirLeadDaVisita(visita) {
+
+    if (!visita?.leadId) {
+
+      alert(
+        "Esta visita não possui um Lead vinculado."
+      );
+
+      return;
+
+    }
+
+    const leadEncontrado =
+      leads.find(
+        (lead) =>
+          lead.id === visita.leadId
+      );
+
+    if (!leadEncontrado) {
+
+      alert(
+        "Não foi possível encontrar os dados deste Lead."
+      );
+
+      return;
+
+    }
+
+    setLeadDetalhes(leadEncontrado);
+
+  }
+
+
+  // ==========================================================
+  // FORMATA A DATA DA VISITA (aaaa-mm-dd -> dd/mm/aaaa)
+  // ==========================================================
+
+  function formatarDataVisita(data) {
+
+    if (!data) {
+      return "--/--/----";
+    }
+
+    const partes =
+      data.split("-");
+
+    if (
+      partes.length !== 3
+    ) {
+
+      return data;
+
+    }
+
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+  }
 
 
   // ==========================================================
@@ -611,6 +755,102 @@ export default function Leads({
           }
 
         />
+
+
+        {/* ==================================================
+            NÃO COMPARECERAM
+        ================================================== */}
+
+        {naoCompareceram.length > 0 && (
+
+          <section className="leadsAlertaNaoCompareceram">
+
+            <div className="leadsAlertaCabecalho">
+
+              <div>
+
+                <h2>
+                  🔴 Não Compareceram
+                </h2>
+
+                <p>
+                  Estes leads não compareceram à visita agendada
+                  e precisam de novo contato para reagendar.
+                </p>
+
+              </div>
+
+              <strong>
+                {naoCompareceram.length}
+              </strong>
+
+            </div>
+
+            <div className="leadsAlertaLista">
+
+              {naoCompareceram.map((visita) => {
+
+                const lead =
+                  leads.find(
+                    (item) =>
+                      item.id === visita.leadId
+                  );
+
+                const nome =
+                  visita.leadNome ||
+                  lead?.nome ||
+                  "Lead";
+
+                const consultora =
+                  visita.consultora ||
+                  "Não informado";
+
+                return (
+
+                  <div
+                    className="leadsAlertaItem"
+                    key={visita.id}
+                  >
+
+                    <div className="leadsAlertaInfo">
+
+                      <strong>
+                        🔴 {nome}
+                      </strong>
+
+                      <span>
+                        📅 Visita: {formatarDataVisita(visita.data)}
+                        {" "}às{" "}
+                        {visita.hora || "--:--"}
+                      </span>
+
+                      <span>
+                        👩‍💼 Consultora: {consultora}
+                      </span>
+
+                    </div>
+
+                    <button
+                      type="button"
+                      className="leadsAlertaBotao"
+                      onClick={() =>
+                        abrirLeadDaVisita(visita)
+                      }
+                    >
+                      👁️ Ver histórico →
+                    </button>
+
+                  </div>
+
+                );
+
+              })}
+
+            </div>
+
+          </section>
+
+        )}
 
 
         {/* ==================================================

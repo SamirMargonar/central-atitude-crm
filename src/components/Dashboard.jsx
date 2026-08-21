@@ -10,6 +10,8 @@ import {
 
 import LeadDetailsModal from "../components/LeadDetailsModal/LeadDetailsModal";
 
+import RelatorioMatriculas from "./RelatorioMatriculas";
+
 import {
   useAuth,
 } from "../auth/AuthContext";
@@ -34,6 +36,9 @@ export default function Dashboard({
     useState(null);
 
   const [mostrarVisitasHoje, setMostrarVisitasHoje] =
+    useState(false);
+
+  const [mostrarRelatorioMatriculas, setMostrarRelatorioMatriculas] =
     useState(false);
 
 
@@ -655,7 +660,13 @@ export default function Dashboard({
 
         {/* MATRÍCULAS */}
 
-        <div className="cardDashboard">
+        <button
+          type="button"
+          className="cardDashboard cardDashboardClicavel"
+          onClick={() =>
+            setMostrarRelatorioMatriculas(true)
+          }
+        >
 
           <h3>
             🎓 Matrículas
@@ -666,10 +677,10 @@ export default function Dashboard({
           </span>
 
           <p>
-            Jornada concluída
+            Clique para ver o relatório
           </p>
 
-        </div>
+        </button>
 
 
         {/* NÃO COMPARECIDOS */}
@@ -1012,6 +1023,25 @@ export default function Dashboard({
         />
 
       )}
+
+
+      {/* ======================================================
+          RELATÓRIO DE MATRÍCULAS
+      ====================================================== */}
+
+      <RelatorioMatriculas
+
+        leads={leads}
+
+        aberto={
+          mostrarRelatorioMatriculas
+        }
+
+        fechar={() =>
+          setMostrarRelatorioMatriculas(false)
+        }
+
+      />
 
     </>
 

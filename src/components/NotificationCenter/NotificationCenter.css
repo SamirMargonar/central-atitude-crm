@@ -1,0 +1,331 @@
+/* =========================================================
+   CENTRAL DE NOTIFICAÇÕES
+========================================================= */
+
+.notificationCenter {
+    position: fixed;
+
+    top: 90px;
+    right: 25px;
+
+    width: 380px;
+    max-width: calc(100vw - 40px);
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 14px;
+
+    z-index: 99999;
+
+    pointer-events: none;
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.notificationCard {
+    position: relative;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 20px 20px 18px;
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    border: 1px solid #e7e7e7;
+
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.20);
+
+    pointer-events: auto;
+
+    animation: notificationEntrada 0.35s ease;
+
+    overflow: hidden;
+}
+
+
+/* =========================================================
+   ANIMAÇÃO
+========================================================= */
+
+@keyframes notificationEntrada {
+
+    from {
+        opacity: 0;
+
+        transform:
+            translateX(40px)
+            scale(0.96);
+    }
+
+    to {
+        opacity: 1;
+
+        transform:
+            translateX(0)
+            scale(1);
+    }
+
+}
+
+
+/* =========================================================
+   BORDA LATERAL
+========================================================= */
+
+.notificationCard::before {
+
+    content: "";
+
+    position: absolute;
+
+    left: 0;
+    top: 0;
+    bottom: 0;
+
+    width: 5px;
+
+    background: #6c63ff;
+
+}
+
+
+/* =========================================================
+   PRIORIDADE ALTA
+========================================================= */
+
+.notificationAlta {
+
+    border-color: #ffd0d0;
+
+}
+
+.notificationAlta::before {
+
+    background: #e53935;
+
+}
+
+
+/* =========================================================
+   PRIORIDADE MÉDIA
+========================================================= */
+
+.notificationMedia {
+
+    border-color: #ffe1a8;
+
+}
+
+.notificationMedia::before {
+
+    background: #ff9800;
+
+}
+
+
+/* =========================================================
+   BOTÃO FECHAR
+========================================================= */
+
+.notificationClose {
+
+    position: absolute;
+
+    top: 10px;
+    right: 10px;
+
+    width: 28px;
+    height: 28px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 8px;
+
+    background: #f3f3f3;
+
+    color: #555;
+
+    font-size: 18px;
+
+    line-height: 1;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+
+}
+
+
+.notificationClose:hover {
+
+    background: #e7e7e7;
+
+    color: #222;
+
+    transform: scale(1.05);
+
+}
+
+
+/* =========================================================
+   TÍTULO
+========================================================= */
+
+.notificationTitulo {
+
+    padding-right: 35px;
+
+    margin-bottom: 9px;
+
+    font-size: 17px;
+
+    font-weight: 700;
+
+    color: #222;
+
+    line-height: 1.35;
+
+}
+
+
+/* =========================================================
+   MENSAGEM
+========================================================= */
+
+.notificationMensagem {
+
+    margin-bottom: 16px;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+    color: #666;
+
+}
+
+
+/* =========================================================
+   AÇÕES
+========================================================= */
+
+.notificationActions {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 10px;
+
+    margin-top: 5px;
+
+}
+
+
+/* =========================================================
+   BOTÃO
+========================================================= */
+
+.notificationButton {
+
+    border: none;
+
+    border-radius: 10px;
+
+    padding: 10px 15px;
+
+    background: #6c63ff;
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+
+}
+
+
+.notificationButton:hover {
+
+    background: #5a52e8;
+
+    transform: translateY(-1px);
+
+}
+
+
+.notificationButton:active {
+
+    transform: translateY(0);
+
+}
+
+
+/* =========================================================
+   NOVO LEAD
+========================================================= */
+
+.notificationCard:has(.notificationTitulo) {
+
+    font-family: inherit;
+
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+========================================================= */
+
+@media (max-width: 600px) {
+
+    .notificationCenter {
+
+        top: 75px;
+
+        right: 15px;
+
+        left: 15px;
+
+        width: auto;
+
+        max-width: none;
+
+    }
+
+    .notificationCard {
+
+        padding: 18px 18px 16px;
+
+    }
+
+    .notificationTitulo {
+
+        font-size: 16px;
+
+    }
+
+    .notificationMensagem {
+
+        font-size: 13px;
+
+    }
+
+}

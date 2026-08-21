@@ -1,0 +1,256 @@
+/* =========================================================
+   PAINEL COMERCIAL — V1.5 (Funil, Indicadores, Atenção)
+   Compartilha o mesmo tema escuro do restante do Dashboard.
+========================================================= */
+
+.funilComercial,
+.indicadoresPeriodo,
+.precisaAtencao {
+  background: #101c33;
+  border: 1px solid #1f2c47;
+  border-radius: 18px;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.funilComercial h2,
+.indicadoresPeriodo h2,
+.precisaAtencao h2 {
+  margin: 0 0 18px 0;
+  color: #ffffff;
+  font-size: 20px;
+}
+
+
+/* =========================================================
+   FUNIL
+========================================================= */
+
+.funilComercialLista {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.funilComercialDegrau {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.funilComercialLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: #aeb8c7;
+  font-size: 14px;
+}
+
+.funilComercialLabel strong {
+  color: #ffffff;
+  font-size: 16px;
+}
+
+.funilComercialBarraFundo {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: #1a2740;
+  overflow: hidden;
+}
+
+.funilComercialBarra {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #6c63ff, #8f88ff);
+  transition: width 0.3s ease;
+}
+
+
+/* =========================================================
+   INDICADORES DE PERÍODO
+========================================================= */
+
+.indicadoresPeriodoCabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.indicadoresPeriodoCabecalho h2 {
+  margin: 0;
+}
+
+.seletorPeriodo {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.botaoPeriodo,
+.botaoPeriodoAtivo {
+  border: 1px solid #2a3a5c;
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  color: #aeb8c7;
+}
+
+.botaoPeriodoAtivo {
+  background: #6c63ff;
+  border-color: #6c63ff;
+  color: #ffffff;
+}
+
+.periodoPersonalizadoCampos {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.periodoPersonalizadoCampos label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #aeb8c7;
+  font-size: 13px;
+}
+
+.periodoPersonalizadoCampos input {
+  border-radius: 10px;
+  border: 1px solid #2a3a5c;
+  background: #0b1730;
+  color: #ffffff;
+  padding: 8px 10px;
+}
+
+.indicadoresPeriodoGrade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.indicadorPeriodoCard {
+  background: #0b1730;
+  border: 1px solid #1f2c47;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.indicadorPeriodoCard span {
+  color: #aeb8c7;
+  font-size: 13px;
+}
+
+.indicadorPeriodoCard strong {
+  color: #ffffff;
+  font-size: 24px;
+}
+
+
+/* =========================================================
+   PRECISA DA SUA ATENÇÃO
+========================================================= */
+
+.precisaAtencaoCabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.precisaAtencaoCabecalho h2 {
+  margin: 0;
+}
+
+.precisaAtencaoCabecalho span {
+  color: #aeb8c7;
+  font-size: 13px;
+}
+
+.precisaAtencaoGrade {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.precisaAtencaoCategoria {
+  background: #0b1730;
+  border: 1px solid #1f2c47;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.precisaAtencaoCategoriaTitulo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.precisaAtencaoVazio {
+  color: #6b7896;
+  font-size: 13px;
+  margin: 0;
+}
+
+.precisaAtencaoLista {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.precisaAtencaoLista button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid #263355;
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: #101c33;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.precisaAtencaoLista button:hover {
+  border-color: #6c63ff;
+}
+
+.precisaAtencaoLista button strong {
+  color: #ffffff;
+  font-size: 14px;
+}
+
+.precisaAtencaoLista button span {
+  color: #aeb8c7;
+  font-size: 12px;
+}
+
+
+@media (max-width: 700px) {
+
+  .indicadoresPeriodoCabecalho {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+}

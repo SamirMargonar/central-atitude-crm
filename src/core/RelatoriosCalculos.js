@@ -22,6 +22,10 @@ import {
   normalizarObjetivo,
 } from "./RelatoriosNormalizacao";
 
+import {
+  calcularDiasParaVencimento,
+} from "../utils/renovacaoAlertas";
+
 
 // ==========================================================
 // HELPERS
@@ -510,6 +514,300 @@ export function calcularDesempenhoPorConsultora(leads, visitas, usuariosPorUid) 
           : (usuariosPorUid?.[grupo.categoria]?.nome || grupo.categoria),
 
     })
+  );
+
+}
+
+
+// ==========================================================
+// V1.5 — PAINEL COMERCIAL (Dashboard)
+// ==========================================================
+//
+// Tudo abaixo é aditivo: nenhuma função acima foi alterada, o
+// módulo Relatórios continua consumindo exatamente o que já
+// consumia.
+// ==========================================================
+
+
+// ==========================================================
+// FUNIL COMERCIAL — 7 degraus, cumulativo
+//
+// Diferente de calcularFunil() (que conta "quantos leads estão
+// ATUALMENTE em cada etapa", usado por Relatórios), este funil
+// conta "quantos leads JÁ ATINGIRAM cada degrau" — cada degrau
+// nunca é maior que o anterior. "Compareceu" não é uma etapa do
+// lead: cruza com a coleção de visitas e conta LEADS ÚNICOS
+// (não visitas), restritos ao conjunto de leads recebido.
+// ==========================================================
+
+const ORDEM_FUNIL_COMERCIAL = [
+
+  { chave: "recebidos", label: "Recebidos" },
+
+  { chave: "atendimento", label: "Atendimento" },
+
+  { chave: "contato", label: "Contato" },
+
+  { chave: "visita", label: "Visita" },
+
+  { chave: "compareceu", label: "Compareceu" },
+
+  { chave: "negociacao", label: "Negociação" },
+
+  { chave: "matricula", label: "Matrícula" },
+
+];
+
+export function calcularFunilComercial(leads, visitas) {
+
+  const recebidos =
+    leads.length;
+
+  const atendimento =
+    leads.filter(
+      (lead) => lead.assumido === true
+    ).length;
+
+  const contato =
+    leads.filter(
+      (lead) => obterEtapa(lead) >= ETAPAS.CONTATO
+    ).length;
+
+  const visita =
+    leads.filter(
+      (lead) => obterEtapa(lead) >= ETAPAS.VISITA
+    ).length;
+
+  const idsLeadsNoEscopo =
+    new Set(
+      leads.map((lead) => lead.id)
+    );
+
+  const idsCompareceram =
+    new Set(
+      visitas
+        .filter(
+          (visita) => visita.comparecimento === "COMPARECEU"
+        )
+        .map((visita) => visita.leadId)
+        .filter(
+          (leadId) => leadId && idsLeadsNoEscopo.has(leadId)
+        )
+    );
+
+  const compareceu =
+    idsCompareceram.size;
+
+  const negociacao =
+    leads.filter(
+      (lead) => obterEtapa(lead) >= ETAPAS.NEGOCIACAO
+    ).length;
+
+  const matricula =
+    leads.filter(
+      (lead) => obterEtapa(lead) === ETAPAS.MATRICULA
+    ).length;
+
+  const totais = {
+    recebidos,
+    atendimento,
+    contato,
+    visita,
+    compareceu,
+    negociacao,
+    matricula,
+  };
+
+  return ORDEM_FUNIL_COMERCIAL.map(
+    (degrau) => ({
+
+      chave: degrau.chave,
+
+      label: degrau.label,
+
+      total: totais[degrau.chave],
+
+    })
+  );
+
+}
+
+
+// ==========================================================
+// NEGOCIAÇÕES PARADAS
+//
+// etapa === NEGOCIACAO e lead.atualizadoEm (Timestamp real do
+// Firestore, gravado por atualizarLead() em toda escrita) tem
+// diasLimite dias ou mais. Sem Timestamp confiável, o lead NÃO
+// entra — conservador, nunca assume "parada" sem conseguir medir.
+// ==========================================================
+
+export function filtrarNegociacoesParadas(leads, hoje = new Date(), diasLimite = 3) {
+
+  return leads.filter(
+    (lead) => {
+
+      if (
+        obterEtapa(lead) !== ETAPAS.NEGOCIACAO
+      ) {
+
+        return false;
+
+      }
+
+      const atualizadoEm =
+        lead.atualizadoEm;
+
+      if (
+        !atualizadoEm ||
+        typeof atualizadoEm.toDate !== "function"
+      ) {
+
+        return false;
+
+      }
+
+      const diferencaMs =
+        hoje.getTime() -
+        atualizadoEm.toDate().getTime();
+
+      const diferencaDias =
+        diferencaMs / (1000 * 60 * 60 * 24);
+
+      return diferencaDias >= diasLimite;
+
+    }
+  );
+
+}
+
+
+// ==========================================================
+// PRESETS DE PERÍODO — Hoje / 7 dias / 30 dias / Personalizado
+//
+// Alimenta filtrarLeadsPorPeriodo/filtrarVisitasPorPeriodo já
+// existentes — nenhuma lógica de filtro nova, só o cálculo do
+// intervalo. "Personalizado" (ou qualquer preset desconhecido)
+// devolve datas vazias — o controle fica manual, via os campos
+// de data já existentes.
+// ==========================================================
+
+export function calcularIntervaloPeriodo(preset, hoje = new Date()) {
+
+  const hojeISO =
+    paraDataISO(hoje);
+
+  if (preset === "HOJE") {
+
+    return {
+      dataInicio: hojeISO,
+      dataFim: hojeISO,
+    };
+
+  }
+
+  if (preset === "7_DIAS") {
+
+    const inicio =
+      new Date(hoje);
+
+    inicio.setDate(
+      inicio.getDate() - 6
+    );
+
+    return {
+      dataInicio: paraDataISO(inicio),
+      dataFim: hojeISO,
+    };
+
+  }
+
+  if (preset === "30_DIAS") {
+
+    const inicio =
+      new Date(hoje);
+
+    inicio.setDate(
+      inicio.getDate() - 29
+    );
+
+    return {
+      dataInicio: paraDataISO(inicio),
+      dataFim: hojeISO,
+    };
+
+  }
+
+  return {
+    dataInicio: "",
+    dataFim: "",
+  };
+
+}
+
+
+// ==========================================================
+// RENOVAÇÕES PRÓXIMAS
+//
+// Janela de 60 dias (alinhada ao primeiro marco de alerta da
+// V1.3), reaproveitando calcularDiasParaVencimento — nenhuma
+// lógica nova de alerta/persistência, só uma lista para exibição.
+// ==========================================================
+
+export function filtrarRenovacoesProximas(leads, diasLimite = 60, hoje = new Date()) {
+
+  return leads.filter(
+    (lead) => {
+
+      if (
+        lead?.matricula?.confirmada !== true
+      ) {
+
+        return false;
+
+      }
+
+      const dias =
+        calcularDiasParaVencimento(
+          lead.matricula.dataVencimento,
+          hoje
+        );
+
+      if (
+        dias === null ||
+        dias < 0
+      ) {
+
+        return false;
+
+      }
+
+      return dias <= diasLimite;
+
+    }
+  );
+
+}
+
+
+// ==========================================================
+// "PRECISA DA SUA ATENÇÃO" — filtros de apoio
+// ==========================================================
+
+export function filtrarLeadsSemAtendimento(leads) {
+
+  return leads.filter(
+    (lead) =>
+      !lead.assumido &&
+      obterEtapa(lead) === ETAPAS.RECEBIDO
+  );
+
+}
+
+export function filtrarLeadsSemResposta(leads) {
+
+  return leads.filter(
+    (lead) => lead.semResposta === true
   );
 
 }

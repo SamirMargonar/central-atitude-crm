@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 
 import "../styles/dashboard.css";
+import "../styles/painelComercial.css";
 
 import { ETAPAS } from "../core/LeadFlow";
 
@@ -11,6 +12,25 @@ import {
 import LeadDetailsModal from "../components/LeadDetailsModal/LeadDetailsModal";
 
 import RelatorioMatriculas from "./RelatorioMatriculas";
+
+import FunilComercial from "./FunilComercial";
+import IndicadoresPeriodo from "./IndicadoresPeriodo";
+import PrecisaAtencao from "./PrecisaAtencao";
+
+import {
+  calcularIndicadores,
+  calcularFunilComercial,
+  calcularIntervaloPeriodo,
+  filtrarLeadsPorPeriodo,
+  filtrarVisitasPorPeriodo,
+  filtrarNegociacoesParadas,
+  filtrarRenovacoesProximas,
+  filtrarLeadsSemResposta,
+} from "../core/RelatoriosCalculos";
+
+import {
+  filtrarNaoCompareceram,
+} from "../utils/naoCompareceramFilters";
 
 import {
   useAuth,
@@ -40,6 +60,15 @@ export default function Dashboard({
 
   const [mostrarRelatorioMatriculas, setMostrarRelatorioMatriculas] =
     useState(false);
+
+  const [periodoSelecionado, setPeriodoSelecionado] =
+    useState("HOJE");
+
+  const [dataInicioPersonalizada, setDataInicioPersonalizada] =
+    useState("");
+
+  const [dataFimPersonalizada, setDataFimPersonalizada] =
+    useState("");
 
 
   // ==========================================================
@@ -147,6 +176,46 @@ export default function Dashboard({
 
     }
 
+
+    setLeadSelecionado(
+      leadEncontrado
+    );
+
+  }
+
+
+  // ==========================================================
+  // ABRIR LEAD PELO ID (usado pela seção "Precisa da sua
+  // atenção", cujos itens já vêm normalizados com leadId)
+  // ==========================================================
+
+  function abrirLeadPorId(leadId) {
+
+    if (!leadId) {
+
+      alert(
+        "Não foi possível identificar o Lead."
+      );
+
+      return;
+
+    }
+
+    const leadEncontrado =
+      leads.find(
+        (lead) =>
+          lead.id === leadId
+      );
+
+    if (!leadEncontrado) {
+
+      alert(
+        "Não foi possível encontrar os dados deste Lead."
+      );
+
+      return;
+
+    }
 
     setLeadSelecionado(
       leadEncontrado
@@ -350,6 +419,232 @@ export default function Dashboard({
 
 
   // ==========================================================
+  // V1.5 — PAINEL COMERCIAL
+  // ==========================================================
+  //
+  // Funil e Indicadores respeitam o período selecionado.
+  // "Precisa da sua atenção" é sempre independente do período
+  // (mostra pendências reais, não recortadas por data).
+  //
+  // Nenhuma consulta nova ao Firestore: tudo abaixo deriva de
+  // `leads` (prop) e `visitas` (já carregado acima neste mesmo
+  // componente).
+  // ==========================================================
+
+  const intervaloPeriodo =
+    periodoSelecionado === "PERSONALIZADO"
+      ? {
+          dataInicio: dataInicioPersonalizada,
+          dataFim: dataFimPersonalizada,
+        }
+      : calcularIntervaloPeriodo(
+          periodoSelecionado,
+          new Date()
+        );
+
+
+  const { dentro: leadsNoPeriodo } =
+    filtrarLeadsPorPeriodo(
+      leads,
+      intervaloPeriodo.dataInicio || null,
+      intervaloPeriodo.dataFim || null
+    );
+
+
+  const visitasNoPeriodo =
+    filtrarVisitasPorPeriodo(
+      visitas,
+      intervaloPeriodo.dataInicio || null,
+      intervaloPeriodo.dataFim || null
+    );
+
+
+  const indicadoresPeriodo =
+    calcularIndicadores(
+      leadsNoPeriodo,
+      visitasNoPeriodo
+    );
+
+
+  const funilComercial =
+    calcularFunilComercial(
+      leadsNoPeriodo,
+      visitasNoPeriodo
+    );
+
+
+  // ----------------------------------------------------------
+  // "PRECISA DA SUA ATENÇÃO" — sempre sobre `leads`/`visitas`
+  // completos, nunca sobre o recorte de período.
+  // ----------------------------------------------------------
+
+  const negociacoesParadas =
+    filtrarNegociacoesParadas(
+      leads,
+      new Date(),
+      3
+    );
+
+
+  const renovacoesProximas =
+    filtrarRenovacoesProximas(
+      leads,
+      60,
+      new Date()
+    );
+
+
+  const naoComparecidosPendentes =
+    filtrarNaoCompareceram(visitas);
+
+
+  const leadsSemResposta =
+    filtrarLeadsSemResposta(leads);
+
+
+  const categoriasAtencao = [
+
+    {
+
+      titulo: "Sem atendimento",
+
+      icone: "🆕",
+
+      itens:
+        leadsRecebidos.map(
+          (lead) => ({
+
+            id: lead.id,
+
+            leadId: lead.id,
+
+            nome:
+              lead.nome || "Lead",
+
+            subtitulo:
+              "Aguardando atendimento",
+
+          })
+        ),
+
+    },
+
+    {
+
+      titulo: "Sem resposta",
+
+      icone: "📵",
+
+      itens:
+        leadsSemResposta.map(
+          (lead) => ({
+
+            id: lead.id,
+
+            leadId: lead.id,
+
+            nome:
+              lead.nome || "Lead",
+
+            subtitulo:
+              `${Number(lead.tentativasSemResposta || 0)} tentativa(s) sem resposta`,
+
+          })
+        ),
+
+    },
+
+    {
+
+      titulo: "Não compareceram",
+
+      icone: "🔴",
+
+      itens:
+        naoComparecidosPendentes.map(
+          (visita) => {
+
+            const lead =
+              leads.find(
+                (item) =>
+                  item.id === visita.leadId
+              );
+
+            return {
+
+              id: visita.id,
+
+              leadId: visita.leadId,
+
+              nome:
+                visita.leadNome ||
+                lead?.nome ||
+                "Lead",
+
+              subtitulo:
+                `Visita ${formatarData(visita.data)} às ${visita.hora || "--:--"}`,
+
+            };
+
+          }
+        ),
+
+    },
+
+    {
+
+      titulo: "Negociação parada",
+
+      icone: "🟡",
+
+      itens:
+        negociacoesParadas.map(
+          (lead) => ({
+
+            id: lead.id,
+
+            leadId: lead.id,
+
+            nome:
+              lead.nome || "Lead",
+
+            subtitulo:
+              "Sem movimento há 3 dias ou mais",
+
+          })
+        ),
+
+    },
+
+    {
+
+      titulo: "Renovação próxima",
+
+      icone: "🔄",
+
+      itens:
+        renovacoesProximas.map(
+          (lead) => ({
+
+            id: lead.id,
+
+            leadId: lead.id,
+
+            nome:
+              lead.nome || "Lead",
+
+            subtitulo:
+              `Vence em ${formatarData(lead.matricula?.dataVencimento)}`,
+
+          })
+        ),
+
+    },
+
+  ];
+
+
+  // ==========================================================
   // RENDER
   // ==========================================================
 
@@ -376,6 +671,30 @@ export default function Dashboard({
         </div>
 
       </section>
+
+
+      {/* ======================================================
+          V1.5 — PAINEL COMERCIAL
+      ====================================================== */}
+
+      <PrecisaAtencao
+        categorias={categoriasAtencao}
+        onAbrirLead={abrirLeadPorId}
+      />
+
+      <IndicadoresPeriodo
+        indicadores={indicadoresPeriodo}
+        periodoSelecionado={periodoSelecionado}
+        onMudarPeriodo={setPeriodoSelecionado}
+        dataInicioPersonalizada={dataInicioPersonalizada}
+        dataFimPersonalizada={dataFimPersonalizada}
+        onMudarDataInicioPersonalizada={setDataInicioPersonalizada}
+        onMudarDataFimPersonalizada={setDataFimPersonalizada}
+      />
+
+      <FunilComercial
+        funil={funilComercial}
+      />
 
 
       {/* ======================================================

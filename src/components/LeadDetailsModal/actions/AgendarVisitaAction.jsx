@@ -75,7 +75,7 @@ export default function AgendarVisitaAction({
 
       const novaEtapa =
         proximaEtapa(
-          ETAPAS.CONTATO
+          ETAPAS.RESPOSTA
         );
 
 
@@ -206,7 +206,7 @@ export default function AgendarVisitaAction({
         dados: {
 
           etapaAnterior:
-            ETAPAS.CONTATO,
+            ETAPAS.RESPOSTA,
 
           novaEtapa,
 

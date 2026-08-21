@@ -214,7 +214,9 @@ export default function Dashboard({
     visitas.filter(
       (visita) =>
         visita.comparecimento ===
-        "NAO_COMPARECEU"
+        "NAO_COMPARECEU" &&
+        visita.data ===
+        hojeString
     );
 
 

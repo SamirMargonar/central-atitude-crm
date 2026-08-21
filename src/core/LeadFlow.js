@@ -8,69 +8,117 @@ export const ETAPAS = {
 
   CONTATO: 1,
 
-  VISITA: 2,
+  RESPOSTA: 2,
 
-  NEGOCIACAO: 3,
+  VISITA: 3,
 
-  MATRICULA: 4,
+  NEGOCIACAO: 4,
+
+  MATRICULA: 5,
 
 };
 
-// Ordem das etapas
+
+// ===============================
+// ORDEM DA JORNADA
+// ===============================
 
 export const JORNADA = [
 
   {
+
     id: ETAPAS.RECEBIDO,
+
     nome: "Recebido",
+
   },
 
   {
+
     id: ETAPAS.CONTATO,
+
     nome: "Contato",
+
   },
 
   {
+
+    id: ETAPAS.RESPOSTA,
+
+    nome: "Resposta",
+
+  },
+
+  {
+
     id: ETAPAS.VISITA,
+
     nome: "Visita",
+
   },
 
   {
+
     id: ETAPAS.NEGOCIACAO,
+
     nome: "Negociação",
+
   },
 
   {
+
     id: ETAPAS.MATRICULA,
+
     nome: "Matrícula",
+
   },
 
 ];
 
-// Retorna a próxima etapa
 
-export function proximaEtapa(etapaAtual) {
+// ===============================
+// PRÓXIMA ETAPA
+// ===============================
 
-  if (etapaAtual >= JORNADA.length - 1) {
+export function proximaEtapa(
+  etapaAtual
+) {
+
+  if (
+    etapaAtual >=
+    JORNADA.length - 1
+  ) {
 
     return etapaAtual;
 
   }
 
+
   return etapaAtual + 1;
 
 }
 
-// Nome da etapa
 
-export function nomeDaEtapa(etapa) {
+// ===============================
+// NOME DA ETAPA
+// ===============================
 
-  const encontrada = JORNADA.find(
+export function nomeDaEtapa(
+  etapa
+) {
 
-    (item) => item.id === etapa
+  const encontrada =
+    JORNADA.find(
 
+      (item) =>
+        item.id === etapa
+
+    );
+
+
+  return (
+    encontrada?.nome ||
+    "Recebido"
   );
-
-  return encontrada?.nome || "Recebido";
 
 }

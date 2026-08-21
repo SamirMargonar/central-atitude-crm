@@ -1,76 +1,217 @@
-// ===============================
+// ==========================================================
 // PERFIS DO SISTEMA
-// ===============================
+// ==========================================================
+//
+// Estes são os únicos valores reais gravados em
+// usuarios/{uid}.perfil no Firestore. Sempre minúsculos.
+// ==========================================================
 
 export const PERFIS = {
 
-  ADMIN: "Administrador",
+  ADMIN: "admin",
 
-  COORDENADOR: "Coordenador",
+  COORDENADOR: "coordenador",
 
-  CONSULTORA: "Consultora",
+  RECEPCIONISTA: "recepcionista",
 
 };
 
-// ===============================
-// PERMISSÕES PADRÃO
-// ===============================
+
+// ==========================================================
+// PERMISSÕES GRANULARES POR PERFIL
+// ==========================================================
+//
+// Cada chave representa uma ação concreta do sistema.
+// Um valor "false" pode significar tanto "não permitido"
+// quanto "funcionalidade ainda não existe no sistema"
+// (ex.: excluirUsuarioPermanente, que hoje não existe
+// para nenhum perfil).
+// ==========================================================
 
 export const PERMISSOES = {
 
-  Administrador: {
-    dashboard: true,
-    leads: true,
-    financeiro: true,
-    agenda: true,
-    relatorios: true,
-    usuarios: true,
-    configuracoes: true,
+  // ========================================================
+  // ADMINISTRADOR
+  // ========================================================
+
+  admin: {
+
+    // --- Leads ---
+    verTodosLeads: true,
+    criarLead: true,
+    editarLead: true,
+    assumirLead: true,
     transferirLead: true,
-    editarResponsavel: true,
-    excluirObservacao: true,
+
+    // --- Agenda / Renovações ---
+    agendaCompleta: true,
+    renovacoes: true,
+
+    // --- Relatórios ---
+    acessarRelatorios: true,
+    relatorioGeral: true,
+    relatorioIndividual: true,
+
+    // --- Usuários ---
+    acessarUsuarios: true,
+    criarUsuario: true,
+    editarUsuario: true,
+    ativarDesativarUsuario: true,
+    excluirUsuarioPermanente: false,
+
+    // --- Estrutural ---
+    configuracoesEstruturais: true,
+    alterarPermissoes: true,
+    alterarAdministrador: true,
+
+    // --- Notificações ---
+    // Admin nunca recebe alerta sonoro de novo lead.
+    alertaSonoroNovoLead: false,
+
   },
 
-  Coordenador: {
-    dashboard: true,
-    leads: true,
-    financeiro: true,
-    agenda: true,
-    relatorios: true,
-    usuarios: true,
-    configuracoes: true,
+
+  // ========================================================
+  // COORDENADOR
+  // ========================================================
+
+  coordenador: {
+
+    // --- Leads ---
+    verTodosLeads: true,
+    criarLead: true,
+    editarLead: true,
+    assumirLead: true,
     transferirLead: true,
-    editarResponsavel: true,
-    excluirObservacao: false,
+
+    // --- Agenda / Renovações ---
+    agendaCompleta: true,
+    renovacoes: true,
+
+    // --- Relatórios ---
+    acessarRelatorios: true,
+    relatorioGeral: true,
+    relatorioIndividual: true,
+
+    // --- Usuários ---
+    acessarUsuarios: true,
+    criarUsuario: true,
+    editarUsuario: true,
+    ativarDesativarUsuario: true,
+    excluirUsuarioPermanente: false,
+
+    // --- Estrutural ---
+    // Configurações estruturais, permissões e o administrador
+    // são exclusivos do perfil admin.
+    configuracoesEstruturais: false,
+    alterarPermissoes: false,
+    alterarAdministrador: false,
+
+    // --- Notificações ---
+    // Coordenador nunca recebe alerta sonoro de novo lead.
+    alertaSonoroNovoLead: false,
+
   },
 
-  Consultora: {
-    dashboard: true,
-    leads: true,
-    financeiro: false,
-    agenda: true,
-    relatorios: false,
-    usuarios: false,
-    configuracoes: false,
+
+  // ========================================================
+  // RECEPCIONISTA
+  // ========================================================
+
+  recepcionista: {
+
+    // --- Leads ---
+    // Vê apenas os próprios leads + a fila de Recebidos
+    // sem responsável (regra tratada em useLeads.js).
+    verTodosLeads: false,
+    criarLead: true,
+    editarLead: true,
+    assumirLead: true,
     transferirLead: false,
-    editarResponsavel: false,
-    excluirObservacao: false,
+
+    // --- Agenda / Renovações ---
+    // Agenda segue as regras de turno já existentes
+    // (não é acesso total como admin/coordenador).
+    agendaCompleta: false,
+    renovacoes: true,
+
+    // --- Relatórios ---
+    acessarRelatorios: true,
+    relatorioGeral: false,
+    relatorioIndividual: true,
+
+    // --- Usuários ---
+    acessarUsuarios: false,
+    criarUsuario: false,
+    editarUsuario: false,
+    ativarDesativarUsuario: false,
+    excluirUsuarioPermanente: false,
+
+    // --- Estrutural ---
+    configuracoesEstruturais: false,
+    alterarPermissoes: false,
+    alterarAdministrador: false,
+
+    // --- Notificações ---
+    // Somente recepcionista pode ouvir o alerta de novo lead
+    // (e mesmo assim, nunca de um lead que ela mesma cadastrou —
+    // essa exceção pontual continua tratada em
+    // NotificationCenter.jsx, não faz parte da matriz de perfil).
+    alertaSonoroNovoLead: true,
+
   },
 
 };
 
-// ===============================
+
+// ==========================================================
+// PERMISSÕES VAZIAS
+// ==========================================================
+//
+// Usado como fallback seguro enquanto o perfil ainda não
+// foi carregado, ou para um perfil desconhecido.
+// Todas as ações ficam bloqueadas por padrão.
+// ==========================================================
+
+const PERMISSOES_VAZIAS = Object.fromEntries(
+  Object.keys(PERMISSOES.admin).map(
+    (chave) => [chave, false]
+  )
+);
+
+
+// ==========================================================
+// OBTÉM A PERMISSÃO DE UM PERFIL
+// ==========================================================
+
+export function obterPermissoes(perfil) {
+
+  const chave =
+    String(perfil || "")
+      .trim()
+      .toLowerCase();
+
+  return (
+    PERMISSOES[chave] ||
+    PERMISSOES_VAZIAS
+  );
+
+}
+
+
+// ==========================================================
 // VERIFICA PERMISSÃO
-// ===============================
+// ==========================================================
+//
+// pode("recepcionista", "transferirLead") → false
+// pode("admin", "acessarUsuarios") → true
+// ==========================================================
 
-export function pode(usuario, permissao) {
+export function pode(perfil, acao) {
 
-  if (!usuario) return false;
+  const regras =
+    obterPermissoes(perfil);
 
-  const regras = PERMISSOES[usuario.perfil];
-
-  if (!regras) return false;
-
-  return regras[permissao] || false;
+  return regras[acao] === true;
 
 }

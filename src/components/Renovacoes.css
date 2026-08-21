@@ -1,0 +1,516 @@
+/* =========================================================
+   PÁGINA
+========================================================= */
+
+.renovacoesPage {
+  width: 100%;
+  min-height: 100%;
+  padding: 30px;
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.renovacoesHeader {
+  margin-bottom: 30px;
+}
+
+.renovacoesHeader h1 {
+  margin: 0;
+  color: #222;
+  font-size: 30px;
+}
+
+.renovacoesHeader p {
+  margin: 8px 0 0;
+  color: #777;
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   RESUMO
+========================================================= */
+
+.renovacoesResumo {
+  display: grid;
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 18px;
+
+  margin-bottom: 25px;
+}
+
+.renovacaoResumoCard {
+  background: #ffffff;
+
+  border: 1px solid #ececec;
+
+  border-radius: 16px;
+
+  padding: 20px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 15px;
+
+  box-shadow:
+    0 5px 20px
+    rgba(0, 0, 0, 0.04);
+}
+
+.renovacaoResumoCard > span {
+  font-size: 25px;
+}
+
+.renovacaoResumoCard div {
+  display: flex;
+  flex-direction: column;
+}
+
+.renovacaoResumoCard strong {
+  font-size: 25px;
+  color: #222;
+}
+
+.renovacaoResumoCard small {
+  margin-top: 3px;
+  color: #777;
+}
+
+
+/* =========================================================
+   LISTA
+========================================================= */
+
+.renovacoesLista {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+
+/* =========================================================
+   CARD
+========================================================= */
+
+.renovacaoCard {
+  position: relative;
+
+  background: #ffffff;
+
+  border-radius: 18px;
+
+  padding: 23px;
+
+  border: 2px solid #e5e7eb;
+
+  box-shadow:
+    0 6px 22px
+    rgba(0, 0, 0, 0.05);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.renovacaoCard:hover {
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 10px 28px
+    rgba(0, 0, 0, 0.08);
+}
+
+
+/* =========================================================
+   CORES DOS CARDS
+========================================================= */
+
+.renovacaoVencida {
+  border-color: #ef4444;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff5f5,
+      #ffffff
+    );
+}
+
+.renovacaoUrgente {
+  border-color: #f97316;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fff7ed,
+      #ffffff
+    );
+}
+
+.renovacaoAtencao {
+  border-color: #eab308;
+
+  background:
+    linear-gradient(
+      135deg,
+      #fefce8,
+      #ffffff
+    );
+}
+
+.renovacaoProxima {
+  border-color: #22c55e;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f0fdf4,
+      #ffffff
+    );
+}
+
+
+/* =========================================================
+   TOPO
+========================================================= */
+
+.renovacaoCardTopo {
+  display: flex;
+
+  justify-content:
+    space-between;
+
+  align-items:
+    center;
+
+  gap: 20px;
+
+  margin-bottom: 20px;
+}
+
+.renovacaoCardTopo h2 {
+  margin: 8px 0 0;
+
+  color: #222;
+
+  font-size: 21px;
+}
+
+.renovacaoStatus {
+  display: inline-block;
+
+  padding: 6px 10px;
+
+  border-radius: 20px;
+
+  font-size: 11px;
+
+  font-weight: 800;
+
+  text-transform:
+    uppercase;
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.renovacaoVencida
+.renovacaoStatus {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.renovacaoUrgente
+.renovacaoStatus {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.renovacaoAtencao
+.renovacaoStatus {
+  background: #fef3c7;
+  color: #a16207;
+}
+
+.renovacaoProxima
+.renovacaoStatus {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+
+/* =========================================================
+   DIAS
+========================================================= */
+
+.renovacaoDias {
+  min-width: 85px;
+
+  text-align: center;
+}
+
+.renovacaoDias strong {
+  display: block;
+
+  font-size: 30px;
+
+  line-height: 1;
+
+  color: #222;
+}
+
+.renovacaoDias small {
+  display: block;
+
+  margin-top: 6px;
+
+  color: #777;
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  text-transform:
+    uppercase;
+}
+
+
+/* =========================================================
+   INFORMAÇÕES
+========================================================= */
+
+.renovacaoInfo {
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, 1fr);
+
+  gap: 12px;
+
+  padding: 18px 0;
+
+  border-top:
+    1px solid #eeeeee;
+
+  border-bottom:
+    1px solid #eeeeee;
+}
+
+.renovacaoInfo div {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 5px;
+}
+
+.renovacaoInfo span {
+  color: #888;
+
+  font-size: 12px;
+}
+
+.renovacaoInfo strong {
+  color: #333;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   OBJETIVO
+========================================================= */
+
+.renovacaoObjetivo {
+  display: flex;
+
+  align-items: center;
+
+  gap: 7px;
+
+  padding: 15px 0;
+
+  color: #666;
+
+  font-size: 13px;
+}
+
+.renovacaoObjetivo strong {
+  color: #333;
+}
+
+
+/* =========================================================
+   AÇÕES
+========================================================= */
+
+.renovacaoAcoes {
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 10px;
+}
+
+.renovacaoAcoes button {
+  border: none;
+
+  padding: 11px 15px;
+
+  border-radius: 10px;
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition: .2s;
+}
+
+.renovacaoAcoes button:hover {
+  transform:
+    translateY(-1px);
+}
+
+
+/* AGENDA */
+
+.btnRenovacaoAgenda {
+  background: #eef2ff;
+  color: #4f46e5;
+
+  border:
+    1px solid #c7d2fe !important;
+}
+
+
+/* CONTATO */
+
+.btnRenovacaoContato {
+  background: #ecfdf5;
+  color: #047857;
+
+  border:
+    1px solid #a7f3d0 !important;
+}
+
+
+/* RENOVAR */
+
+.btnRenovacao {
+  background: #6c63ff;
+  color: #ffffff;
+}
+
+
+/* =========================================================
+   VAZIO
+========================================================= */
+
+.renovacoesVazio {
+  background: #ffffff;
+
+  border:
+    1px solid #ececec;
+
+  border-radius: 18px;
+
+  padding: 70px 30px;
+
+  text-align: center;
+
+  box-shadow:
+    0 5px 20px
+    rgba(0, 0, 0, 0.04);
+}
+
+.renovacoesVazio > div {
+  font-size: 48px;
+}
+
+.renovacoesVazio h2 {
+  margin: 15px 0 8px;
+
+  color: #333;
+}
+
+.renovacoesVazio p {
+  max-width: 550px;
+
+  margin:
+    0 auto;
+
+  color: #888;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (
+  max-width: 1000px
+) {
+
+  .renovacoesResumo {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+  .renovacaoInfo {
+    grid-template-columns:
+      repeat(2, 1fr);
+  }
+
+}
+
+
+@media (
+  max-width: 650px
+) {
+
+  .renovacoesPage {
+    padding: 20px;
+  }
+
+  .renovacoesResumo {
+    grid-template-columns:
+      1fr;
+  }
+
+  .renovacaoCardTopo {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+  .renovacaoInfo {
+    grid-template-columns:
+      1fr;
+  }
+
+  .renovacaoAcoes {
+    flex-direction:
+      column;
+  }
+
+  .renovacaoAcoes button {
+    width: 100%;
+  }
+
+}

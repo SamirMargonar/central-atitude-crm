@@ -1,80 +1,404 @@
-.modalOverlay{
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background:rgba(0,0,0,.65);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:9999;
+/* ==========================================================
+   OVERLAY
+   ========================================================== */
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+
+    background: rgba(0, 0, 0, 0.65);
+
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
 }
 
-.modal{
-    width:450px;
-    background:#0f2038;
-    border-radius:18px;
-    padding:30px;
-    display:flex;
-    flex-direction:column;
-    gap:18px;
-    box-shadow:0 20px 60px rgba(0,0,0,.45);
+
+/* ==========================================================
+   MODAL
+   ========================================================== */
+
+.leadModal {
+    width: 100%;
+    max-width: 680px;
+
+    max-height: 90vh;
+
+    overflow-y: auto;
+
+    background: #ffffff;
+
+    border-radius: 20px;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.40);
+
+    animation: abrirLeadModal 0.20s ease-out;
 }
 
-.modal h2{
-    color:white;
-    text-align:center;
-    margin-bottom:10px;
+
+@keyframes abrirLeadModal {
+
+    from {
+        opacity: 0;
+        transform: translateY(15px) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+
 }
 
-.modal input{
-    width:100%;
-    padding:15px;
-    border:none;
-    border-radius:10px;
-    background:#182d4c;
-    color:white;
-    font-size:15px;
-    outline:none;
-    box-sizing:border-box;
+
+/* ==========================================================
+   CABEÇALHO
+   ========================================================== */
+
+.leadModalHeader {
+    display: flex;
+
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 20px;
+
+    padding: 28px 30px 22px;
+
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.modal input::placeholder{
-    color:#9fb0c7;
+
+.leadModalHeader h2 {
+    margin: 0;
+
+    color: #172554;
+
+    font-family:
+        Georgia,
+        "Times New Roman",
+        serif;
+
+    font-size: 28px;
+
+    font-weight: 700;
 }
 
-.modalBotoes{
-    display:flex;
-    justify-content:flex-end;
-    gap:15px;
-    margin-top:10px;
+
+.leadModalHeader p {
+    margin: 7px 0 0;
+
+    color: #64748b;
+
+    font-size: 14px;
 }
 
-.btnCancelar{
-    background:#d53030;
-    color:white;
-    border:none;
-    padding:14px 20px;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
+
+/* ==========================================================
+   BOTÃO FECHAR
+   ========================================================== */
+
+.leadModalHeader > button {
+    width: 38px;
+    height: 38px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+
+    border-radius: 10px;
+
+    background: #f1f5f9;
+
+    color: #475569;
+
+    font-size: 18px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
 }
 
-.btnCancelar:hover{
-    opacity:.9;
+
+.leadModalHeader > button:hover {
+    background: #e2e8f0;
+
+    color: #0f172a;
 }
 
-.btnSalvar{
-    background:#33cf61;
-    color:white;
-    border:none;
-    padding:14px 20px;
-    border-radius:10px;
-    cursor:pointer;
-    font-weight:bold;
+
+.leadModalHeader > button:disabled {
+    opacity: 0.5;
+
+    cursor: not-allowed;
 }
 
-.btnSalvar:hover{
-    background:#28b554;
+
+/* ==========================================================
+   CORPO
+   ========================================================== */
+
+.leadModalBody {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 18px;
+
+    padding: 28px 30px 30px;
+}
+
+
+/* ==========================================================
+   CAMPOS
+   ========================================================== */
+
+.campo {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+}
+
+
+.campo label {
+    color: #1e293b;
+
+    font-size: 14px;
+
+    font-weight: 700;
+}
+
+
+.campo input,
+.campo select {
+    width: 100%;
+
+    min-height: 48px;
+
+    box-sizing: border-box;
+
+    padding: 12px 14px;
+
+    border: 1px solid #cbd5e1;
+
+    border-radius: 11px;
+
+    background: #ffffff;
+
+    color: #1e293b;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s,
+        box-shadow 0.2s;
+}
+
+
+.campo input::placeholder {
+    color: #94a3b8;
+}
+
+
+.campo input:focus,
+.campo select:focus {
+    border-color: #6366f1;
+
+    box-shadow:
+        0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+
+.campo select {
+    cursor: pointer;
+}
+
+
+/* ==========================================================
+   INFORMAÇÃO DE RESPONSABILIDADE
+   ========================================================== */
+
+.leadModalBody > div[style] {
+    box-sizing: border-box;
+}
+
+
+/* ==========================================================
+   BOTÕES
+   ========================================================== */
+
+.leadModalActions {
+    display: flex;
+
+    justify-content: flex-end;
+
+    gap: 12px;
+
+    margin-top: 6px;
+
+    padding-top: 8px;
+}
+
+
+.leadModalActions button {
+    min-height: 46px;
+
+    padding: 0 22px;
+
+    border: none;
+
+    border-radius: 11px;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.15s,
+        opacity 0.15s,
+        background 0.15s;
+}
+
+
+/* ==========================================================
+   CANCELAR
+   ========================================================== */
+
+.leadModalActions button:first-child {
+    background: #f1f5f9;
+
+    color: #475569;
+}
+
+
+.leadModalActions button:first-child:hover {
+    background: #e2e8f0;
+}
+
+
+/* ==========================================================
+   CADASTRAR
+   ========================================================== */
+
+.leadModalActions button:last-child {
+    background:
+        linear-gradient(
+            135deg,
+            #4f46e5,
+            #7c3aed
+        );
+
+    color: #ffffff;
+
+    box-shadow:
+        0 5px 14px rgba(79, 70, 229, 0.25);
+}
+
+
+.leadModalActions button:last-child:hover {
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 7px 18px rgba(79, 70, 229, 0.30);
+}
+
+
+.leadModalActions button:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* ==========================================================
+   SCROLLBAR
+   ========================================================== */
+
+.leadModal::-webkit-scrollbar {
+    width: 8px;
+}
+
+
+.leadModal::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+.leadModal::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+
+    border-radius: 20px;
+}
+
+
+/* ==========================================================
+   RESPONSIVO
+   ========================================================== */
+
+@media (max-width: 700px) {
+
+    .modalOverlay {
+        padding: 12px;
+    }
+
+
+    .leadModal {
+        max-height: 94vh;
+
+        border-radius: 18px;
+    }
+
+
+    .leadModalHeader {
+        padding: 22px 20px 18px;
+    }
+
+
+    .leadModalHeader h2 {
+        font-size: 24px;
+    }
+
+
+    .leadModalBody {
+        padding: 22px 20px 24px;
+
+        gap: 16px;
+    }
+
+
+    .leadModalActions {
+        flex-direction: column-reverse;
+    }
+
+
+    .leadModalActions button {
+        width: 100%;
+    }
+
 }

@@ -1,194 +1,1314 @@
-.dashboard{
+/* =========================================================
+   ATTITUDE CENTRAL
+   DASHBOARD + LEAD BOARD
+   VISUAL PREMIUM
+   ========================================================= */
 
-display:grid;
 
-grid-template-columns:repeat(4,1fr);
+/* =========================================================
+   DASHBOARD — CARDS PRINCIPAIS
+   ========================================================= */
 
-gap:20px;
+.dashboard {
 
-margin-bottom:35px;
+  display: grid;
 
+  /* 5 CARDS NA MESMA LINHA */
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 20px;
+
+  margin-bottom: 32px;
+
+  width: 100%;
+
+  box-sizing: border-box;
 }
 
-.cardDashboard{
 
-background:#162844;
+/* =========================================================
+   CARDS DO DASHBOARD
+   ========================================================= */
 
-padding:25px;
+.cardDashboard {
 
-border-radius:16px;
+  position: relative;
 
-text-align:center;
+  background:
+    linear-gradient(
+      145deg,
+      #1d3657 0%,
+      #172d4a 55%,
+      #142943 100%
+    );
 
-transition:.25s;
+  padding: 27px 18px;
 
+  border-radius: 18px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .09);
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .18);
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  min-width: 0;
+
+  transition:
+    transform .25s ease,
+    box-shadow .25s ease,
+    border-color .25s ease;
 }
 
-.cardDashboard:hover{
 
-transform:translateY(-5px);
+/* =========================================================
+   BRILHO DISCRETO NO TOPO
+   ========================================================= */
 
+.cardDashboard::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 3px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #34d058
+    );
+
+  opacity: .8;
 }
 
-.cardDashboard h3{
 
-color:#cdd7e3;
+/* =========================================================
+   HOVER
+   ========================================================= */
 
-margin-bottom:12px;
+.cardDashboard:hover {
 
+  transform:
+    translateY(-4px);
+
+  box-shadow:
+    0 16px 32px
+    rgba(0, 0, 0, .28);
+
+  border-color:
+    rgba(52, 208, 88, .20);
 }
 
-.numero{
 
-font-size:42px;
+/* =========================================================
+   TÍTULO DO CARD
+   ========================================================= */
 
-font-weight:bold;
+.cardDashboard h3 {
 
-color:#34d058;
+  color: #f1f5f9;
 
+  margin:
+    0 0 12px;
+
+  font-size: 17px;
+
+  line-height: 1.25;
+
+  font-weight: 700;
 }
 
-.listaLeads{
 
-display:flex;
+/* =========================================================
+   TEXTO DO CARD
+   ========================================================= */
 
-flex-direction:column;
+.cardDashboard p {
 
-gap:20px;
+  color: #cbd5e1;
 
+  margin: 0;
+
+  font-size: 13px;
+
+  line-height: 1.35;
 }
 
-.leadCard{
 
-background:#162844;
+/* =========================================================
+   NÚMEROS
+   ========================================================= */
 
-padding:25px;
+.numero {
 
-border-radius:15px;
+  display: block;
 
-border-left:6px solid #34d058;
+  margin:
+    4px 0 7px;
 
+  font-size: 44px;
+
+  line-height: 1;
+
+  font-weight: 800;
+
+  color: #4ade80;
+
+  text-shadow:
+    0 0 18px
+    rgba(52, 208, 88, .12);
 }
 
-.leadCard h2{
 
-margin-bottom:15px;
+/* =========================================================
+   TEXTO GERAL
+   ========================================================= */
 
-color:white;
+.conteudo {
 
+  color: #e7edf5;
 }
 
-.leadCard p{
 
-margin:8px 0;
+.conteudo h1,
+.conteudo h2,
+.conteudo h3 {
 
-color:#d9d9d9;
-
+  color: #f8fafc;
 }
 
-.status{
 
-margin-top:15px;
+.conteudo p {
 
-margin-bottom:18px;
-
-font-weight:bold;
-
-color:#34d058;
-
+  color: #cbd5e1;
 }
 
-.acoes{
 
-display:flex;
+/* =========================================================
+   CARD DO LEAD — BASE
+   ========================================================= */
 
-gap:12px;
+.leadCard {
 
+  background:
+    linear-gradient(
+      145deg,
+      #1d3657,
+      #172d4a
+    );
+
+  padding: 22px;
+
+  border-radius: 15px;
+
+  border-left:
+    5px solid #34d058;
+
+  border-top:
+    1px solid
+    rgba(255, 255, 255, .05);
+
+  border-right:
+    1px solid
+    rgba(255, 255, 255, .05);
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, .05);
+
+  box-sizing: border-box;
+
+  box-shadow:
+    0 8px 20px
+    rgba(0, 0, 0, .18);
 }
 
-.btnAzul{
 
-background:#2563eb;
+.leadCard h2 {
 
-color:white;
+  margin-bottom: 15px;
 
-border:none;
-
-padding:12px 18px;
-
-border-radius:8px;
-
-cursor:pointer;
-
+  color: #ffffff;
 }
 
-.btnVerde{
 
-background:#22c55e;
+.leadCard p {
 
-color:white;
+  margin: 8px 0;
 
-border:none;
-
-padding:12px 18px;
-
-border-radius:8px;
-
-cursor:pointer;
-
+  color: #d5deea;
 }
+
+
+.status {
+
+  margin-top: 15px;
+
+  margin-bottom: 18px;
+
+  font-weight: bold;
+
+  color: #4ade80;
+}
+
+
+/* =========================================================
+   BOTÕES
+   ========================================================= */
+
+.acoes {
+
+  display: flex;
+
+  gap: 10px;
+
+  flex-wrap: wrap;
+}
+
+
+.btnAzul {
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+  color: white;
+
+  border: none;
+
+  padding:
+    11px 17px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition: .2s;
+}
+
+
+.btnVerde {
+
+  background:
+    linear-gradient(
+      135deg,
+      #22c55e,
+      #16a34a
+    );
+
+  color: white;
+
+  border: none;
+
+  padding:
+    11px 17px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+
+  font-weight: 600;
+
+  transition: .2s;
+}
+
 
 .btnAzul:hover,
-.btnVerde:hover{
+.btnVerde:hover {
 
-opacity:.9;
+  transform:
+    translateY(-1px);
 
+  filter:
+    brightness(1.08);
 }
 
-@media(max-width:1000px){
 
-.dashboard{
+/* =========================================================
+   LEAD BOARD
+   ========================================================= */
 
-grid-template-columns:repeat(2,1fr);
+.leadBoard {
 
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(205px, 1fr));
+
+  gap: 16px;
+
+  margin-top: 26px;
+
+  align-items: start;
+
+  width: 100%;
 }
 
+
+/* =========================================================
+   COLUNAS
+   ========================================================= */
+
+.leadColumn {
+
+  background:
+    linear-gradient(
+      180deg,
+      #dce5f0 0%,
+      #d3deeb 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .65);
+
+  border-radius: 17px;
+
+  padding: 13px;
+
+  min-height: 620px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .18);
+
+  box-sizing: border-box;
+
+  overflow: hidden;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
 }
 
-@media(max-width:700px){
 
-.dashboard{
+.leadColumn:hover {
 
-grid-template-columns:1fr;
-
+  box-shadow:
+    0 14px 30px
+    rgba(0, 0, 0, .25);
 }
 
-.acoes{
 
-flex-direction:column;
+/* =========================================================
+   CABEÇALHO DAS COLUNAS
+   ========================================================= */
 
+.leadColumnHeader {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: flex-start;
+
+  gap: 5px;
+
+  min-height: 38px;
+
+  margin-bottom: 13px;
+
+  padding:
+    2px 5px 11px;
+
+  border-bottom:
+    1px solid
+    rgba(15, 35, 58, .13);
+
+  color: #172b45;
+
+  font-size: 16px;
+
+  font-weight: 800;
+
+  letter-spacing: -.25px;
+
+  white-space: nowrap;
+
+  word-spacing: normal;
 }
 
+
+/* =========================================================
+   CARDS DENTRO DAS COLUNAS
+   ========================================================= */
+
+.leadColumn .leadCard {
+
+  margin-bottom: 13px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #1c3658 0%,
+      #172f4d 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .08);
+
+  border-left:
+    4px solid #34d058;
+
+  border-radius: 13px;
+
+  padding: 17px;
+
+  box-shadow:
+    0 7px 18px
+    rgba(10, 28, 50, .20);
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
 }
+
+
+.leadColumn .leadCard:hover {
+
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 12px 25px
+    rgba(10, 28, 50, .30);
+
+  border-left-color:
+    #4ade80;
+}
+
+
+/* =========================================================
+   NOME DO LEAD
+   ========================================================= */
+
+.leadColumn .leadCard h2 {
+
+  color: #ffffff;
+
+  font-size: 19px;
+
+  line-height: 1.15;
+
+  margin-bottom: 13px;
+}
+
+
+/* =========================================================
+   INFORMAÇÕES DO LEAD
+   ========================================================= */
+
+.leadColumn .leadCard p {
+
+  color: #d6e0eb;
+
+  font-size: 13px;
+
+  margin: 7px 0;
+
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.leadColumn .status {
+
+  display: inline-block;
+
+  margin-top: 11px;
+
+  margin-bottom: 13px;
+
+  padding:
+    5px 9px;
+
+  border-radius: 6px;
+
+  background:
+    rgba(52, 208, 88, .10);
+
+  border:
+    1px solid
+    rgba(52, 208, 88, .20);
+
+  color: #4ade80;
+
+  font-size: 12px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   BOTÕES DOS LEADS
+   ========================================================= */
+
+.leadColumn .acoes {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  gap: 7px;
+
+  margin-top: 7px;
+}
+
+
+.leadColumn .acoes button {
+
+  font-size: 12px;
+
+  padding:
+    8px 10px;
+
+  border-radius: 7px;
+}
+
+
+/* =========================================================
+   COLUNA VAZIA
+   ========================================================= */
+
+.leadColumn:has(.leadCard:only-child) {
+
+  min-height: 620px;
+}
+
+
+/* =========================================================
+   NOVO LEAD
+   ========================================================= */
+
+.leadColumn .novoLead {
+
+  border-left-color:
+    #22c55e;
+
+  box-shadow:
+    0 0 0 1px
+    rgba(34, 197, 94, .08),
+
+    0 8px 25px
+    rgba(34, 197, 94, .10);
+}
+
+
+/* =========================================================
+   ANIMAÇÃO NOVO LEAD
+   ========================================================= */
+
 @keyframes alertaLead {
 
-    0%{
-        box-shadow:0 0 5px #00ff66;
-    }
+  0% {
 
-    50%{
-        box-shadow:0 0 30px #00ff66;
-        transform:scale(1.01);
-    }
+    box-shadow:
+      0 0 0
+      rgba(52, 208, 88, 0);
 
-    100%{
-        box-shadow:0 0 5px #00ff66;
-    }
+  }
+
+  50% {
+
+    box-shadow:
+      0 0 18px
+      rgba(52, 208, 88, .20);
+
+  }
+
+  100% {
+
+    box-shadow:
+      0 0 0
+      rgba(52, 208, 88, 0);
+
+  }
 
 }
 
-.novoLead{
 
-    animation:alertaLead .9s infinite;
+.novoLead {
+
+  animation:
+    alertaLead 1.8s infinite;
+}
+
+
+/* =========================================================
+   BLOCOS CLAROS DO DASHBOARD
+   ========================================================= */
+
+
+/* =========================================================
+   CABEÇALHO DO PAINEL
+   ========================================================= */
+
+.dashboardTitulo {
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc 0%,
+      #eef3f8 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .75);
+
+  border-radius: 18px;
+
+  padding:
+    24px 28px;
+
+  margin-bottom: 24px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .16);
+
+  box-sizing: border-box;
+}
+
+
+.dashboardTitulo h1 {
+
+  margin:
+    0 0 8px;
+
+  color: #172b45;
+
+  font-size: 28px;
+
+  font-weight: 800;
+}
+
+
+.dashboardTitulo p {
+
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   BLOCOS — ATENÇÃO / VISITAS
+   ========================================================= */
+
+.dashboardBloco {
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc 0%,
+      #edf3f8 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .80);
+
+  border-radius: 18px;
+
+  padding:
+    24px 26px;
+
+  margin-top: 22px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .16);
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CABEÇALHO DOS BLOCOS
+   ========================================================= */
+
+.dashboardBlocoHeader {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 20px;
+
+  padding-bottom: 18px;
+
+  margin-bottom: 18px;
+
+  border-bottom:
+    1px solid
+    rgba(23, 43, 69, .10);
+}
+
+
+.dashboardBlocoHeader h2 {
+
+  margin:
+    0 0 7px;
+
+  color: #172b45;
+
+  font-size: 22px;
+
+  font-weight: 800;
+}
+
+
+.dashboardBlocoHeader p {
+
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 14px;
+}
+
+
+.dashboardBlocoHeader > strong {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-width: 48px;
+
+  height: 48px;
+
+  padding:
+    0 12px;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #1d3657,
+      #172d4a
+    );
+
+  color: #4ade80;
+
+  font-size: 22px;
+
+  font-weight: 800;
+
+  box-shadow:
+    0 5px 15px
+    rgba(0, 0, 0, .14);
+}
+
+
+/* =========================================================
+   ÁREA VAZIA
+   ========================================================= */
+
+.dashboardVazio {
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .08);
+
+  border-radius: 12px;
+
+  padding:
+    16px 18px;
+
+  color: #475569;
+
+  font-size: 14px;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .05);
+}
+
+
+/* =========================================================
+   LISTA DE ALERTAS
+   ========================================================= */
+
+.listaAlertas {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+/* =========================================================
+   ALERTAS
+   ========================================================= */
+
+.alertaLead {
+
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 15px;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .08);
+
+  border-left:
+    4px solid #ef4444;
+
+  border-radius: 11px;
+
+  padding:
+    14px 16px;
+
+  color: #172b45;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .06);
+}
+
+
+.alertaLead strong {
+
+  color: #172b45;
+
+  font-weight: 700;
+}
+
+
+.alertaLead span {
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   VISITAS DE HOJE
+   ========================================================= */
+
+.listaVisitasDashboard {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+.visitaDashboard {
+
+  display: grid;
+
+  grid-template-columns:
+    110px 1fr auto;
+
+  align-items: center;
+
+  gap: 18px;
+
+  width: 100%;
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .08);
+
+  border-left:
+    4px solid #2563eb;
+
+  border-radius: 12px;
+
+  padding:
+    15px 17px;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .06);
+
+  cursor: pointer;
+
+  text-align: left;
+
+  font-family: inherit;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.visitaDashboard:hover {
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 8px 18px
+    rgba(0, 0, 0, .10);
+}
+
+
+.horaDashboard {
+
+  color: #2563eb;
+
+  font-size: 16px;
+
+  font-weight: 800;
+}
+
+
+.visitaDashboard strong {
+
+  color: #172b45;
+
+  font-size: 15px;
+}
+
+
+.visitaDashboard p {
+
+  margin:
+    4px 0 0;
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+.visitaDashboard > span {
+
+  color: #64748b;
+
+  font-size: 13px;
+}
+
+
+/* =========================================================
+   VISITA — COMPARECEU
+   ========================================================= */
+
+.visitaDashboardCompareceu {
+
+  border-left-color:
+    #22c55e;
+}
+
+
+/* =========================================================
+   VISITA — NÃO COMPARECEU
+   ========================================================= */
+
+.visitaDashboardNaoCompareceu {
+
+  border-left-color:
+    #ef4444;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      #fff7f7 100%
+    );
+}
+
+
+/* =========================================================
+   BOTÃO VER HISTÓRICO
+   ========================================================= */
+
+.abrirLeadDashboard {
+
+  color: #172b45;
+
+  font-weight: 700;
+
+  background:
+    #eef2f7;
+
+  border-radius: 9px;
+
+  padding:
+    9px 13px;
+
+  transition:
+    .2s ease;
+}
+
+
+.abrirLeadDashboard:hover {
+
+  background:
+    #e2e8f0;
+}
+
+
+/* =========================================================
+   CARD CLICÁVEL
+   ========================================================= */
+
+.cardDashboardClicavel {
+
+  width: 100%;
+
+  border: none;
+
+  font-family: inherit;
+
+  text-align: center;
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.cardDashboardClicavel:hover {
+
+  transform:
+    translateY(-3px);
+}
+
+
+.cardDashboardClicavel:focus {
+
+  outline: none;
+}
+
+
+.cardDashboardAtivo {
+
+  transform:
+    translateY(-2px);
+}
+
+
+/* =========================================================
+   NÃO COMPARECIDOS — CARD
+   ========================================================= */
+
+.cardDashboardNaoComparecido {
+
+  border-top:
+    3px solid #ef4444;
+}
+
+
+.cardDashboardNaoComparecido .numero {
+
+  color: #ef4444;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE — DASHBOARD
+   ========================================================= */
+
+/*
+   Desktop grande:
+   5 cards na mesma linha.
+*/
+
+@media (min-width: 1401px) {
+
+  .dashboard {
+
+    grid-template-columns:
+      repeat(5, minmax(0, 1fr));
+
+  }
+
+}
+
+
+/*
+   Notebook / telas menores:
+   3 cards por linha.
+*/
+
+@media (max-width: 1400px) {
+
+  .dashboard {
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+  }
+
+}
+
+
+/*
+   Tablet:
+   2 cards por linha.
+*/
+
+@media (max-width: 900px) {
+
+  .dashboard {
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+
+  }
+
+}
+
+
+/*
+   Celular:
+   1 card por linha.
+*/
+
+@media (max-width: 600px) {
+
+  .dashboard {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE — LEAD BOARD
+   ========================================================= */
+
+@media (max-width: 1400px) {
+
+  .leadBoard {
+
+    grid-template-columns:
+      repeat(3, minmax(220px, 1fr));
+
+  }
+
+}
+
+
+@media (max-width: 1000px) {
+
+  .leadBoard {
+
+    grid-template-columns:
+      repeat(2, minmax(220px, 1fr));
+
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .leadBoard {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+  .leadColumn {
+
+    min-height:
+      auto;
+
+  }
+
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE — BLOCOS
+   ========================================================= */
+
+@media (max-width: 700px) {
+
+  .dashboardTitulo,
+  .dashboardBloco {
+
+    padding: 20px;
+
+  }
+
+
+  .dashboardBlocoHeader {
+
+    align-items:
+      flex-start;
+
+  }
+
+
+  .visitaDashboard {
+
+    grid-template-columns:
+      1fr;
+
+    gap: 8px;
+
+  }
+
+
+  .alertaLead {
+
+    flex-direction:
+      column;
+
+    align-items:
+      flex-start;
+
+  }
 
 }

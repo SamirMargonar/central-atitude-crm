@@ -1,51 +1,287 @@
-.leadBoard {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 24px;
+/* =========================================================
+   LEAD BOARD
+========================================================= */
 
-    margin-top: 30px;
+.leadBoard {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(5, minmax(0, 1fr));
+
+    gap: 14px;
+
+    width: 100%;
+
+    box-sizing: border-box;
+
     align-items: start;
+
 }
 
+
+/* =========================================================
+   QUANDO EXISTE SEM RESPOSTA
+   6 COLUNAS NA MESMA LINHA
+========================================================= */
+
+.leadBoardComSemResposta {
+
+    grid-template-columns:
+        repeat(6, minmax(0, 1fr));
+
+}
+
+
+/* =========================================================
+   COLUNA
+========================================================= */
+
 .leadColumn {
+
+    min-width: 0;
+
+    width: 100%;
 
     background: #f7f8fc;
 
     border-radius: 16px;
 
-    padding: 18px;
+    border: 1px solid #e4e7ef;
 
-    min-height: 600px;
+    overflow: hidden;
 
-    box-shadow: 0 6px 18px rgba(0,0,0,.08);
+    box-sizing: border-box;
 
 }
 
-.leadColumnHeader{
 
-    font-size: 20px;
+/* =========================================================
+   CABEÇALHO DA COLUNA
+========================================================= */
+
+.leadColumnHeader {
+
+    min-height: 62px;
+
+    padding: 18px 12px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    text-align: center;
+
+    font-size: 15px;
 
     font-weight: 700;
 
-    margin-bottom: 18px;
+    color: #202633;
 
-    border-bottom: 2px solid #ececec;
+    background: #ffffff;
 
-    padding-bottom: 12px;
+    border-bottom: 1px solid #e5e7eb;
 
-}
-
-.leadColumn .leadCard{
-
-    margin-bottom:16px;
+    box-sizing: border-box;
 
 }
 
-@media (max-width:1200px){
 
-    .leadBoard{
+/* =========================================================
+   CONTEÚDO DA COLUNA
+========================================================= */
 
-        grid-template-columns:1fr;
+.leadColumnContent {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+
+    padding: 12px;
+
+    min-height: 100px;
+
+    box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   COLUNA VAZIA
+========================================================= */
+
+.leadColumnVazia {
+
+    padding: 25px 10px;
+
+    text-align: center;
+
+    color: #cfd3dc;
+
+    font-size: 13px;
+
+    line-height: 1.4;
+
+}
+
+
+/* =========================================================
+   CARD DO LEAD
+========================================================= */
+
+.leadColumn .leadCard {
+
+    width: 100%;
+
+    min-width: 0;
+
+    box-sizing: border-box;
+
+}
+
+
+/* =========================================================
+   QUANDO TEM 6 COLUNAS
+   DIMINUI UM POUCO OS ESPAÇAMENTOS
+========================================================= */
+
+.leadBoardComSemResposta {
+
+    gap: 10px;
+
+}
+
+
+.leadBoardComSemResposta .leadColumnContent {
+
+    padding: 9px;
+
+    gap: 10px;
+
+}
+
+
+/* =========================================================
+   CABEÇALHO COM 6 COLUNAS
+========================================================= */
+
+.leadBoardComSemResposta .leadColumnHeader {
+
+    padding: 16px 6px;
+
+    font-size: 13px;
+
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+========================================================= */
+
+@media (max-width: 1400px) {
+
+    .leadBoard {
+
+        gap: 10px;
+
+    }
+
+
+    .leadColumnContent {
+
+        padding: 9px;
+
+    }
+
+
+    .leadColumnHeader {
+
+        font-size: 13px;
+
+        padding: 15px 6px;
+
+    }
+
+}
+
+
+/* =========================================================
+   TELAS MENORES
+========================================================= */
+
+@media (max-width: 1100px) {
+
+    .leadBoard {
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+    }
+
+
+    .leadBoardComSemResposta {
+
+        grid-template-columns:
+            repeat(3, minmax(0, 1fr));
+
+    }
+
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .leadBoard {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    }
+
+
+    .leadBoardComSemResposta {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    }
+
+}
+
+
+/* =========================================================
+   CELULAR
+========================================================= */
+
+@media (max-width: 550px) {
+
+    .leadBoard {
+
+        grid-template-columns: 1fr;
+
+        gap: 12px;
+
+    }
+
+
+    .leadBoardComSemResposta {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .leadColumnHeader {
+
+        min-height: 55px;
 
     }
 

@@ -5,12 +5,24 @@ import {
 } from "react";
 
 import {
+  arrayUnion,
+} from "firebase/firestore";
+
+import {
   ETAPAS,
 } from "../../core/LeadFlow";
 
 import {
   buscarVisitasPorPerfil,
 } from "../../Agenda/VisitaEngine";
+
+import {
+  atualizarLead,
+} from "../../core/EventEngine";
+
+import {
+  calcularAlertasRenovacao,
+} from "../../utils/renovacaoAlertas";
 
 import {
   useAuth,
@@ -45,6 +57,16 @@ export default function NotificationCenter({
     notificacoesVisitas,
     setNotificacoesVisitas,
   ] = useState([]);
+
+
+  const [
+    notificacoesRenovacao,
+    setNotificacoesRenovacao,
+  ] = useState([]);
+
+
+  const idsRenovacaoTratados =
+    useRef(new Set());
 
 
   // ==========================================================
@@ -278,6 +300,136 @@ export default function NotificationCenter({
 
     setNotificacoesLeads(
       novasNotificacoes
+    );
+
+  }, [leads]);
+
+
+  // ==========================================================
+  // ALERTAS DE RENOVAÇÃO (marcos de 60 / 20 / 7 dias)
+  // ==========================================================
+  //
+  // Sem polling: recalcula só quando `leads` muda (já é
+  // realtime via useLeads). Cada alerta (leadId + dataVencimento
+  // + marco) só é tratado uma vez por sessão do componente,
+  // via idsRenovacaoTratados — evita reprocessar/repersistir o
+  // mesmo alerta a cada pequena mudança em `leads` antes do
+  // round-trip do Firestore terminar.
+  //
+  // Persistência: alertasRenovacaoEnviados é um array de chaves
+  // no próprio lead, atualizado com arrayUnion (nunca sobrescreve
+  // matricula nem qualquer outro campo). Falha de permissão
+  // (ex.: recepcionista que não é dona do lead) é tratada com
+  // try/catch — o alerta ainda aparece nesta sessão, só não fica
+  // persistido até uma sessão com permissão gravar.
+  //
+  // Alerta é só visual — não entra na lógica de áudio abaixo.
+  // ==========================================================
+
+  useEffect(() => {
+
+    const alertasJaEnviados =
+      new Set(
+        leads.flatMap(
+          (lead) =>
+            lead.alertasRenovacaoEnviados || []
+        )
+      );
+
+    const alertasPendentes =
+      calcularAlertasRenovacao(
+        leads,
+        alertasJaEnviados,
+        new Date()
+      ).filter(
+        (alerta) =>
+          !idsRenovacaoTratados.current.has(
+            alerta.id
+          )
+      );
+
+    if (alertasPendentes.length === 0) {
+
+      return;
+
+    }
+
+    alertasPendentes.forEach(
+      (alerta) => {
+
+        idsRenovacaoTratados.current.add(
+          alerta.id
+        );
+
+      }
+    );
+
+    setNotificacoesRenovacao(
+      (anteriores) => [
+
+        ...anteriores,
+
+        ...alertasPendentes.map(
+          (alerta) => {
+
+            const lead =
+              leads.find(
+                (item) =>
+                  item.id === alerta.leadId
+              );
+
+            return {
+
+              id: alerta.id,
+
+              tipo: "RENOVACAO_PROXIMA",
+
+              titulo:
+                "🔄 Renovação próxima",
+
+              mensagem:
+                `${lead?.nome || "Aluno"} vence em ${alerta.dias} dia(s) (marco de ${alerta.marco} dias antes).`,
+
+              leadId: alerta.leadId,
+
+              prioridade:
+                alerta.marco === 7
+                  ? "alta"
+                  : alerta.marco === 20
+                  ? "media"
+                  : "",
+
+            };
+
+          }
+        ),
+
+      ]
+    );
+
+    alertasPendentes.forEach(
+      (alerta) => {
+
+        atualizarLead(
+          alerta.leadId,
+          {
+
+            alertasRenovacaoEnviados:
+              arrayUnion(alerta.id),
+
+          }
+        ).catch(
+          (erro) => {
+
+            console.warn(
+              "Não foi possível persistir o alerta de renovação (permissão ou rede):",
+              erro
+            );
+
+          }
+        );
+
+      }
     );
 
   }, [leads]);
@@ -759,6 +911,8 @@ export default function NotificationCenter({
 
     ...notificacoesVisitas,
 
+    ...notificacoesRenovacao,
+
   ];
 
 
@@ -850,6 +1004,29 @@ export default function NotificationCenter({
       notificacao.tipo ===
         "VISITA_ATRASADA"
     ) {
+
+      return;
+
+    }
+
+
+    // ========================================================
+    // RENOVAÇÃO
+    // ========================================================
+
+    if (
+      notificacao.tipo ===
+      "RENOVACAO_PROXIMA"
+    ) {
+
+      setNotificacoesRenovacao(
+        (anteriores) =>
+          anteriores.filter(
+            (item) =>
+              item.id !==
+              notificacao.id
+          )
+      );
 
       return;
 

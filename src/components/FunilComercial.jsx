@@ -1,5 +1,7 @@
 export default function FunilComercial({
   funil = [],
+  aberto = true,
+  onAlternar,
 }) {
 
   const maior =
@@ -12,52 +14,91 @@ export default function FunilComercial({
 
   return (
 
-    <section className="funilComercial">
+    <section className="dashboardBloco">
 
-      <h2>
-        📊 Funil Comercial
-      </h2>
+      <div className="dashboardBlocoHeader">
 
-      <div className="funilComercialLista">
+        <div>
 
-        {funil.map(
-          (degrau) => (
+          <h2>
+            📊 Funil Comercial
+          </h2>
 
-            <div
-              className="funilComercialDegrau"
-              key={degrau.chave}
-            >
+          <p>
+            Quantos leads já atingiram cada etapa da jornada.
+          </p>
 
-              <div className="funilComercialLabel">
+        </div>
 
-                <span>
-                  {degrau.label}
-                </span>
-
-                <strong>
-                  {degrau.total}
-                </strong>
-
-              </div>
-
-              <div className="funilComercialBarraFundo">
-
-                <div
-                  className="funilComercialBarra"
-                  style={{
-                    width:
-                      `${(degrau.total / maior) * 100}%`,
-                  }}
-                />
-
-              </div>
-
-            </div>
-
-          )
-        )}
+        <button
+          type="button"
+          className={
+            aberto
+              ? "botaoAlternarSecao"
+              : "botaoAlternarSecao botaoAlternarSecaoFechado"
+          }
+          onClick={onAlternar}
+          aria-label={
+            aberto
+              ? "Recolher Funil Comercial"
+              : "Expandir Funil Comercial"
+          }
+          title={
+            aberto
+              ? "Recolher"
+              : "Expandir"
+          }
+        >
+          👁️
+        </button>
 
       </div>
+
+
+      {aberto && (
+
+        <div className="funilComercialLista">
+
+          {funil.map(
+            (degrau) => (
+
+              <div
+                className="funilComercialDegrau"
+                key={degrau.chave}
+              >
+
+                <div className="funilComercialLabel">
+
+                  <span>
+                    {degrau.label}
+                  </span>
+
+                  <strong>
+                    {degrau.total}
+                  </strong>
+
+                </div>
+
+                <div className="funilComercialBarraFundo">
+
+                  <div
+                    className="funilComercialBarra"
+                    style={{
+                      width:
+                        `${(degrau.total / maior) * 100}%`,
+                    }}
+                  />
+
+                </div>
+
+              </div>
+
+            )
+          )}
+
+        </div>
+
+      )}
 
     </section>
 

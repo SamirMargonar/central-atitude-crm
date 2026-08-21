@@ -43,8 +43,23 @@ export default function Dashboard({
 
   const {
     isAdmin,
+    isCoordenador,
     perfilUsuario,
   } = useAuth();
+
+  // ==========================================================
+  // V1.5 — separação por perfil
+  //
+  // Admin e coordenador veem o painel comercial completo
+  // (Indicadores + Funil). Recepcionista vê só "Precisa da sua
+  // atenção" e os cards operacionais já existentes. Reaproveita
+  // isAdmin/isCoordenador do useAuth() já existente — nenhum
+  // sistema de permissões novo, nenhuma alteração em
+  // Permissions.js.
+  // ==========================================================
+
+  const podeVerPainelComercialAvancado =
+    isAdmin || isCoordenador;
 
   const [visitas, setVisitas] =
     useState([]);
@@ -69,6 +84,12 @@ export default function Dashboard({
 
   const [dataFimPersonalizada, setDataFimPersonalizada] =
     useState("");
+
+  const [indicadoresAberto, setIndicadoresAberto] =
+    useState(false);
+
+  const [funilAberto, setFunilAberto] =
+    useState(false);
 
 
   // ==========================================================
@@ -682,19 +703,39 @@ export default function Dashboard({
         onAbrirLead={abrirLeadPorId}
       />
 
-      <IndicadoresPeriodo
-        indicadores={indicadoresPeriodo}
-        periodoSelecionado={periodoSelecionado}
-        onMudarPeriodo={setPeriodoSelecionado}
-        dataInicioPersonalizada={dataInicioPersonalizada}
-        dataFimPersonalizada={dataFimPersonalizada}
-        onMudarDataInicioPersonalizada={setDataInicioPersonalizada}
-        onMudarDataFimPersonalizada={setDataFimPersonalizada}
-      />
+      {podeVerPainelComercialAvancado && (
 
-      <FunilComercial
-        funil={funilComercial}
-      />
+        <>
+
+          <IndicadoresPeriodo
+            indicadores={indicadoresPeriodo}
+            periodoSelecionado={periodoSelecionado}
+            onMudarPeriodo={setPeriodoSelecionado}
+            dataInicioPersonalizada={dataInicioPersonalizada}
+            dataFimPersonalizada={dataFimPersonalizada}
+            onMudarDataInicioPersonalizada={setDataInicioPersonalizada}
+            onMudarDataFimPersonalizada={setDataFimPersonalizada}
+            aberto={indicadoresAberto}
+            onAlternar={() =>
+              setIndicadoresAberto(
+                (valor) => !valor
+              )
+            }
+          />
+
+          <FunilComercial
+            funil={funilComercial}
+            aberto={funilAberto}
+            onAlternar={() =>
+              setFunilAberto(
+                (valor) => !valor
+              )
+            }
+          />
+
+        </>
+
+      )}
 
 
       {/* ======================================================

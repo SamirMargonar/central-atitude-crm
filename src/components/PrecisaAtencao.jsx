@@ -1,3 +1,26 @@
+// ==========================================================
+// Cor de prioridade por categoria — só afeta a aparência do
+// card (tinta de fundo + borda), nunca o fundo da seção/coluna.
+// Mapeamento local, presentacional: não altera o formato das
+// props recebidas (categoria.titulo continua vindo de
+// Dashboard.jsx exatamente como antes).
+// ==========================================================
+
+const CORES_POR_TITULO = {
+
+  "Sem atendimento": "azul",
+
+  "Sem resposta": "laranja",
+
+  "Não compareceram": "vermelho",
+
+  "Negociação parada": "amarelo",
+
+  "Renovação próxima": "verde",
+
+};
+
+
 export default function PrecisaAtencao({
 
   categorias = [],
@@ -15,61 +38,75 @@ export default function PrecisaAtencao({
 
   return (
 
-    <section className="precisaAtencao">
+    <section className="dashboardBloco">
 
-      <div className="precisaAtencaoCabecalho">
+      <div className="dashboardBlocoHeader">
 
-        <h2>
-          🎯 Precisa da sua atenção
-        </h2>
+        <div>
 
-        <span>
-          {totalGeral} pendência(s) no total
-        </span>
+          <h2>
+            🎯 Precisa da sua atenção
+          </h2>
+
+          <p>
+            Pendências que precisam de ação agora.
+          </p>
+
+        </div>
+
+        <strong>
+          {totalGeral}
+        </strong>
 
       </div>
 
 
-      <div className="precisaAtencaoGrade">
+      <div className="precisaAtencaoColunas">
 
         {categorias.map(
-          (categoria) => (
+          (categoria) => {
 
-            <div
-              className="precisaAtencaoCategoria"
-              key={categoria.titulo}
-            >
+            const cor =
+              CORES_POR_TITULO[categoria.titulo] ||
+              "azul";
 
-              <div className="precisaAtencaoCategoriaTitulo">
+            return (
 
-                <span>
-                  {categoria.icone} {categoria.titulo}
-                </span>
+              <div
+                className={`precisaAtencaoColuna precisaAtencaoColuna--${cor}`}
+                key={categoria.titulo}
+              >
 
-                <strong>
-                  {categoria.itens.length}
-                </strong>
+                <div className="precisaAtencaoColunaHeader">
 
-              </div>
+                  <span>
+                    {categoria.icone} {categoria.titulo}
+                  </span>
+
+                  <strong>
+                    {categoria.itens.length}
+                  </strong>
+
+                </div>
 
 
-              {categoria.itens.length === 0 ? (
+                <div className="precisaAtencaoColunaConteudo">
 
-                <p className="precisaAtencaoVazio">
-                  Nenhuma pendência.
-                </p>
+                  {categoria.itens.length === 0 ? (
 
-              ) : (
+                    <div className="precisaAtencaoColunaVazia">
+                      Nenhuma pendência.
+                    </div>
 
-                <ul className="precisaAtencaoLista">
+                  ) : (
 
-                  {categoria.itens.map(
-                    (item) => (
-
-                      <li key={item.id}>
+                    categoria.itens.map(
+                      (item) => (
 
                         <button
                           type="button"
+                          className="precisaAtencaoCard"
+                          key={item.id}
                           onClick={() =>
                             onAbrirLead(item.leadId)
                           }
@@ -85,18 +122,18 @@ export default function PrecisaAtencao({
 
                         </button>
 
-                      </li>
-
+                      )
                     )
+
                   )}
 
-                </ul>
+                </div>
 
-              )}
+              </div>
 
-            </div>
+            );
 
-          )
+          }
         )}
 
       </div>

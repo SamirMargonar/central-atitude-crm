@@ -32,6 +32,10 @@ export default function IndicadoresPeriodo({
 
   onMudarDataFimPersonalizada,
 
+  aberto = true,
+
+  onAlternar,
+
 }) {
 
   const cartoes = [
@@ -85,97 +89,136 @@ export default function IndicadoresPeriodo({
 
   return (
 
-    <section className="indicadoresPeriodo">
+    <section className="dashboardBloco">
 
-      <div className="indicadoresPeriodoCabecalho">
+      <div className="dashboardBlocoHeader">
 
-        <h2>
-          📈 Indicadores do Período
-        </h2>
+        <div>
 
-        <div className="seletorPeriodo">
+          <h2>
+            📈 Indicadores do Período
+          </h2>
 
-          {PRESETS.map(
-            (preset) => (
-
-              <button
-                type="button"
-                key={preset.valor}
-                className={
-                  periodoSelecionado === preset.valor
-                    ? "botaoPeriodoAtivo"
-                    : "botaoPeriodo"
-                }
-                onClick={() =>
-                  onMudarPeriodo(preset.valor)
-                }
-              >
-                {preset.label}
-              </button>
-
-            )
-          )}
+          <p>
+            Resultados comerciais no intervalo selecionado.
+          </p>
 
         </div>
+
+        <button
+          type="button"
+          className={
+            aberto
+              ? "botaoAlternarSecao"
+              : "botaoAlternarSecao botaoAlternarSecaoFechado"
+          }
+          onClick={onAlternar}
+          aria-label={
+            aberto
+              ? "Recolher Indicadores do Período"
+              : "Expandir Indicadores do Período"
+          }
+          title={
+            aberto
+              ? "Recolher"
+              : "Expandir"
+          }
+        >
+          👁️
+        </button>
 
       </div>
 
 
-      {periodoSelecionado === "PERSONALIZADO" && (
+      {aberto && (
 
-        <div className="periodoPersonalizadoCampos">
+        <>
 
-          <label>
-            De
-            <input
-              type="date"
-              value={dataInicioPersonalizada}
-              onChange={(e) =>
-                onMudarDataInicioPersonalizada(e.target.value)
-              }
-            />
-          </label>
+          <div className="seletorPeriodo">
 
-          <label>
-            Até
-            <input
-              type="date"
-              value={dataFimPersonalizada}
-              onChange={(e) =>
-                onMudarDataFimPersonalizada(e.target.value)
-              }
-            />
-          </label>
+            {PRESETS.map(
+              (preset) => (
 
-        </div>
+                <button
+                  type="button"
+                  key={preset.valor}
+                  className={
+                    periodoSelecionado === preset.valor
+                      ? "botaoPeriodoAtivo"
+                      : "botaoPeriodo"
+                  }
+                  onClick={() =>
+                    onMudarPeriodo(preset.valor)
+                  }
+                >
+                  {preset.label}
+                </button>
 
-      )}
+              )
+            )}
+
+          </div>
 
 
-      <div className="indicadoresPeriodoGrade">
+          {periodoSelecionado === "PERSONALIZADO" && (
 
-        {cartoes.map(
-          (cartao) => (
+            <div className="periodoPersonalizadoCampos">
 
-            <div
-              className="indicadorPeriodoCard"
-              key={cartao.chave}
-            >
+              <label>
+                De
+                <input
+                  type="date"
+                  value={dataInicioPersonalizada}
+                  onChange={(e) =>
+                    onMudarDataInicioPersonalizada(e.target.value)
+                  }
+                />
+              </label>
 
-              <span>
-                {cartao.label}
-              </span>
-
-              <strong>
-                {cartao.valor}
-              </strong>
+              <label>
+                Até
+                <input
+                  type="date"
+                  value={dataFimPersonalizada}
+                  onChange={(e) =>
+                    onMudarDataFimPersonalizada(e.target.value)
+                  }
+                />
+              </label>
 
             </div>
 
-          )
-        )}
+          )}
 
-      </div>
+
+          <div className="dashboard indicadoresPeriodoGrade">
+
+            {cartoes.map(
+              (cartao) => (
+
+                <div
+                  className="cardDashboard"
+                  key={cartao.chave}
+                >
+
+                  <h3>
+                    {cartao.label}
+                  </h3>
+
+                  <span className="numero">
+                    {cartao.valor}
+                  </span>
+
+                </div>
+
+              )
+            )}
+
+          </div>
+
+        </>
+
+      )}
 
     </section>
 

@@ -1,0 +1,914 @@
+/* =========================================================
+   ATTITUDE CENTRAL
+   RELATÓRIOS
+   Reaproveita os mesmos tokens visuais de dashboard.css
+   (paleta, raios, sombras, gradientes) — arquivo dedicado,
+   sem duplicar classes de outras telas.
+   ========================================================= */
+
+
+/* =========================================================
+   PÁGINA
+   ========================================================= */
+
+.paginaRelatorios {
+
+  width: 100%;
+
+  box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+   ========================================================= */
+
+.relatoriosTitulo {
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc 0%,
+      #eef3f8 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .75);
+
+  border-radius: 18px;
+
+  padding:
+    24px 28px;
+
+  margin-bottom: 24px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .16);
+
+  box-sizing: border-box;
+}
+
+
+.relatoriosTitulo h1 {
+
+  margin:
+    0 0 8px;
+
+  color: #172b45;
+
+  font-size: 28px;
+
+  font-weight: 800;
+}
+
+
+.relatoriosTitulo p {
+
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 15px;
+}
+
+
+/* =========================================================
+   BLOCO — BASE COMPARTILHADA
+   (filtros / funil / desempenho usam o mesmo cartão claro)
+   ========================================================= */
+
+.blocoRelatorios {
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc 0%,
+      #edf3f8 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .80);
+
+  border-radius: 18px;
+
+  padding:
+    24px 26px;
+
+  margin-bottom: 24px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .16);
+
+  box-sizing: border-box;
+}
+
+
+.blocoRelatorios h2 {
+
+  margin:
+    0 0 18px;
+
+  padding-bottom: 16px;
+
+  border-bottom:
+    1px solid
+    rgba(23, 43, 69, .10);
+
+  color: #172b45;
+
+  font-size: 20px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+.filtrosRelatorios {
+
+  display: flex;
+
+  flex-wrap: wrap;
+
+  align-items: flex-end;
+
+  gap: 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #f8fafc 0%,
+      #edf3f8 100%
+    );
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .80);
+
+  border-radius: 18px;
+
+  padding:
+    22px 24px;
+
+  margin-bottom: 24px;
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .16);
+
+  box-sizing: border-box;
+}
+
+
+.campoFiltro {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+
+  min-width: 150px;
+}
+
+
+.campoFiltro label {
+
+  color: #64748b;
+
+  font-size: 12px;
+
+  font-weight: 700;
+
+  text-transform: uppercase;
+
+  letter-spacing: .03em;
+}
+
+
+.campoFiltro input,
+.campoFiltro select {
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .14);
+
+  border-radius: 10px;
+
+  padding:
+    10px 12px;
+
+  background: #ffffff;
+
+  color: #172b45;
+
+  font-size: 14px;
+
+  font-family: inherit;
+
+  box-sizing: border-box;
+
+  transition:
+    border-color .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.campoFiltro input:focus,
+.campoFiltro select:focus {
+
+  outline: none;
+
+  border-color: #2563eb;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, .15);
+}
+
+
+/* =========================================================
+   AVISO — LEADS SEM DATA
+   ========================================================= */
+
+.avisoRelatorios {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  background: #fffbeb;
+
+  border:
+    1px solid #fde68a;
+
+  border-left:
+    4px solid #f59e0b;
+
+  border-radius: 12px;
+
+  padding:
+    14px 18px;
+
+  margin-bottom: 24px;
+
+  color: #92400e;
+
+  font-size: 14px;
+
+  line-height: 1.5;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .05);
+}
+
+
+/* =========================================================
+   CARREGANDO
+   ========================================================= */
+
+.relatoriosCarregando {
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .08);
+
+  border-radius: 18px;
+
+  padding:
+    60px 30px;
+
+  text-align: center;
+
+  color: #64748b;
+
+  font-size: 15px;
+
+  box-shadow:
+    0 5px 20px
+    rgba(0, 0, 0, .04);
+}
+
+
+/* =========================================================
+   INDICADORES — GRID DE CARDS
+   ========================================================= */
+
+.indicadoresRelatorios {
+
+  margin-bottom: 24px;
+}
+
+
+.gradeIndicadores {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+
+  gap: 18px;
+
+  margin-bottom: 18px;
+}
+
+
+.cartaoIndicador {
+
+  position: relative;
+
+  background:
+    linear-gradient(
+      145deg,
+      #1d3657 0%,
+      #172d4a 55%,
+      #142943 100%
+    );
+
+  padding:
+    22px 16px;
+
+  border-radius: 16px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .09);
+
+  box-shadow:
+    0 10px 25px
+    rgba(0, 0, 0, .18);
+
+  box-sizing: border-box;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 8px;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+
+.cartaoIndicador::before {
+
+  content: "";
+
+  position: absolute;
+
+  top: 0;
+  left: 0;
+  right: 0;
+
+  height: 3px;
+
+  border-radius: 16px 16px 0 0;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #34d058
+    );
+
+  opacity: .8;
+}
+
+
+.cartaoIndicador:hover {
+
+  transform:
+    translateY(-3px);
+
+  box-shadow:
+    0 14px 28px
+    rgba(0, 0, 0, .24);
+}
+
+
+.valorIndicador {
+
+  font-size: 34px;
+
+  line-height: 1;
+
+  font-weight: 800;
+
+  color: #4ade80;
+
+  text-shadow:
+    0 0 18px
+    rgba(52, 208, 88, .12);
+}
+
+
+.tituloIndicador {
+
+  font-size: 12.5px;
+
+  line-height: 1.3;
+
+  font-weight: 600;
+
+  color: #cbd5e1;
+}
+
+
+/* --- Semântica de cor: positivo / negativo / pendente / neutro --- */
+
+.cartaoIndicador.indicadorPositivo::before {
+
+  background:
+    linear-gradient(
+      90deg,
+      #22c55e,
+      #4ade80
+    );
+}
+
+.cartaoIndicador.indicadorPositivo .valorIndicador {
+
+  color: #4ade80;
+}
+
+
+.cartaoIndicador.indicadorNegativo::before {
+
+  background:
+    linear-gradient(
+      90deg,
+      #ef4444,
+      #f87171
+    );
+}
+
+.cartaoIndicador.indicadorNegativo .valorIndicador {
+
+  color: #f87171;
+
+  text-shadow:
+    0 0 18px
+    rgba(239, 68, 68, .18);
+}
+
+
+.cartaoIndicador.indicadorPendente::before {
+
+  background:
+    linear-gradient(
+      90deg,
+      #f59e0b,
+      #fbbf24
+    );
+}
+
+.cartaoIndicador.indicadorPendente .valorIndicador {
+
+  color: #fbbf24;
+
+  text-shadow:
+    0 0 18px
+    rgba(245, 158, 11, .18);
+}
+
+
+.cartaoIndicador.indicadorNeutro::before {
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #60a5fa
+    );
+}
+
+.cartaoIndicador.indicadorNeutro .valorIndicador {
+
+  color: #60a5fa;
+
+  text-shadow:
+    0 0 18px
+    rgba(37, 99, 235, .18);
+}
+
+
+/* =========================================================
+   CONVERSÕES
+   ========================================================= */
+
+.gradeConversoes {
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(4, minmax(0, 1fr));
+
+  gap: 18px;
+}
+
+
+.cartaoConversao {
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .08);
+
+  border-radius: 14px;
+
+  padding:
+    18px 16px;
+
+  text-align: center;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 6px;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .05);
+
+  box-sizing: border-box;
+}
+
+
+.valorConversao {
+
+  font-size: 24px;
+
+  line-height: 1;
+
+  font-weight: 800;
+
+  color: #172b45;
+}
+
+
+.tituloConversao {
+
+  font-size: 12px;
+
+  color: #64748b;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   FUNIL COMERCIAL
+   ========================================================= */
+
+.listaFunil {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+
+.linhaFunil {
+
+  display: grid;
+
+  grid-template-columns:
+    130px 1fr 46px;
+
+  grid-template-areas:
+    "nome barra total";
+
+  align-items: center;
+
+  gap: 14px;
+}
+
+
+.nomeEtapaFunil {
+
+  grid-area: nome;
+
+  color: #172b45;
+
+  font-size: 14px;
+
+  font-weight: 700;
+}
+
+
+.barraFunil {
+
+  grid-area: barra;
+
+  position: relative;
+
+  height: 14px;
+
+  min-width: 0;
+
+  border-radius: 999px;
+
+  background:
+    rgba(23, 43, 69, .08);
+
+  overflow: hidden;
+}
+
+
+.preenchimentoBarraFunil {
+
+  height: 100%;
+
+  min-width: 4px;
+
+  border-radius: 999px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #34d058
+    );
+
+  transition:
+    width .3s ease;
+}
+
+
+.totalEtapaFunil {
+
+  grid-area: total;
+
+  text-align: right;
+
+  color: #172b45;
+
+  font-size: 15px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   DESEMPENHO POR GRUPO
+   ========================================================= */
+
+.blocoDesempenho {
+
+  margin-bottom: 26px;
+}
+
+
+.blocoDesempenho:last-child {
+
+  margin-bottom: 0;
+}
+
+
+.blocoDesempenho h3 {
+
+  margin:
+    0 0 12px;
+
+  color: #172b45;
+
+  font-size: 15px;
+
+  font-weight: 800;
+}
+
+
+.vazioDesempenho {
+
+  background: #ffffff;
+
+  border:
+    1px solid
+    rgba(23, 43, 69, .08);
+
+  border-radius: 12px;
+
+  padding:
+    16px 18px;
+
+  color: #64748b;
+
+  font-size: 13px;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .04);
+}
+
+
+.tabelaDesempenho {
+
+  width: 100%;
+
+  border-collapse:
+    separate;
+
+  border-spacing: 0;
+
+  background: #ffffff;
+
+  border-radius: 12px;
+
+  overflow: hidden;
+
+  box-shadow:
+    0 4px 12px
+    rgba(0, 0, 0, .05);
+}
+
+
+.tabelaDesempenho thead th {
+
+  text-align: left;
+
+  padding:
+    12px 16px;
+
+  background: #eef2f7;
+
+  color: #475569;
+
+  font-size: 11.5px;
+
+  font-weight: 800;
+
+  text-transform: uppercase;
+
+  letter-spacing: .03em;
+}
+
+
+.tabelaDesempenho tbody td {
+
+  padding:
+    12px 16px;
+
+  color: #172b45;
+
+  font-size: 13.5px;
+
+  border-top:
+    1px solid
+    rgba(23, 43, 69, .06);
+}
+
+
+.tabelaDesempenho tbody tr:nth-child(even) {
+
+  background:
+    rgba(23, 43, 69, .02);
+}
+
+
+.tabelaDesempenho tbody tr:hover {
+
+  background:
+    rgba(37, 99, 235, .05);
+}
+
+
+.tabelaDesempenho tbody td:first-child {
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE
+   ========================================================= */
+
+@media (max-width: 1400px) {
+
+  .gradeIndicadores {
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
+
+  .gradeConversoes {
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+@media (max-width: 900px) {
+
+  .gradeIndicadores {
+
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .linhaFunil {
+
+    grid-template-columns:
+      100px 1fr 40px;
+
+    gap: 10px;
+  }
+
+}
+
+
+@media (max-width: 700px) {
+
+  .relatoriosTitulo,
+  .blocoRelatorios,
+  .filtrosRelatorios {
+
+    padding: 20px;
+  }
+
+  .filtrosRelatorios {
+
+    flex-direction: column;
+
+    align-items: stretch;
+  }
+
+  .campoFiltro {
+
+    min-width: 0;
+    width: 100%;
+  }
+
+  .gradeConversoes {
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .tabelaDesempenho {
+
+    display: block;
+
+    overflow-x: auto;
+
+    white-space: nowrap;
+  }
+
+}
+
+
+@media (max-width: 600px) {
+
+  .gradeIndicadores {
+
+    grid-template-columns:
+      1fr;
+  }
+
+  .linhaFunil {
+
+    grid-template-columns:
+      1fr 34px;
+
+    grid-template-areas:
+      "nome nome"
+      "barra total";
+
+    row-gap: 6px;
+
+    column-gap: 8px;
+  }
+
+  .nomeEtapaFunil {
+
+    font-size: 12.5px;
+  }
+
+  .totalEtapaFunil {
+
+    font-size: 13px;
+  }
+
+}

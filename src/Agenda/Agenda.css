@@ -1,0 +1,1337 @@
+/* =========================================================
+   AGENDA — ESTILO GERAL
+========================================================= */
+
+.agendaCalendario {
+    width: 100%;
+    min-height: 100%;
+    box-sizing: border-box;
+}
+
+
+/* =========================================================
+   CABEÇALHO
+========================================================= */
+
+.agendaCabecalho {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.agendaCabecalho h1 {
+    margin: 0;
+    font-size: 32px;
+    color: #ffffff;
+}
+
+.agendaCabecalho p {
+    margin: 8px 0 0;
+    color: #aeb8c7;
+    font-size: 15px;
+}
+
+.btnNovaVisita {
+    border: none;
+    border-radius: 12px;
+    padding: 14px 22px;
+    background: #6c63ff;
+    color: white;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.btnNovaVisita:hover {
+    transform: translateY(-2px);
+    opacity: 0.95;
+}
+
+
+/* =========================================================
+   CONTROLES DO CALENDÁRIO
+========================================================= */
+
+.calendarioControles {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    margin-bottom: 20px;
+    position: relative;
+}
+
+.calendarioControles h2 {
+    min-width: 220px;
+    text-align: center;
+    margin: 0;
+    color: #ffffff;
+    font-size: 24px;
+}
+
+.btnMes {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 10px;
+    background: #162d4c;
+    color: white;
+    font-size: 28px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btnMes:hover {
+    background: #213d63;
+    transform: scale(1.04);
+}
+
+.btnHoje {
+    position: absolute;
+    right: 0;
+
+    border: 1px solid #334b69;
+    background: #102540;
+    color: white;
+
+    padding: 10px 16px;
+    border-radius: 10px;
+
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.btnHoje:hover {
+    background: #193452;
+}
+
+
+/* =========================================================
+   CALENDÁRIO
+========================================================= */
+
+.calendario {
+    background: #ffffff;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+}
+
+.calendarioSemana {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    background: #f5f6fa;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.nomeDia {
+    padding: 16px 10px;
+    text-align: center;
+
+    color: #6b7280;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.calendarioDias {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+}
+
+.diaCalendario {
+    position: relative;
+
+    min-height: 105px;
+
+    border: none;
+    border-right: 1px solid #eeeeee;
+    border-bottom: 1px solid #eeeeee;
+
+    background: #ffffff;
+
+    padding: 12px;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.diaCalendario:hover {
+    background: #f7f7ff;
+}
+
+.numeroDia {
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    width: 34px;
+    height: 34px;
+
+    border-radius: 50%;
+
+    color: #333;
+
+    font-size: 15px;
+    font-weight: 700;
+}
+
+.diaCalendario.outroMes {
+    background: #fafafa;
+}
+
+.diaCalendario.outroMes .numeroDia {
+    color: #c5c5c5;
+}
+
+.diaCalendario.diaHoje .numeroDia {
+    background: #6c63ff;
+    color: white;
+}
+
+.diaCalendario.diaSelecionado {
+    background: #f3f2ff;
+}
+
+.diaCalendario.diaSelecionado .numeroDia {
+    box-shadow: 0 0 0 2px #6c63ff;
+}
+
+
+/* =========================================================
+   VISITAS DO DIA
+========================================================= */
+
+.visitasDia {
+    margin-top: 28px;
+
+    background: #ffffff;
+
+    border-radius: 18px;
+
+    padding: 25px;
+
+    box-sizing: border-box;
+}
+
+.visitasDiaHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+
+    padding-bottom: 20px;
+
+    border-bottom: 1px solid #eeeeee;
+}
+
+.visitasDiaHeader h2 {
+    margin: 0;
+    color: #222;
+    font-size: 22px;
+}
+
+.visitasDiaHeader p {
+    margin: 7px 0 0;
+
+    color: #777;
+
+    font-size: 14px;
+    text-transform: capitalize;
+}
+
+.contadorVisitas {
+    background: #f0efff;
+
+    color: #6c63ff;
+
+    padding: 8px 14px;
+
+    border-radius: 20px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+
+/* =========================================================
+   LISTA DE VISITAS
+========================================================= */
+
+.listaVisitas {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+
+    margin-top: 20px;
+}
+
+
+/* =========================================================
+   CARD DA VISITA
+========================================================= */
+
+.cardVisita {
+    position: relative;
+
+    width: 100%;
+
+    display: flex;
+    align-items: stretch;
+
+    gap: 20px;
+
+    padding: 18px;
+
+    box-sizing: border-box;
+
+    border-radius: 16px;
+
+    background: #ffffff;
+
+    text-align: left;
+
+    cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        border-color 0.2s ease;
+
+    font-family: inherit;
+}
+
+.cardVisita:hover {
+    transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   VISITA PENDENTE
+========================================================= */
+
+.cardVisita.visitaPendente {
+    border: 2px solid #f97316;
+
+    background:
+        linear-gradient(
+            135deg,
+            #fff7ed 0%,
+            #ffffff 65%
+        );
+
+    box-shadow:
+        0 5px 18px rgba(249, 115, 22, 0.10);
+}
+
+.cardVisita.visitaPendente:hover {
+    box-shadow:
+        0 8px 24px rgba(249, 115, 22, 0.18);
+}
+
+
+/* =========================================================
+   VISITA CONFIRMADA
+========================================================= */
+
+.cardVisita.visitaConfirmada {
+    border: 2px solid #22c55e;
+
+    background:
+        linear-gradient(
+            135deg,
+            #f0fdf4 0%,
+            #ffffff 65%
+        );
+
+    box-shadow:
+        0 5px 18px rgba(34, 197, 94, 0.10);
+}
+
+.cardVisita.visitaConfirmada:hover {
+    box-shadow:
+        0 8px 24px rgba(34, 197, 94, 0.18);
+}
+
+
+/* =========================================================
+   ÍCONE DE STATUS NO CANTO
+========================================================= */
+
+.cardVisita.visitaPendente::after {
+    content: "!";
+
+    position: absolute;
+
+    top: 14px;
+    right: 14px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #f97316;
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 900;
+
+    box-shadow:
+        0 3px 8px rgba(249, 115, 22, 0.25);
+}
+
+.cardVisita.visitaConfirmada::after {
+    content: "✓";
+
+    position: absolute;
+
+    top: 14px;
+    right: 14px;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+
+    background: #22c55e;
+    color: #ffffff;
+
+    font-size: 16px;
+    font-weight: 900;
+
+    box-shadow:
+        0 3px 8px rgba(34, 197, 94, 0.25);
+}
+
+
+/* =========================================================
+   HORÁRIO
+========================================================= */
+
+.horaVisita {
+    min-width: 90px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 12px;
+
+    box-sizing: border-box;
+
+    border-radius: 12px;
+
+    background: #f5f6fa;
+
+    color: #222;
+
+    font-size: 19px;
+    font-weight: 900;
+
+    white-space: nowrap;
+}
+
+.cardVisita.visitaConfirmada .horaVisita {
+    background: #dcfce7;
+    color: #15803d;
+}
+
+.cardVisita.visitaPendente .horaVisita {
+    background: #ffedd5;
+    color: #c2410c;
+}
+
+
+/* =========================================================
+   DADOS DA VISITA
+========================================================= */
+
+.dadosVisita {
+    flex: 1;
+    min-width: 0;
+
+    padding-right: 45px;
+}
+
+.dadosVisita h3 {
+    margin: 0 0 7px;
+
+    color: #222;
+
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.dadosVisita p {
+    margin: 5px 0;
+
+    color: #666;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+/* =========================================================
+   STATUS DA VISITA
+========================================================= */
+
+.statusVisitaConfirmada,
+.statusVisitaPendente {
+    display: flex;
+    align-items: center;
+
+    width: fit-content;
+
+    margin-top: 10px !important;
+
+    padding: 7px 11px;
+
+    border-radius: 8px;
+
+    font-size: 12px !important;
+    font-weight: 800 !important;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.2px;
+}
+
+
+/* CONFIRMADA */
+
+.statusVisitaConfirmada {
+    background: #dcfce7;
+
+    color: #15803d !important;
+
+    border: 1px solid #86efac;
+}
+
+
+/* PENDENTE */
+
+.statusVisitaPendente {
+    background: #ffedd5;
+
+    color: #c2410c !important;
+
+    border: 1px solid #fdba74;
+}
+
+
+/* =========================================================
+   OBSERVAÇÃO
+========================================================= */
+
+.cardVisita .dadosVisita p:last-of-type {
+    max-width: 90%;
+
+    overflow: hidden;
+
+    text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   CLIQUE PARA DETALHES
+========================================================= */
+
+.cliqueDetalhesVisita {
+    display: inline-block;
+
+    margin-top: 9px;
+
+    color: #6c63ff;
+
+    font-size: 12px;
+
+    font-weight: 700;
+}
+
+.cardVisita:hover .cliqueDetalhesVisita {
+    text-decoration: underline;
+}
+
+
+/* =========================================================
+   SEM VISITAS
+========================================================= */
+
+.semVisitas {
+    padding: 45px 20px;
+
+    text-align: center;
+}
+
+.iconeSemVisitas {
+    font-size: 40px;
+
+    margin-bottom: 12px;
+}
+
+.semVisitas h3 {
+    margin: 0;
+
+    color: #333;
+
+    font-size: 18px;
+}
+
+.semVisitas p {
+    margin: 8px 0 0;
+
+    color: #888;
+
+    font-size: 14px;
+}
+
+
+/* =========================================================
+   STATUS DENTRO DOS DETALHES
+========================================================= */
+
+.detalhesVisitaStatus {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 100%;
+    box-sizing: border-box;
+
+    margin: 18px 0;
+
+    padding: 15px 18px;
+
+    border-radius: 12px;
+
+    font-size: 15px;
+
+    font-weight: 800;
+
+    letter-spacing: 0.2px;
+}
+
+
+/* CONFIRMADA */
+
+.detalhesVisitaStatus.statusConfirmada {
+    background: #dcfce7;
+
+    color: #15803d;
+
+    border: 2px solid #86efac;
+
+    box-shadow:
+        0 4px 12px rgba(34, 197, 94, 0.12);
+}
+
+
+/* PENDENTE */
+
+.detalhesVisitaStatus.statusPendente {
+    background: #fff7ed;
+
+    color: #c2410c;
+
+    border: 2px solid #fdba74;
+
+    box-shadow:
+        0 4px 12px rgba(249, 115, 22, 0.10);
+}
+
+
+/* =========================================================
+   BOTÃO CONFIRMAR
+========================================================= */
+
+.btnConfirmarVisita {
+    border: none;
+
+    background:
+        linear-gradient(
+            135deg,
+            #22c55e,
+            #16a34a
+        );
+
+    color: white;
+
+    padding: 13px 20px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    font-weight: 800;
+
+    cursor: pointer;
+
+    transition: all 0.2s ease;
+
+    box-shadow:
+        0 5px 14px rgba(34, 197, 94, 0.22);
+}
+
+.btnConfirmarVisita:hover {
+    transform: translateY(-2px);
+
+    box-shadow:
+        0 8px 18px rgba(34, 197, 94, 0.30);
+}
+
+.btnConfirmarVisita:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* =========================================================
+   BOTÃO REAGENDAR
+========================================================= */
+
+.btnReagendarVisita {
+    border: 1px solid #d8d5ff;
+
+    background: #f5f3ff;
+
+    color: #5b52e8;
+
+    padding: 13px 18px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.btnReagendarVisita:hover {
+    background: #ebe9ff;
+
+    transform: translateY(-1px);
+}
+
+
+/* =========================================================
+   BOTÃO FECHAR
+========================================================= */
+
+.btnFecharDetalhes {
+    border: 1px solid #e5e7eb;
+
+    background: #f8fafc;
+
+    color: #555;
+
+    padding: 13px 18px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.btnFecharDetalhes:hover {
+    background: #f1f5f9;
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 900px) {
+
+    .agendaCabecalho {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .btnHoje {
+        position: static;
+    }
+
+    .calendarioControles {
+        flex-wrap: wrap;
+    }
+
+    .diaCalendario {
+        min-height: 75px;
+        padding: 8px;
+    }
+
+    .numeroDia {
+        width: 30px;
+        height: 30px;
+    }
+
+    .cardVisita {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .horaVisita {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .dadosVisita {
+        padding-right: 0;
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    .agendaCabecalho h1 {
+        font-size: 25px;
+    }
+
+    .calendarioControles h2 {
+        min-width: 170px;
+        font-size: 20px;
+    }
+
+    .visitasDia {
+        padding: 16px;
+    }
+
+    .visitasDiaHeader {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+}
+/* =========================================================
+   DETALHES DA VISITA DENTRO DO CARD
+========================================================= */
+
+.visitaWrapper {
+    width: 100%;
+    margin-bottom: 16px;
+}
+
+
+/* =========================================================
+   CARD ABERTO
+========================================================= */
+
+.cardVisita.visitaAberta {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+
+/* =========================================================
+   ÁREA DE DETALHES
+========================================================= */
+
+.detalhesVisitaInline {
+
+    width: 100%;
+    box-sizing: border-box;
+
+    background: #ffffff;
+
+    border: 2px solid #e5e7eb;
+    border-top: none;
+
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+
+    padding: 24px;
+
+    box-shadow:
+        0 8px 22px rgba(0, 0, 0, 0.08);
+
+    animation:
+        abrirDetalhesVisita
+        0.22s ease-out;
+}
+
+
+/* =========================================================
+   ANIMAÇÃO
+========================================================= */
+
+@keyframes abrirDetalhesVisita {
+
+    from {
+
+        opacity: 0;
+
+        transform:
+            translateY(-6px);
+
+    }
+
+    to {
+
+        opacity: 1;
+
+        transform:
+            translateY(0);
+
+    }
+
+}
+
+
+/* =========================================================
+   CABEÇALHO DOS DETALHES
+========================================================= */
+
+.detalhesVisitaInline
+.detalhesVisitaHeader {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    gap: 20px;
+
+    margin-bottom: 18px;
+
+}
+
+
+.detalhesVisitaInline
+.detalhesVisitaHeader h2 {
+
+    margin: 6px 0 0;
+
+    font-size: 22px;
+
+    color: #222;
+
+}
+
+
+.detalhesVisitaTag {
+
+    display: inline-flex;
+
+    align-items: center;
+
+    padding: 6px 10px;
+
+    border-radius: 8px;
+
+    background: #f1efff;
+
+    color: #5b52e8;
+
+    font-size: 11px;
+
+    font-weight: 800;
+
+    letter-spacing: .4px;
+
+}
+
+
+/* =========================================================
+   FECHAR DETALHES
+========================================================= */
+
+.detalhesVisitaFechar {
+
+    width: 34px;
+    height: 34px;
+
+    border: none;
+
+    border-radius: 9px;
+
+    background: #f1f5f9;
+
+    color: #555;
+
+    font-size: 20px;
+
+    cursor: pointer;
+
+    transition: .2s;
+}
+
+
+.detalhesVisitaFechar:hover {
+
+    background: #e2e8f0;
+
+    transform: scale(1.04);
+
+}
+
+
+/* =========================================================
+   STATUS
+========================================================= */
+
+.detalhesVisitaInline
+.detalhesVisitaStatus {
+
+    margin: 0 0 20px;
+
+}
+
+
+/* =========================================================
+   INFORMAÇÕES DA VISITA
+========================================================= */
+
+.detalhesVisitaInfo {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 14px;
+
+    margin-bottom: 22px;
+
+}
+
+
+.detalhesInfoItem {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+    padding: 15px;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 12px;
+
+}
+
+
+.detalhesInfoItem span {
+
+    color: #64748b;
+
+    font-size: 12px;
+
+    font-weight: 600;
+
+}
+
+
+.detalhesInfoItem strong {
+
+    color: #222;
+
+    font-size: 16px;
+
+}
+
+
+/* =========================================================
+   SEÇÕES
+========================================================= */
+
+.detalhesVisitaSecao {
+
+    margin-top: 20px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #e5e7eb;
+
+}
+
+
+.detalhesVisitaSecao h3 {
+
+    margin: 0 0 14px;
+
+    color: #222;
+
+    font-size: 16px;
+
+}
+
+
+/* =========================================================
+   DADOS DO LEAD
+========================================================= */
+
+.detalhesLeadDados {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 10px;
+
+}
+
+
+.detalhesLeadDados p {
+
+    margin: 0;
+
+    padding: 12px;
+
+    background: #f8fafc;
+
+    border-radius: 10px;
+
+    color: #475569;
+
+    font-size: 13px;
+
+}
+
+
+.detalhesLeadDados strong {
+
+    color: #222;
+
+}
+
+
+/* =========================================================
+   OBSERVAÇÃO
+========================================================= */
+
+.detalhesObservacao {
+
+    min-height: 55px;
+
+    padding: 14px;
+
+    box-sizing: border-box;
+
+    background: #f8fafc;
+
+    border: 1px solid #e5e7eb;
+
+    border-radius: 11px;
+
+    color: #475569;
+
+    font-size: 14px;
+
+    line-height: 1.5;
+
+}
+
+
+.detalhesObservacaoInput {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    resize: vertical;
+
+    border: 1px solid #d8dee8;
+
+    border-radius: 11px;
+
+    padding: 13px;
+
+    font-family: inherit;
+
+    font-size: 14px;
+
+    outline: none;
+
+}
+
+
+.detalhesObservacaoInput:focus {
+
+    border-color: #6c63ff;
+
+    box-shadow:
+        0 0 0 3px
+        rgba(108, 99, 255, .10);
+
+}
+
+
+/* =========================================================
+   REAGENDAMENTO
+========================================================= */
+
+.reagendamentoCampos {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, 1fr);
+
+    gap: 14px;
+
+}
+
+
+.reagendamentoCampos > div {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 7px;
+
+}
+
+
+.reagendamentoCampos label {
+
+    font-size: 12px;
+
+    font-weight: 700;
+
+    color: #64748b;
+
+}
+
+
+.reagendamentoCampos input {
+
+    width: 100%;
+
+    box-sizing: border-box;
+
+    padding: 11px 12px;
+
+    border: 1px solid #d8dee8;
+
+    border-radius: 9px;
+
+    font-family: inherit;
+
+    outline: none;
+
+}
+
+
+.reagendamentoCampos input:focus {
+
+    border-color: #6c63ff;
+
+}
+
+
+/* =========================================================
+   BOTÕES
+========================================================= */
+
+.detalhesVisitaActions {
+
+    display: flex;
+
+    align-items: center;
+
+    flex-wrap: wrap;
+
+    gap: 10px;
+
+    margin-top: 24px;
+
+    padding-top: 20px;
+
+    border-top: 1px solid #e5e7eb;
+
+}
+
+
+.btnCancelarReagendamento {
+
+    border: 1px solid #e5e7eb;
+
+    background: #f8fafc;
+
+    color: #555;
+
+    padding: 13px 18px;
+
+    border-radius: 10px;
+
+    font-size: 14px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+}
+
+
+.btnCancelarReagendamento:hover {
+
+    background: #f1f5f9;
+
+}
+
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width: 800px) {
+
+    .detalhesVisitaInfo {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .detalhesLeadDados {
+
+        grid-template-columns: 1fr;
+
+    }
+
+
+    .reagendamentoCampos {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}

@@ -1,20 +1,10 @@
-import { useState } from "react";
+import "./LeadDetailsModal.css";
 
 export default function LeadActionModal({
-
   aberto,
-
   titulo,
-
-  placeholder,
-
-  onCancelar,
-
-  onConfirmar,
-
+  children,
 }) {
-
-  const [observacao, setObservacao] = useState("");
 
   if (!aberto) return null;
 
@@ -24,41 +14,15 @@ export default function LeadActionModal({
 
       <div className="leadActionModal">
 
-        <h2>{titulo}</h2>
+        <div className="leadActionHeader">
 
-        <textarea
+          <h2>{titulo}</h2>
 
-          placeholder={placeholder}
+        </div>
 
-          value={observacao}
+        <div className="leadActionBody">
 
-          onChange={(e) =>
-            setObservacao(e.target.value)
-          }
-
-        />
-
-        <div className="leadActionButtons">
-
-          <button
-            className="btnCancelar"
-            onClick={onCancelar}
-          >
-            Cancelar
-          </button>
-
-          <button
-            className="btnSalvar"
-            onClick={() => {
-
-              onConfirmar(observacao);
-
-              setObservacao("");
-
-            }}
-          >
-            Confirmar
-          </button>
+          {children}
 
         </div>
 

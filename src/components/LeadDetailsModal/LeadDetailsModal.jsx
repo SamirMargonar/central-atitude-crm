@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 import "./LeadDetailsModal.css";
 
 import LeadHeader from "./LeadHeader";
@@ -8,13 +10,32 @@ import LeadNotes from "./LeadNotes";
 import LeadTimeline from "./LeadTimeline";
 import LeadTransfer from "./LeadTransfer";
 
+import { useAuth } from "../../auth/AuthContext";
+
 export default function LeadDetailsModal({
   lead,
   onClose,
-  setLead,
 }) {
 
-  if (!lead) return null;
+  const { permissoes } =
+    useAuth();
+
+
+  const [leadLocal, setLeadLocal] =
+    useState(lead);
+
+
+  useEffect(() => {
+
+    setLeadLocal(lead);
+
+  }, [lead]);
+
+
+  if (!leadLocal) {
+    return null;
+  }
+
 
   return (
 
@@ -22,49 +43,40 @@ export default function LeadDetailsModal({
 
       <div className="leadModal">
 
-        {/* HEADER */}
-
         <LeadHeader
-          lead={lead}
+          lead={leadLocal}
           onClose={onClose}
         />
 
-        {/* RESPONSÁVEL */}
-
         <LeadOwner
-          lead={lead}
+          lead={leadLocal}
         />
-
-        {/* JORNADA */}
 
         <LeadJourney
-          lead={lead}
+          lead={leadLocal}
         />
-
-        {/* PRÓXIMA AÇÃO */}
 
         <LeadActions
-          lead={lead}
+          lead={leadLocal}
+          setLead={setLeadLocal}
         />
-
-        {/* OBSERVAÇÕES */}
 
         <LeadNotes
-          lead={lead}
-          setLead={setLead}
+          lead={leadLocal}
+          setLead={setLeadLocal}
         />
-
-        {/* TIMELINE */}
 
         <LeadTimeline
-          lead={lead}
+          lead={leadLocal}
         />
 
-        {/* TRANSFERÊNCIA */}
+        {permissoes.transferirLead && (
 
-        <LeadTransfer
-          lead={lead}
-        />
+          <LeadTransfer
+            lead={leadLocal}
+          />
+
+        )}
 
       </div>
 

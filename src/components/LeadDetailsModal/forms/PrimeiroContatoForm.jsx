@@ -2,83 +2,72 @@ import { useState } from "react";
 
 export default function PrimeiroContatoForm({
 
-  onCancelar,
+  lead,
 
-  onSalvar,
+  onEnviar,
+
+  onCancelar,
 
 }) {
 
-  const [tipoContato, setTipoContato] = useState("WhatsApp");
+  const [mensagem, setMensagem] = useState(
 
-  const [resultado, setResultado] = useState("");
+`Olá ${lead?.nome || ""}! 😊
+
+Meu nome é Samir e faço parte da equipe da Academia Viva Attitude.
+
+Recebemos seu interesse e gostaríamos de entender melhor seu objetivo para podermos te ajudar da melhor forma.
+
+Quando você teria alguns minutos para conversarmos? 💪`
+
+  );
 
   return (
 
     <>
 
-      <h2>📞 Registrar Primeiro Contato</h2>
+      <label>
 
-      <div className="formGroup">
+        Mensagem
 
-        <label>Tipo de contato</label>
+      </label>
 
-        <select
-          value={tipoContato}
-          onChange={(e) =>
-            setTipoContato(e.target.value)
-          }
-        >
+      <textarea
 
-          <option>WhatsApp</option>
+        rows={10}
 
-          <option>Ligação</option>
+        className="leadNotesInput"
 
-          <option>Presencial</option>
+        value={mensagem}
 
-        </select>
+        onChange={(e)=>setMensagem(e.target.value)}
 
-      </div>
-
-      <div className="formGroup">
-
-        <label>Resultado</label>
-
-        <textarea
-
-          placeholder="Descreva como foi o primeiro contato..."
-
-          value={resultado}
-
-          onChange={(e) =>
-            setResultado(e.target.value)
-          }
-
-        />
-
-      </div>
+      />
 
       <div className="leadActionButtons">
 
         <button
+
           className="btnCancelar"
+
           onClick={onCancelar}
+
         >
+
           Cancelar
+
         </button>
 
         <button
+
           className="btnSalvar"
-          onClick={() =>
-            onSalvar({
 
-              tipoContato,
+          onClick={()=>onEnviar(mensagem)}
 
-              resultado,
-
-            })
-          }
         >
-          Salvar
+
+          📲 Enviar pelo WhatsApp
+
         </button>
 
       </div>

@@ -1,3 +1,7 @@
+/* =========================================================
+   MODAL PRINCIPAL
+========================================================= */
+
 .modalOverlay{
 
     position:fixed;
@@ -18,14 +22,22 @@
 
 }
 
+
+/* =========================================================
+   LEAD MODAL
+========================================================= */
+
 .leadModal{
 
     width:950px;
+
     max-width:95vw;
 
     max-height:90vh;
 
     background:#ffffff;
+
+    color:#222222;
 
     border-radius:18px;
 
@@ -39,19 +51,31 @@
 
 }
 
+
 @keyframes modal{
 
     from{
+
         transform:scale(.95);
+
         opacity:0;
+
     }
 
     to{
+
         transform:scale(1);
+
         opacity:1;
+
     }
 
 }
+
+
+/* =========================================================
+   MODAL HEADER
+========================================================= */
 
 .modalHeader{
 
@@ -67,11 +91,15 @@
 
 }
 
+
 .modalHeader h2{
 
     margin:0;
 
+    color:#222222;
+
 }
+
 
 .closeButton{
 
@@ -86,9 +114,9 @@
 }
 
 
-/* ==========================
+/* =========================================================
    LEAD HEADER
-========================== */
+========================================================= */
 
 .leadHeader{
 
@@ -106,6 +134,7 @@
 
 }
 
+
 .leadHeader h2{
 
     font-size:28px;
@@ -115,6 +144,7 @@
     color:#222;
 
 }
+
 
 .leadHeaderInfo{
 
@@ -132,6 +162,7 @@
 
 }
 
+
 .leadHeaderInfo span{
 
     display:flex;
@@ -141,6 +172,7 @@
     gap:6px;
 
 }
+
 
 .closeButton{
 
@@ -162,14 +194,17 @@
 
 }
 
+
 .closeButton:hover{
 
     background:#ececec;
 
 }
-/* ===================================
+
+
+/* =========================================================
    RESPONSÁVEL COMERCIAL
-=================================== */
+========================================================= */
 
 .leadOwner{
 
@@ -183,6 +218,7 @@
 
 }
 
+
 .ownerCard{
 
     background:#fafafa;
@@ -194,6 +230,7 @@
     padding:20px;
 
 }
+
 
 .ownerLabel{
 
@@ -207,6 +244,7 @@
 
 }
 
+
 .ownerCard h3{
 
     margin:0;
@@ -217,6 +255,7 @@
 
 }
 
+
 @media(max-width:900px){
 
     .leadOwner{
@@ -226,15 +265,18 @@
     }
 
 }
-/* ===================================
+
+
+/* =========================================================
    JORNADA DO CLIENTE
-=================================== */
+========================================================= */
 
 .leadJourney{
 
     margin-bottom:35px;
 
 }
+
 
 .leadJourney h3{
 
@@ -243,6 +285,7 @@
     color:#333;
 
 }
+
 
 .journeySteps{
 
@@ -256,6 +299,7 @@
 
 }
 
+
 .journeyItem{
 
     display:flex;
@@ -267,6 +311,7 @@
     flex:1;
 
 }
+
 
 .journeyCircle{
 
@@ -294,6 +339,7 @@
 
 }
 
+
 .journeyCircle.active{
 
     background:#6C63FF;
@@ -301,6 +347,7 @@
     color:white;
 
 }
+
 
 .journeyItem span{
 
@@ -311,15 +358,18 @@
     text-align:center;
 
 }
-/* ===================================
+
+
+/* =========================================================
    AÇÃO PRINCIPAL
-=================================== */
+========================================================= */
 
 .leadActions{
 
     margin:35px 0;
 
 }
+
 
 .btnAcaoPrincipal{
 
@@ -345,6 +395,7 @@
 
 }
 
+
 .btnAcaoPrincipal:hover{
 
     transform:translateY(-2px);
@@ -352,6 +403,7 @@
     opacity:.95;
 
 }
+
 
 .btnAcaoPrincipal:disabled{
 
@@ -362,49 +414,164 @@
     transform:none;
 
 }
-/* ===========================
+
+
+/* =========================================================
    ACTION MODAL
-=========================== */
+========================================================= */
 
 .leadActionModal{
 
-    background:white;
+    background:#ffffff;
 
-    width:520px;
+    color:#222222;
+
+    width:650px;
 
     max-width:95%;
+
+    max-height:90vh;
+
+    overflow-y:auto;
 
     border-radius:18px;
 
     padding:28px;
 
+    box-sizing:border-box;
+
+    box-shadow:0 20px 60px rgba(0,0,0,.25);
+
 }
+
 
 .leadActionModal h2{
 
-    margin-bottom:20px;
+    margin:0 0 20px 0;
+
+    color:#222222;
+
+    font-size:24px;
+
+    font-weight:700;
 
 }
 
-.leadActionModal textarea{
+
+/* =========================================================
+   BODY DO MODAL DE AÇÃO
+========================================================= */
+
+.leadActionBody{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:12px;
+
+}
+
+
+.leadActionBody p{
+
+    color:#555555;
+
+    font-size:15px;
+
+    line-height:1.5;
+
+    margin:0;
+
+}
+
+
+.leadActionBody label{
+
+    font-size:15px;
+
+    font-weight:600;
+
+    color:#333333;
+
+    margin-top:6px;
+
+}
+
+
+.leadActionBody input,
+.leadActionBody select{
+
+    width:100%;
+
+    height:48px;
+
+    padding:0 15px;
+
+    border:1px solid #d8d8d8;
+
+    border-radius:10px;
+
+    box-sizing:border-box;
+
+    font-size:15px;
+
+    color:#222222;
+
+    background:#ffffff;
+
+}
+
+
+.leadActionBody textarea{
 
     width:100%;
 
     min-height:140px;
 
-    resize:none;
-
-    border:1px solid #ddd;
-
-    border-radius:12px;
-
     padding:15px;
+
+    border:1px solid #d8d8d8;
+
+    border-radius:10px;
+
+    resize:vertical;
+
+    box-sizing:border-box;
 
     font-size:15px;
 
-    outline:none;
+    color:#222222;
+
+    background:#ffffff;
 
 }
+
+
+.leadActionBody input::placeholder,
+.leadActionBody textarea::placeholder{
+
+    color:#888888;
+
+}
+
+
+.leadActionBody input:focus,
+.leadActionBody select:focus,
+.leadActionBody textarea:focus{
+
+    outline:none;
+
+    border-color:#6C63FF;
+
+    box-shadow:0 0 0 3px rgba(108,99,255,.10);
+
+}
+
+
+/* =========================================================
+   BOTÕES DO MODAL
+========================================================= */
 
 .leadActionButtons{
 
@@ -414,13 +581,20 @@
 
     gap:15px;
 
-    margin-top:20px;
+    margin-top:30px;
+
+    padding-top:20px;
+
+    border-top:1px solid #ececec;
 
 }
+
 
 .btnCancelar{
 
     background:#ececec;
+
+    color:#333333;
 
     border:none;
 
@@ -430,7 +604,19 @@
 
     cursor:pointer;
 
+    font-weight:600;
+
+    transition:.2s;
+
 }
+
+
+.btnCancelar:hover{
+
+    background:#dddddd;
+
+}
+
 
 .btnSalvar{
 
@@ -446,10 +632,25 @@
 
     cursor:pointer;
 
+    font-weight:600;
+
+    transition:.2s;
+
 }
-/* ===========================
+
+
+.btnSalvar:hover{
+
+    opacity:.92;
+
+    transform:translateY(-1px);
+
+}
+
+
+/* =========================================================
    LEAD NOTES
-=========================== */
+========================================================= */
 
 .leadNotes{
 
@@ -463,6 +664,7 @@
 
 }
 
+
 .leadNotes h3{
 
     font-size:18px;
@@ -470,6 +672,7 @@
     font-weight:600;
 
 }
+
 
 .leadNotesInput{
 
@@ -489,13 +692,21 @@
 
     font-size:15px;
 
+    color:#222;
+
+    background:#fff;
+
+    box-sizing:border-box;
+
 }
+
 
 .leadNotesInput:focus{
 
     border-color:#6C63FF;
 
 }
+
 
 .btnSalvarObservacao{
 
@@ -517,11 +728,13 @@
 
 }
 
+
 .btnSalvarObservacao:hover{
 
     opacity:.95;
 
 }
+
 
 .btnSalvarObservacao:disabled{
 
@@ -530,43 +743,130 @@
     cursor:not-allowed;
 
 }
-/* ===================================
+
+
+/* =========================================================
    TIMELINE
-=================================== */
+========================================================= */
 
 .leadTimeline{
 
-    margin-top:35px;
+    position:relative;
+
+    padding-left:18px;
+
+    margin-top:40px;
 
 }
+
+
+.leadTimeline::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:23px;
+
+    top:58px;
+
+    bottom:0;
+
+    width:2px;
+
+    background:#e5e5e5;
+
+}
+
 
 .leadTimeline h3{
 
-    margin-bottom:18px;
+    margin-bottom:25px;
+
+    font-size:22px;
+
+    color:#222;
 
 }
+
 
 .timelineEmpty{
 
-    color:#777;
+    color:#888;
 
     font-style:italic;
 
-}
+    padding:20px;
 
-.timelineItem{
-
-    border-left:4px solid #6C63FF;
+    text-align:center;
 
     background:#fafafa;
 
-    padding:16px;
-
-    margin-bottom:15px;
-
-    border-radius:10px;
+    border-radius:12px;
 
 }
+
+
+.timelineItem{
+
+    position:relative;
+
+    margin-left:18px;
+
+    margin-bottom:22px;
+
+    padding:20px;
+
+    background:#ffffff;
+
+    border:1px solid #ececec;
+
+    border-left:5px solid #6C63FF;
+
+    border-radius:14px;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.05);
+
+    transition:.25s;
+
+}
+
+
+.timelineItem:hover{
+
+    transform:translateY(-3px) scale(1.01);
+
+    box-shadow:0 14px 30px rgba(108,99,255,.15);
+
+}
+
+
+.timelineItem::before{
+
+    content:"";
+
+    position:absolute;
+
+    left:-29px;
+
+    top:24px;
+
+    width:12px;
+
+    height:12px;
+
+    border-radius:50%;
+
+    background:#6C63FF;
+
+    border:4px solid white;
+
+    box-shadow:0 0 0 2px #6C63FF;
+
+    z-index:2;
+
+}
+
 
 .timelineHeader{
 
@@ -574,11 +874,58 @@
 
     justify-content:space-between;
 
-    margin-bottom:10px;
+    align-items:center;
+
+    margin-bottom:15px;
 
 }
 
+
+.timelineHeader strong{
+
+    font-size:16px;
+
+    color:#222;
+
+}
+
+
 .timelineHeader span{
+
+    font-size:13px;
+
+    color:#888;
+
+}
+
+
+.timelineItem p{
+
+    margin:8px 0;
+
+    line-height:1.6;
+
+    color:#555;
+
+}
+
+
+.timelineItem p strong{
+
+    color:#222;
+
+}
+
+
+.timelineItem small{
+
+    display:block;
+
+    margin-top:15px;
+
+    padding-top:12px;
+
+    border-top:1px solid #ececec;
 
     color:#777;
 
@@ -586,22 +933,10 @@
 
 }
 
-.timelineItem p{
 
-    margin:8px 0;
-
-    line-height:1.5;
-
-}
-
-.timelineItem small{
-
-    color:#666;
-
-}
-/* ===================================
+/* =========================================================
    TRANSFERÊNCIA
-=================================== */
+========================================================= */
 
 .leadTransfer{
 
@@ -615,11 +950,13 @@
 
 }
 
+
 .leadTransfer h3{
 
     margin-bottom:5px;
 
 }
+
 
 .leadTransfer select,
 .leadTransfer textarea{
@@ -636,7 +973,14 @@
 
     outline:none;
 
+    color:#222;
+
+    background:#fff;
+
+    box-sizing:border-box;
+
 }
+
 
 .leadTransfer textarea{
 
@@ -645,6 +989,7 @@
     resize:vertical;
 
 }
+
 
 .btnTransferir{
 
@@ -666,8 +1011,153 @@
 
 }
 
+
 .btnTransferir:hover{
 
     opacity:.95;
+
+}
+
+
+/* =========================================================
+   CAMPOS DA AGENDA
+========================================================= */
+
+.campoAgenda{
+
+    width:220px;
+
+    height:48px;
+
+    padding:0 15px;
+
+    border:1px solid #d8d8d8;
+
+    border-radius:10px;
+
+    font-size:15px;
+
+    margin-bottom:18px;
+
+    box-sizing:border-box;
+
+}
+
+
+.campoAgenda:focus{
+
+    outline:none;
+
+    border-color:#6C63FF;
+
+}
+
+
+/* =========================================================
+   RESPONSIVIDADE DO MODAL
+========================================================= */
+
+@media(max-width:700px){
+
+    .modalOverlay{
+
+        padding:12px;
+
+    }
+
+
+    .leadModal{
+
+        width:100%;
+
+        max-width:100%;
+
+        max-height:94vh;
+
+        padding:20px;
+
+        border-radius:14px;
+
+    }
+
+
+    .leadActionModal{
+
+        width:100%;
+
+        max-width:100%;
+
+        max-height:94vh;
+
+        padding:20px;
+
+        border-radius:14px;
+
+    }
+
+
+    .leadHeader{
+
+        flex-direction:column;
+
+        gap:15px;
+
+    }
+
+
+    .leadHeader h2{
+
+        font-size:23px;
+
+    }
+
+
+    .journeySteps{
+
+        gap:8px;
+
+    }
+
+
+    .journeyItem{
+
+        min-width:70px;
+
+    }
+
+
+    .journeyCircle{
+
+        width:38px;
+
+        height:38px;
+
+    }
+
+
+    .leadActionButtons{
+
+        flex-direction:column;
+
+    }
+
+
+    .btnCancelar,
+    .btnSalvar{
+
+        width:100%;
+
+    }
+
+
+    .timelineHeader{
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:6px;
+
+    }
 
 }

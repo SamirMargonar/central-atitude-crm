@@ -1,47 +1,94 @@
 import "./LeadDetailsModal.css";
 
-import { JORNADA } from "../../core/LeadFlow";
+import {
+  JORNADA,
+} from "../../core/LeadFlow";
 
-export default function LeadJourney({ lead }) {
 
-  const etapaAtual = lead?.etapa ?? 0;
+export default function LeadJourney({
+  lead,
+}) {
+
+  const etapaAtual =
+    Number(
+      lead?.etapa ?? 0
+    );
+
 
   return (
 
     <section className="leadJourney">
 
-      <h3>📊 Jornada do Cliente</h3>
+      <h3>
+        📊 Jornada do Cliente
+      </h3>
+
 
       <div className="journeySteps">
 
-        {JORNADA.map((etapa) => (
+        {JORNADA.map(
+          (etapa) => {
 
-          <div
-            key={etapa.id}
-            className="journeyItem"
-          >
+            const concluida =
+              etapa.id < etapaAtual;
 
-            <div
-              className={
-                etapa.id <= etapaAtual
-                  ? "journeyCircle active"
-                  : "journeyCircle"
-              }
-            >
 
-              {etapa.id + 1}
+            const atual =
+              etapa.id === etapaAtual;
 
-            </div>
 
-            <span>
+            return (
 
-              {etapa.nome}
+              <div
+                key={etapa.id}
+                className={`journeyItem ${
+                  atual
+                    ? "current"
+                    : ""
+                } ${
+                  concluida
+                    ? "completed"
+                    : ""
+                }`}
+              >
 
-            </span>
+                <div
+                  className={`journeyCircle ${
+                    concluida ||
+                    atual
+                      ? "active"
+                      : ""
+                  }`}
+                >
 
-          </div>
+                  {concluida
+                    ? "✓"
+                    : etapa.id + 1}
 
-        ))}
+                </div>
+
+
+                <span>
+
+                  {etapa.nome}
+
+                </span>
+
+
+                {atual && (
+
+                  <small>
+                    Em andamento
+                  </small>
+
+                )}
+
+              </div>
+
+            );
+
+          }
+        )}
 
       </div>
 

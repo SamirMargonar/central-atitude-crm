@@ -1,79 +1,222 @@
-import { atualizarLead, registrarEvento } from "../../core/EventEngine";
-import {
-  ETAPAS,
-  proximaEtapa,
-  nomeDaEtapa,
-} from "../../core/LeadFlow";
+import { ETAPAS } from "../../core/LeadFlow";
 
-import "./LeadDetailsModal.css";
+import PrimeiroContatoAction
+  from "./actions/PrimeiroContatoAction";
 
-export default function LeadActions({ lead }) {
+import RespostaAction
+  from "./actions/RespostaAction";
 
-  const etapaAtual = lead?.etapa ?? ETAPAS.RECEBIDO;
+import AgendarVisitaAction
+  from "./actions/AgendarVisitaAction";
 
-  const usuario = {
-    nome: "Samir",
-    perfil: "Administrador",
-  };
+import ReagendarVisitaAction
+  from "./actions/ReagendarVisitaAction";
 
-  async function avancarEtapa() {
+import ComparecimentoAction
+  from "./actions/ComparecimentoAction";
 
-    if (etapaAtual >= ETAPAS.MATRICULA) return;
+import MatriculaAction
+  from "./actions/MatriculaAction";
 
-    const novaEtapa = proximaEtapa(etapaAtual);
 
-    await atualizarLead(lead.id, {
-      etapa: novaEtapa,
-      ultimoAtendimento: new Date().toLocaleString("pt-BR"),
-    });
+export default function LeadActions({
+  lead,
+  setLead,
+}) {
 
-    await registrarEvento({
-      leadId: lead.id,
-      tipo: "JORNADA",
-      usuario: usuario.nome,
-      descricao: `Lead avançou para "${nomeDaEtapa(novaEtapa)}"`,
-    });
+  // ==========================================================
+  // ETAPA ATUAL DO LEAD
+  // ==========================================================
+  //
+  // O Firestore pode entregar o valor como número.
+  // Também deixamos preparado caso venha como string.
+  //
+  // Exemplo:
+  // etapa: 5
+  // etapa: "5"
+  //
+  // Ambos serão tratados como:
+  // ETAPAS.MATRICULA
+  // ==========================================================
+
+  const etapa = Number(
+    lead?.etapa ?? ETAPAS.RECEBIDO
+  );
+
+
+  // ==========================================================
+  // ① RECEBIDO
+  // ==========================================================
+
+  if (
+    etapa === ETAPAS.RECEBIDO
+  ) {
+
+    return (
+
+      <PrimeiroContatoAction
+        lead={lead}
+        setLead={setLead}
+      />
+
+    );
 
   }
 
-  function textoBotao() {
 
-    switch (etapaAtual) {
+  // ==========================================================
+  // ② CONTATO
+  // ==========================================================
 
-      case ETAPAS.RECEBIDO:
-        return "📞 Registrar Primeiro Contato";
+  if (
+    etapa === ETAPAS.CONTATO
+  ) {
 
-      case ETAPAS.CONTATO:
-        return "📅 Agendar Visita";
+    return (
 
-      case ETAPAS.VISITA:
-        return "🏋 Registrar Comparecimento";
+      <RespostaAction
+        lead={lead}
+        setLead={setLead}
+      />
 
-      case ETAPAS.NEGOCIACAO:
-        return "💳 Confirmar Matrícula";
-
-      default:
-        return "✅ Jornada Finalizada";
-
-    }
+    );
 
   }
 
-  return (
 
-    <section className="leadActions">
+  // ==========================================================
+  // ③ RESPOSTA
+  // ==========================================================
 
-      <button
-        className="btnAcaoPrincipal"
-        onClick={avancarEtapa}
-        disabled={etapaAtual >= ETAPAS.MATRICULA}
+  if (
+    etapa === ETAPAS.RESPOSTA
+  ) {
+
+    return (
+
+      <AgendarVisitaAction
+        lead={lead}
+        setLead={setLead}
+      />
+
+    );
+
+  }
+
+
+  // ==========================================================
+  // ④ VISITA
+  // ==========================================================
+
+  if (
+    etapa === ETAPAS.VISITA
+  ) {
+
+    return (
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          width: "100%",
+        }}
       >
 
-        {textoBotao()}
+        <ReagendarVisitaAction
+          lead={lead}
+          setLead={setLead}
+        />
+
+        <ComparecimentoAction
+          lead={lead}
+          setLead={setLead}
+        />
+
+      </div>
+
+    );
+
+  }
+
+
+  // ==========================================================
+  // ⑤ NEGOCIAÇÃO
+  // ==========================================================
+
+  if (
+    etapa === ETAPAS.NEGOCIACAO
+  ) {
+
+    return (
+
+      <MatriculaAction
+        lead={lead}
+        setLead={setLead}
+      />
+
+    );
+
+  }
+
+
+  // ==========================================================
+  // ⑥ MATRÍCULA
+  // ==========================================================
+  //
+  // IMPORTANTE:
+  //
+  // Matrícula é a última etapa da jornada.
+  //
+  // O Lead NÃO deve ser removido.
+  // O Lead NÃO deve voltar para Recebido.
+  // O Lead continua no Firestore com:
+  //
+  // etapa: 5
+  //
+  // Aqui apenas mostramos que a jornada terminou.
+  // ==========================================================
+
+  if (
+    etapa === ETAPAS.MATRICULA
+  ) {
+
+    return (
+
+      <button
+        type="button"
+        className="btnAcaoPrincipal"
+        disabled
+      >
+
+        ✅ Jornada Finalizada
 
       </button>
 
-    </section>
+    );
+
+  }
+
+
+  // ==========================================================
+  // FALLBACK
+  // ==========================================================
+  //
+  // Caso exista algum Lead com uma etapa inválida,
+  // não fazemos nenhuma alteração no banco.
+  // ==========================================================
+
+  return (
+
+    <button
+      type="button"
+      className="btnAcaoPrincipal"
+      disabled
+    >
+
+      ✅ Jornada Finalizada
+
+    </button>
 
   );
 

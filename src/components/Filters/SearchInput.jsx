@@ -8,9 +8,11 @@ export default function SearchInput({
     <input
       type="text"
       className="searchInput"
-      placeholder="🔍 Pesquisar nome do lead..."
+      placeholder="🔍 Pesquisar nome ou telefone..."
       value={value}
-      onChange={(e) => onChange(e.target.value)}
+      onChange={(e) =>
+        onChange(e.target.value)
+      }
     />
 
   );

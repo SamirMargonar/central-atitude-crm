@@ -1,72 +1,85 @@
 import {
   doc,
   updateDoc,
-  serverTimestamp,
   collection,
   addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
 
 /**
- * Registra um evento na timeline do Lead
+ * Atualiza os dados de um Lead
  */
-export async function registrarEvento({
+export async function atualizarLead(leadId, dados) {
 
-  leadId,
+  if (!leadId) {
+    throw new Error("ID do Lead não informado.");
+  }
 
-  tipo,
+  const leadRef = doc(
+    db,
+    "leads",
+    leadId
+  );
 
-  usuario,
-
-  descricao,
-
-  dados = {},
-
-}) {
-
-  // Salva evento
-
-  await addDoc(
-
-    collection(db, "leads", leadId, "historico"),
-
+  await updateDoc(
+    leadRef,
     {
-
-      tipo,
-
-      usuario,
-
-      descricao,
-
-      dados,
-
-      criadoEm: serverTimestamp(),
-
+      ...dados,
+      atualizadoEm: serverTimestamp(),
     }
-
   );
 
 }
 
+
 /**
- * Atualiza o Lead
+ * Registra um evento no histórico do Lead
  */
-
-export async function atualizarLead(
-
+export async function registrarEvento({
   leadId,
+  tipo,
+  usuario = "Sistema",
+  descricao = "",
+  dados = {},
+}) {
 
-  dados
+  if (!leadId) {
+    throw new Error("ID do Lead não informado.");
+  }
 
-) {
-
-  await updateDoc(
-
-    doc(db, "leads", leadId),
-
-    dados
-
+  const eventosRef = collection(
+    db,
+    "leads",
+    leadId,
+    "eventos"
   );
+
+  const evento = {
+
+    leadId,
+
+    tipo,
+
+    usuario,
+
+    descricao,
+
+    dados,
+
+    criadoEm: serverTimestamp(),
+
+  };
+
+  const documento = await addDoc(
+    eventosRef,
+    evento
+  );
+
+  return {
+    id: documento.id,
+    ...evento,
+  };
 
 }

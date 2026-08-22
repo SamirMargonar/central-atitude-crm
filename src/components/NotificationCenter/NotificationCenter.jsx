@@ -31,6 +31,91 @@ import {
 import "./NotificationCenter.css";
 
 
+// ==========================================================
+// PERSISTÊNCIA (localStorage) DAS VISITAS DISPENSADAS
+// ==========================================================
+//
+// Sobrevive a refresh sem escrever no Firestore. Chave por
+// usuário (uid do Firebase Auth), para que o dismiss de um
+// usuário nunca esconda a visita para outro. O valor guardado
+// é só a lista de ids de alerta (mesmo formato usado em
+// notificacoesVisitas) — nenhum dado da visita em si.
+// ==========================================================
+
+function chaveVisitasDispensadas(uid) {
+
+  return (
+    `centralAtitude:notificacoesVisitasDispensadas:${uid}`
+  );
+
+}
+
+
+function carregarVisitasDispensadas(uid) {
+
+  if (!uid) {
+
+    return new Set();
+
+  }
+
+  try {
+
+    const bruto =
+      window.localStorage.getItem(
+        chaveVisitasDispensadas(uid)
+      );
+
+    if (!bruto) {
+
+      return new Set();
+
+    }
+
+    const lista =
+      JSON.parse(bruto);
+
+    return new Set(
+      Array.isArray(lista) ? lista : []
+    );
+
+  } catch {
+
+    return new Set();
+
+  }
+
+}
+
+
+function salvarVisitasDispensadas(uid, idsDispensados) {
+
+  if (!uid) {
+
+    return;
+
+  }
+
+  try {
+
+    window.localStorage.setItem(
+      chaveVisitasDispensadas(uid),
+      JSON.stringify(
+        Array.from(idsDispensados)
+      )
+    );
+
+  } catch {
+
+    // localStorage indisponível (modo privado, quota, etc.):
+    // o dismiss ainda funciona nesta sessão, só não sobrevive
+    // a um refresh.
+
+  }
+
+}
+
+
 export default function NotificationCenter({
   leads = [],
   setPagina,
@@ -41,7 +126,9 @@ export default function NotificationCenter({
 
 
   const {
+    usuario,
     isAdmin,
+    isCoordenador,
     perfilUsuario,
     permissoes,
   } = useAuth();
@@ -67,6 +154,45 @@ export default function NotificationCenter({
 
   const idsRenovacaoTratados =
     useRef(new Set());
+
+
+  // ==========================================================
+  // ALERTAS DE VISITA JÁ DISPENSADOS
+  // ==========================================================
+  //
+  // verificarVisitas() roda a cada 5s e recria o array de
+  // alertas do zero a partir da consulta de visitas — sem isso,
+  // um alerta dispensado pelo X voltaria a aparecer no próximo
+  // ciclo. Só entra aqui quem foi dispensado (isAdmin/
+  // isCoordenador); nunca afeta a confirmação real da visita.
+  //
+  // Espelhado no localStorage (por uid) para sobreviver a um
+  // refresh da página — ver carregarVisitasDispensadas /
+  // salvarVisitasDispensadas no topo do arquivo.
+  // ==========================================================
+
+  const idsVisitaDispensados =
+    useRef(new Set());
+
+
+  // ==========================================================
+  // HIDRATA OS DISPENSADOS DO localStorage PARA ESTE USUÁRIO
+  // ==========================================================
+  //
+  // Roda quando o uid fica disponível (login) — antes do efeito
+  // de polling das visitas, que é declarado depois. Assim o
+  // primeiro ciclo de verificarVisitas() já enxerga os ids
+  // dispensados em sessões/refreshes anteriores.
+  // ==========================================================
+
+  useEffect(() => {
+
+    idsVisitaDispensados.current =
+      carregarVisitasDispensadas(
+        usuario?.uid
+      );
+
+  }, [usuario?.uid]);
 
 
   // ==========================================================
@@ -583,8 +709,14 @@ export default function NotificationCenter({
 
               alertas.push({
 
+                // Id estável, independente de "próxima"/"atrasada":
+                // a mesma visita pode cruzar de um tipo para o
+                // outro entre um ciclo de polling e o seguinte
+                // (o tempo passa), e o dismiss (idsVisitaDispensados)
+                // precisa continuar reconhecendo como a mesma
+                // notificação mesmo depois da troca de tipo.
                 id:
-                  `visita-atrasada-${visita.id}-${visita.data}-${visita.hora}`,
+                  `visita-${visita.id}-${visita.data}-${visita.hora}`,
 
                 tipo:
                   "VISITA_ATRASADA",
@@ -627,8 +759,10 @@ export default function NotificationCenter({
 
               alertas.push({
 
+                // Mesmo id estável usado no ramo "atrasada" acima
+                // (sem prefixo por tipo) — ver comentário lá.
                 id:
-                  `visita-proxima-${visita.id}-${visita.data}-${visita.hora}`,
+                  `visita-${visita.id}-${visita.data}-${visita.hora}`,
 
                 tipo:
                   "VISITA_PROXIMA",
@@ -664,8 +798,60 @@ export default function NotificationCenter({
         );
 
 
+        // ------------------------------------------------------
+        // PODA: remove do Set (e do localStorage) qualquer id
+        // dispensado que não corresponde mais a um alerta ativo
+        // (visita confirmada, excluída, ou já não é mais "hoje")
+        // — evita crescimento infinito do armazenamento.
+        // ------------------------------------------------------
+
+        const idsAtivos =
+          new Set(
+            alertas.map(
+              (alerta) => alerta.id
+            )
+          );
+
+        let podouAlgum =
+          false;
+
+        idsVisitaDispensados.current.forEach(
+          (idDispensado) => {
+
+            if (
+              !idsAtivos.has(
+                idDispensado
+              )
+            ) {
+
+              idsVisitaDispensados.current.delete(
+                idDispensado
+              );
+
+              podouAlgum = true;
+
+            }
+
+          }
+        );
+
+        if (podouAlgum) {
+
+          salvarVisitasDispensadas(
+            usuario?.uid,
+            idsVisitaDispensados.current
+          );
+
+        }
+
+
         setNotificacoesVisitas(
-          alertas
+          alertas.filter(
+            (alerta) =>
+              !idsVisitaDispensados.current.has(
+                alerta.id
+              )
+          )
         );
 
 
@@ -704,6 +890,7 @@ export default function NotificationCenter({
   }, [
     isAdmin,
     perfilUsuario,
+    usuario?.uid,
   ]);
 
 
@@ -724,7 +911,9 @@ export default function NotificationCenter({
   //
   // VISITAS:
   //
-  // → continuam utilizando o comportamento atual.
+  // → mesma regra do novo lead: somente RECEPCIONISTA ouve.
+  //   Coordenador e administrador veem o alerta visual
+  //   normalmente, sem som.
   //
   // ==========================================================
 
@@ -835,9 +1024,14 @@ export default function NotificationCenter({
 
     // ========================================================
     // ALERTAS DE VISITAS
+    //
+    // Mesma regra do novo lead: só recepcionista ouve o som.
+    // O alerta visual continua aparecendo para todos os
+    // perfis — só o áudio é restrito aqui.
     // ========================================================
 
     const deveTocarVisita =
+      ehRecepcionista &&
       notificacoesVisitas.length >
       0;
 
@@ -996,6 +1190,18 @@ export default function NotificationCenter({
     // ========================================================
     // VISITA
     // ========================================================
+    //
+    // Regra: fechar o X ≠ confirmar a visita. O X aqui só
+    // remove o alerta do estado local (React) desta sessão —
+    // nunca grava nada no Firestore, nunca toca em
+    // comparecimento/status/etapa da visita ou do lead.
+    //
+    // Somente isAdmin/isCoordenador podem dispensar sem
+    // confirmar. Recepcionista não pode: para ela, o alerta só
+    // some quando a visita for de fato confirmada (nesse caso
+    // visitaConfirmada() já filtra o alerta fora em
+    // verificarVisitas(), nem chega a existir mais aqui).
+    // ========================================================
 
     if (
       notificacao.tipo ===
@@ -1004,6 +1210,34 @@ export default function NotificationCenter({
       notificacao.tipo ===
         "VISITA_ATRASADA"
     ) {
+
+      if (
+        !isAdmin &&
+        !isCoordenador
+      ) {
+
+        return;
+
+      }
+
+
+      idsVisitaDispensados.current.add(
+        notificacao.id
+      );
+
+      salvarVisitasDispensadas(
+        usuario?.uid,
+        idsVisitaDispensados.current
+      );
+
+      setNotificacoesVisitas(
+        (anteriores) =>
+          anteriores.filter(
+            (item) =>
+              item.id !==
+              notificacao.id
+          )
+      );
 
       return;
 

@@ -90,6 +90,22 @@ export default function Calendario({
 
 
   // ==========================================================
+  // POPUP CONTEXTUAL DO DIA (clique numa data do calendário)
+  // ==========================================================
+
+  const [
+    popupDia,
+    setPopupDia,
+  ] = useState(null);
+
+
+  const [
+    dataInicialNovaVisita,
+    setDataInicialNovaVisita,
+  ] = useState("");
+
+
+  // ==========================================================
   // MESES
   // ==========================================================
 
@@ -293,6 +309,37 @@ export default function Calendario({
       )
 
     );
+
+  }
+
+
+  // ==========================================================
+  // DATA (Date) → STRING "AAAA-MM-DD"
+  // Usado só para pré-preencher o campo <input type="date">
+  // de NovaVisita a partir de um dia clicado no calendário.
+  // ==========================================================
+
+  function paraDataISO(data) {
+
+    const ano =
+      data.getFullYear();
+
+
+    const mes =
+      String(
+        data.getMonth() + 1
+      )
+        .padStart(2, "0");
+
+
+    const dia =
+      String(
+        data.getDate()
+      )
+        .padStart(2, "0");
+
+
+    return `${ano}-${mes}-${dia}`;
 
   }
 
@@ -1161,11 +1208,18 @@ export default function Calendario({
 
         <button
           className="btnNovaVisita"
-          onClick={() =>
+          onClick={() => {
+
+            setDataInicialNovaVisita(
+              ""
+            );
+
+
             setNovaVisitaAberta(
               true
-            )
-          }
+            );
+
+          }}
         >
           + Nova Visita
         </button>
@@ -1374,11 +1428,6 @@ export default function Calendario({
                   `}
                   onClick={() => {
 
-                    setDiaSelecionado(
-                      item.data
-                    );
-
-
                     setVisitaSelecionada(
                       null
                     );
@@ -1403,6 +1452,11 @@ export default function Calendario({
                       );
 
                     }
+
+
+                    setPopupDia(
+                      item.data
+                    );
 
                   }}
                 >
@@ -1809,7 +1863,124 @@ export default function Calendario({
           salvarVisita
         }
 
+        dataInicial={
+          dataInicialNovaVisita
+        }
+
       />
+
+
+      {/* =====================================================
+          POPUP CONTEXTUAL — clique numa data do calendário
+      ===================================================== */}
+
+      {popupDia && (
+
+        <div
+          className="popupDiaOverlay"
+          onClick={() =>
+            setPopupDia(
+              null
+            )
+          }
+        >
+
+          <div
+            className="popupDiaCard"
+            onClick={(evento) =>
+              evento.stopPropagation()
+            }
+          >
+
+            <h3>
+              📅{" "}
+              {popupDia.toLocaleDateString(
+
+                "pt-BR",
+
+                {
+
+                  day:
+                    "2-digit",
+
+                  month:
+                    "long",
+
+                }
+
+              )}
+            </h3>
+
+
+            <button
+              type="button"
+              className="popupDiaOpcao"
+              onClick={() => {
+
+                setDiaSelecionado(
+                  popupDia
+                );
+
+
+                setDataInicialNovaVisita(
+                  paraDataISO(
+                    popupDia
+                  )
+                );
+
+
+                setNovaVisitaAberta(
+                  true
+                );
+
+
+                setPopupDia(
+                  null
+                );
+
+              }}
+            >
+              ➕ Realizar nova visita
+            </button>
+
+
+            <button
+              type="button"
+              className="popupDiaOpcao"
+              onClick={() => {
+
+                setDiaSelecionado(
+                  popupDia
+                );
+
+
+                setPopupDia(
+                  null
+                );
+
+              }}
+            >
+              👁️ Ver visitas do dia
+            </button>
+
+
+            <button
+              type="button"
+              className="popupDiaCancelar"
+              onClick={() =>
+                setPopupDia(
+                  null
+                )
+              }
+            >
+              Cancelar
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
 
     </div>
 

@@ -35,6 +35,10 @@ import {
 } from "../utils/naoCompareceramFilters";
 
 import {
+  construirLinkWhatsApp,
+} from "../utils/whatsapp";
+
+import {
   buscarVisitasPorPerfil,
 } from "../Agenda/VisitaEngine";
 
@@ -830,15 +834,37 @@ export default function Leads({
 
                     </div>
 
-                    <button
-                      type="button"
-                      className="leadsAlertaBotao"
-                      onClick={() =>
-                        abrirLeadDaVisita(visita)
-                      }
-                    >
-                      👁️ Ver histórico →
-                    </button>
+                    <div className="leadsAlertaAcoes">
+
+                      <button
+                        type="button"
+                        className="leadsAlertaBotao"
+                        onClick={() =>
+                          abrirLeadDaVisita(visita)
+                        }
+                      >
+                        👁️ Ver histórico →
+                      </button>
+
+                      {lead?.telefone && (
+
+                        <a
+                          className="leadsAlertaWhatsApp"
+                          href={
+                            construirLinkWhatsApp(
+                              lead.telefone,
+                              `Olá ${nome}!`
+                            )
+                          }
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          💬 WhatsApp
+                        </a>
+
+                      )}
+
+                    </div>
 
                   </div>
 

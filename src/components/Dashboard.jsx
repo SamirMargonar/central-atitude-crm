@@ -33,6 +33,10 @@ import {
 } from "../utils/naoCompareceramFilters";
 
 import {
+  construirLinkWhatsApp,
+} from "../utils/whatsapp";
+
+import {
   useAuth,
 } from "../auth/AuthContext";
 
@@ -916,29 +920,66 @@ export default function Dashboard({
                   </div>
 
 
-                  <button
-                    type="button"
-                    className="abrirLeadDashboard"
-                    onClick={() =>
-                      abrirLeadDaVisita(
-                        visita
-                      )
-                    }
+                  <div
                     style={{
-                      border:
-                        "none",
-                      cursor:
-                        "pointer",
-                      padding:
-                        "10px 16px",
-                      borderRadius:
-                        "10px",
-                      fontWeight:
-                        "700",
+                      display:
+                        "flex",
+                      alignItems:
+                        "center",
+                      gap:
+                        "8px",
+                      flexWrap:
+                        "wrap",
                     }}
                   >
-                    👁️ Ver histórico →
-                  </button>
+
+                    <button
+                      type="button"
+                      className="abrirLeadDashboard"
+                      onClick={() =>
+                        abrirLeadDaVisita(
+                          visita
+                        )
+                      }
+                      style={{
+                        border:
+                          "none",
+                        cursor:
+                          "pointer",
+                        padding:
+                          "6px 10px",
+                        borderRadius:
+                          "8px",
+                        fontSize:
+                          "12px",
+                        fontWeight:
+                          "700",
+                        whiteSpace:
+                          "nowrap",
+                      }}
+                    >
+                      👁️ Ver histórico →
+                    </button>
+
+                    {lead?.telefone && (
+
+                      <a
+                        className="precisaAtencaoWhatsApp"
+                        href={
+                          construirLinkWhatsApp(
+                            lead.telefone,
+                            `Olá ${nome}!`
+                          )
+                        }
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        💬 WhatsApp
+                      </a>
+
+                    )}
+
+                  </div>
 
                 </div>
 

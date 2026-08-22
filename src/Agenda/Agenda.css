@@ -1335,3 +1335,81 @@
     }
 
 }
+
+
+/* =========================================================
+   POPUP CONTEXTUAL — clique numa data do calendário
+========================================================= */
+
+.popupDiaOverlay {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 24px;
+
+    background: rgba(3, 10, 20, 0.72);
+
+    backdrop-filter: blur(6px);
+}
+
+.popupDiaCard {
+    width: 100%;
+    max-width: 300px;
+
+    background: #ffffff;
+
+    border-radius: 16px;
+
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+
+    padding: 20px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.popupDiaCard h3 {
+    margin: 0 0 6px;
+    color: #202633;
+    font-size: 16px;
+    text-transform: capitalize;
+}
+
+.popupDiaOpcao {
+    border: none;
+    border-radius: 10px;
+    padding: 12px 14px;
+    background: #6c63ff;
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: opacity 0.2s ease;
+}
+
+.popupDiaOpcao:hover {
+    opacity: 0.9;
+}
+
+.popupDiaOpcao + .popupDiaOpcao {
+    background: #f1f2f8;
+    color: #202633;
+}
+
+.popupDiaCancelar {
+    border: none;
+    background: transparent;
+    color: #8a90a0;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px;
+    cursor: pointer;
+
+}

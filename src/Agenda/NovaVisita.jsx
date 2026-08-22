@@ -11,6 +11,7 @@ export default function NovaVisita({
   fechar,
   leads = [],
   onSalvar,
+  dataInicial,
 }) {
 
   // ==========================================================
@@ -169,10 +170,26 @@ export default function NovaVisita({
 
       setObservacao("");
 
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // Abriu com uma data já escolhida (ex.: clique no dia do
+    // calendário) — pré-preenche, sem obrigar a selecionar de
+    // novo.
+    // --------------------------------------------------------
+
+    if (dataInicial) {
+
+      setData(dataInicial);
+
     }
 
   }, [
     aberto,
+    dataInicial,
   ]);
 
 

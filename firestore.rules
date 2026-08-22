@@ -300,9 +300,19 @@ service cloud.firestore {
           && horarioDentroDoTurno(dadosVisita.hora, usuario.horaEntrada, usuario.horaSaida);
     }
 
+    // Responsável pelo lead/visita (consultoraId == uid do
+    // chamador) sempre pode VISUALIZAR a visita, independente do
+    // turno. Isso é só leitura — não dá permissão de agir/
+    // confirmar fora do turno (allow update abaixo não usa esta
+    // função, continua exigindo visitaDentroDoTurnoDoChamador).
+    function ehDonaDaVisita(dadosVisita) {
+      return ('consultoraId' in dadosVisita)
+          && dadosVisita.consultoraId == request.auth.uid;
+    }
+
     function podeVerVisita(dadosVisita) {
       return ehAdminOuCoordenador()
-          || (ehRecepcionista() && visitaDentroDoTurnoDoChamador(dadosVisita));
+          || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(dadosVisita) || ehDonaDaVisita(dadosVisita)));
     }
 
     // ----------------------------------------------------------

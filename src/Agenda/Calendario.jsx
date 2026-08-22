@@ -160,9 +160,10 @@ export default function Calendario({
 
         // ------------------------------------------------------
         // Admin/coordenador: consulta ampla (igual a antes).
-        // Recepcionista: consulta já vem pré-filtrada pelo
-        // próprio turno (horaEntrada/horaSaida), independente
-        // de quem é o responsável pelo Lead.
+        // Recepcionista: união do turno (horaEntrada/horaSaida)
+        // com as visitas de que ela é a dona (uid === lead
+        // responsável), independente do horário — ver
+        // buscarVisitasPorPerfil().
         // ------------------------------------------------------
 
         const visitasFirebase =
@@ -178,6 +179,9 @@ export default function Calendario({
 
             horaSaida:
               perfilUsuario?.horaSaida,
+
+            uid:
+              usuario?.uid,
 
           });
 
@@ -212,6 +216,7 @@ export default function Calendario({
   }, [
     isAdmin,
     perfilUsuario,
+    usuario?.uid,
   ]);
 
 

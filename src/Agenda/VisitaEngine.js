@@ -164,10 +164,21 @@ export async function buscarVisitas() {
 // ==========================================================
 // BUSCAR VISITAS POR PERFIL (ADMIN/COORDENADOR x RECEPCIONISTA)
 //
-// A visibilidade da recepcionista é baseada exclusivamente no
-// HORÁRIO da visita dentro do seu turno — nunca em quem é o
-// responsável pelo Lead. Admin e coordenador continuam com a
-// consulta ampla de sempre (buscarVisitas()).
+// A recepcionista vê a união de duas coisas, sem duplicar:
+//
+// 1. Visitas dentro do próprio TURNO (horaEntrada/horaSaida) —
+//    regra original, independente de quem é o responsável.
+//
+// 2. Visitas de que ela é a DONA (visita.consultoraId === uid,
+//    copiado de lead.responsavelUid na criação da visita) —
+//    sempre visível, independente do horário.
+//
+// Ser dona só dá direito de VISUALIZAR fora do turno — quem
+// pode confirmar/atender continua decidido só pelo turno (ver
+// `allow update` em firestore.rules, não tocado por essa regra).
+//
+// Admin e coordenador continuam com a consulta ampla de sempre
+// (buscarVisitas()).
 // ==========================================================
 
 export async function buscarVisitasPorPerfil({
@@ -179,6 +190,8 @@ export async function buscarVisitasPorPerfil({
   horaEntrada,
 
   horaSaida,
+
+  uid,
 
 }) {
 
@@ -205,12 +218,119 @@ export async function buscarVisitasPorPerfil({
 
 
   // --------------------------------------------------------
-  // RECEPCIONISTA SEM TURNO DEFINIDO — nenhuma visita
+  // MONTA AS CONSULTAS APLICÁVEIS (turno e/ou dona)
+  // --------------------------------------------------------
+
+  const consultas = [];
+
+
+  if (uid) {
+
+    consultas.push(
+      getDocs(
+        query(
+
+          visitasRef,
+
+          where(
+            "consultoraId",
+            "==",
+            uid
+          )
+
+        )
+      )
+    );
+
+  }
+
+
+  if (
+    horaEntrada &&
+    horaSaida
+  ) {
+
+    if (
+      horaEntrada <= horaSaida
+    ) {
+
+      // ------------------------------------------------------
+      // TURNO NORMAL
+      // Ex.: 05:00 → 11:00
+      // ------------------------------------------------------
+
+      consultas.push(
+        getDocs(
+          query(
+
+            visitasRef,
+
+            where(
+              "hora",
+              ">=",
+              horaEntrada
+            ),
+
+            where(
+              "hora",
+              "<=",
+              horaSaida
+            )
+
+          )
+        )
+      );
+
+    } else {
+
+      // ------------------------------------------------------
+      // TURNO ATRAVESSANDO MEIA-NOITE
+      // Ex.: 22:00 → 06:00
+      // ------------------------------------------------------
+
+      consultas.push(
+
+        getDocs(
+          query(
+
+            visitasRef,
+
+            where(
+              "hora",
+              ">=",
+              horaEntrada
+            )
+
+          )
+        ),
+
+        getDocs(
+          query(
+
+            visitasRef,
+
+            where(
+              "hora",
+              "<=",
+              horaSaida
+            )
+
+          )
+        ),
+
+      );
+
+    }
+
+  }
+
+
+  // --------------------------------------------------------
+  // RECEPCIONISTA SEM TURNO E SEM UID — nenhuma visita
   // --------------------------------------------------------
 
   if (
-    !horaEntrada ||
-    !horaSaida
+    consultas.length === 0
   ) {
 
     return [];
@@ -219,124 +339,36 @@ export async function buscarVisitasPorPerfil({
 
 
   // --------------------------------------------------------
-  // TURNO NORMAL
-  // Ex.: 05:00 → 11:00
-  // --------------------------------------------------------
-
-  if (
-    horaEntrada <= horaSaida
-  ) {
-
-    const consulta =
-      query(
-
-        visitasRef,
-
-        where(
-          "hora",
-          ">=",
-          horaEntrada
-        ),
-
-        where(
-          "hora",
-          "<=",
-          horaSaida
-        )
-
-      );
-
-
-    const snapshot =
-      await getDocs(
-        consulta
-      );
-
-
-    return snapshot.docs.map(
-      (documento) => ({
-
-        id:
-          documento.id,
-
-        ...documento.data(),
-
-      })
-    );
-
-  }
-
-
-  // --------------------------------------------------------
-  // TURNO ATRAVESSANDO MEIA-NOITE
-  // Ex.: 22:00 → 06:00
-  //
-  // Duas consultas (união), sem duplicar por id — mesmo
+  // UNIÃO DE TODAS AS CONSULTAS, SEM DUPLICAR POR ID — mesmo
   // padrão de Query A/B já usado em useLeads.js.
   // --------------------------------------------------------
 
-  const consultaA =
-    query(
-
-      visitasRef,
-
-      where(
-        "hora",
-        ">=",
-        horaEntrada
-      )
-
+  const snapshots =
+    await Promise.all(
+      consultas
     );
-
-
-  const consultaB =
-    query(
-
-      visitasRef,
-
-      where(
-        "hora",
-        "<=",
-        horaSaida
-      )
-
-    );
-
-
-  const [
-    snapshotA,
-    snapshotB,
-  ] =
-    await Promise.all([
-
-      getDocs(
-        consultaA
-      ),
-
-      getDocs(
-        consultaB
-      ),
-
-    ]);
 
 
   const porId =
     new Map();
 
-  [
-    ...snapshotA.docs,
-    ...snapshotB.docs,
-  ].forEach(
-    (documento) => {
+  snapshots.forEach(
+    (snapshot) => {
 
-      porId.set(
-        documento.id,
-        {
+      snapshot.docs.forEach(
+        (documento) => {
 
-          id:
+          porId.set(
             documento.id,
+            {
 
-          ...documento.data(),
+              id:
+                documento.id,
+
+              ...documento.data(),
+
+            }
+          );
 
         }
       );

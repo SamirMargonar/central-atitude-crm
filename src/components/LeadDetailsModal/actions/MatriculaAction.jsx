@@ -13,10 +13,30 @@ import {
   nomeDaEtapa,
 } from "../../../core/LeadFlow";
 
+import {
+  useAuth,
+} from "../../../auth/AuthContext";
+
 export default function MatriculaAction({
   lead,
   setLead,
 }) {
+
+  const {
+    usuario,
+    perfilUsuario,
+  } = useAuth();
+
+  // ==========================================================
+  // RESPONSÁVEL — usuário autenticado que está confirmando a
+  // matrícula (não é mais um nome fixo/default).
+  // ==========================================================
+
+  const nomeResponsavel =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
 
   const [aberto, setAberto] = useState(false);
 
@@ -287,7 +307,7 @@ export default function MatriculaAction({
           horaMatricula,
 
         consultor:
-          "Samir",
+          nomeResponsavel,
 
         observacao,
 
@@ -363,7 +383,7 @@ export default function MatriculaAction({
           "MATRICULA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           "Matrícula confirmada.",
@@ -377,7 +397,7 @@ export default function MatriculaAction({
             horaMatricula,
 
           consultor:
-            "Samir",
+            nomeResponsavel,
 
           observacao,
 
@@ -405,7 +425,7 @@ export default function MatriculaAction({
           "JORNADA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `${lead.nome} avançou para "${nomeDaEtapa(novaEtapa)}"`,
@@ -621,7 +641,7 @@ export default function MatriculaAction({
 
         <input
           type="text"
-          value="Samir"
+          value={nomeResponsavel}
           disabled
         />
 

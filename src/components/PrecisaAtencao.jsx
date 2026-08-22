@@ -1,3 +1,7 @@
+import {
+  construirLinkWhatsApp,
+} from "../utils/whatsapp";
+
 // ==========================================================
 // Cor de prioridade por categoria — só afeta a aparência do
 // card (tinta de fundo + borda), nunca o fundo da seção/coluna.
@@ -103,24 +107,48 @@ export default function PrecisaAtencao({
                     categoria.itens.map(
                       (item) => (
 
-                        <button
-                          type="button"
+                        <div
                           className="precisaAtencaoCard"
                           key={item.id}
-                          onClick={() =>
-                            onAbrirLead(item.leadId)
-                          }
                         >
 
-                          <strong>
-                            {item.nome}
-                          </strong>
+                          <button
+                            type="button"
+                            className="precisaAtencaoCardInfo"
+                            onClick={() =>
+                              onAbrirLead(item.leadId)
+                            }
+                          >
 
-                          <span>
-                            {item.subtitulo}
-                          </span>
+                            <strong>
+                              {item.nome}
+                            </strong>
 
-                        </button>
+                            <span>
+                              {item.subtitulo}
+                            </span>
+
+                          </button>
+
+                          {item.telefone && (
+
+                            <a
+                              className="precisaAtencaoWhatsApp"
+                              href={
+                                construirLinkWhatsApp(
+                                  item.telefone,
+                                  `Olá ${item.nome}!`
+                                )
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              💬 WhatsApp
+                            </a>
+
+                          )}
+
+                        </div>
 
                       )
                     )

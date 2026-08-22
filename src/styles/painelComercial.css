@@ -244,9 +244,6 @@
 
 .precisaAtencaoCard {
   width: 100%;
-  text-align: left;
-  font-family: inherit;
-  cursor: pointer;
 
   background: #ffffff;
   border: 1px solid rgba(23, 43, 69, 0.08);
@@ -257,7 +254,7 @@
 
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 6px;
 
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -265,6 +262,23 @@
 .precisaAtencaoCard:hover {
   transform: translateY(-2px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.10);
+}
+
+/* botão de "abrir lead" — ocupa o mesmo espaço que o card
+   inteiro ocupava antes, sem parecer um botão à parte */
+
+.precisaAtencaoCardInfo {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
 }
 
 .precisaAtencaoCard strong {
@@ -277,6 +291,28 @@
   color: #64748b;
   font-size: 11px;
   line-height: 1.3;
+}
+
+/* ação rápida de WhatsApp — mesma lógica de link já usada em
+   Renovações (construirLinkWhatsApp), só o estilo é novo aqui */
+
+.precisaAtencaoWhatsApp {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #16a34a;
+  background: rgba(34, 197, 94, 0.12);
+  border-radius: 999px;
+  padding: 4px 10px;
+  text-decoration: none;
+  transition: background 0.2s ease;
+}
+
+.precisaAtencaoWhatsApp:hover {
+  background: rgba(34, 197, 94, 0.22);
 }
 
 /* uma cor por categoria — tinta de fundo + borda grossa, para

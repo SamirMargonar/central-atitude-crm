@@ -542,6 +542,9 @@ export default function Dashboard({
             nome:
               lead.nome || "Lead",
 
+            telefone:
+              lead.telefone,
+
             subtitulo:
               "Aguardando atendimento",
 
@@ -566,6 +569,9 @@ export default function Dashboard({
 
             nome:
               lead.nome || "Lead",
+
+            telefone:
+              lead.telefone,
 
             subtitulo:
               `${Number(lead.tentativasSemResposta || 0)} tentativa(s) sem resposta`,
@@ -602,6 +608,9 @@ export default function Dashboard({
                 lead?.nome ||
                 "Lead",
 
+              telefone:
+                lead?.telefone,
+
               subtitulo:
                 `Visita ${formatarData(visita.data)} às ${visita.hora || "--:--"}`,
 
@@ -629,6 +638,9 @@ export default function Dashboard({
             nome:
               lead.nome || "Lead",
 
+            telefone:
+              lead.telefone,
+
             subtitulo:
               "Sem movimento há 3 dias ou mais",
 
@@ -653,6 +665,9 @@ export default function Dashboard({
 
             nome:
               lead.nome || "Lead",
+
+            telefone:
+              lead.telefone,
 
             subtitulo:
               `Vence em ${formatarData(lead.matricula?.dataVencimento)}`,

@@ -227,20 +227,14 @@ export function construirMensagemContato(
 
 
 // ==========================================================
-// LINK DO WHATSAPP (mesmo padrão de PrimeiroContatoAction.jsx)
+// LINK DO WHATSAPP
+//
+// Implementação única agora em src/utils/whatsapp.js —
+// reexportada aqui para que nada que já importa
+// construirLinkWhatsApp deste arquivo (ex.: RenovacaoAcoes.jsx)
+// precise mudar.
 // ==========================================================
 
-export function construirLinkWhatsApp(
-  telefone,
-  mensagem
-) {
-
-  const numero =
-    String(telefone || "").replace(
-      /\D/g,
-      ""
-    );
-
-  return `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-
-}
+export {
+  construirLinkWhatsApp,
+} from "./whatsapp";

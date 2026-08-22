@@ -7,7 +7,7 @@
     display: grid;
 
     grid-template-columns:
-        repeat(5, minmax(0, 1fr));
+        repeat(6, minmax(0, 1fr));
 
     gap: 14px;
 
@@ -17,18 +17,20 @@
 
     align-items: start;
 
+    overflow-x: auto;
+
 }
 
 
 /* =========================================================
    QUANDO EXISTE SEM RESPOSTA
-   6 COLUNAS NA MESMA LINHA
+   7 COLUNAS NA MESMA LINHA
 ========================================================= */
 
 .leadBoardComSemResposta {
 
     grid-template-columns:
-        repeat(6, minmax(0, 1fr));
+        repeat(7, minmax(0, 1fr));
 
 }
 

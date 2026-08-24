@@ -25,6 +25,10 @@ import {
   useAuth,
 } from "../auth/AuthContext";
 
+import {
+  construirLinkWhatsApp,
+} from "../utils/whatsapp";
+
 
 export default function DetalhesVisita({
   visita,
@@ -236,6 +240,26 @@ export default function DetalhesVisita({
           },
 
         });
+
+      }
+
+
+      // ------------------------------------------------------
+      // ABRE WHATSAPP DO LEAD
+      // ------------------------------------------------------
+
+      if (lead?.telefone) {
+
+        const mensagem =
+          `Olá, ${lead?.nome || visita.leadNome || ""}! 😊 Passando para confirmar sua visita na Academia Viva Atitude hoje às ${visita.hora || ""}. Podemos contar com você? 💪`;
+
+        window.open(
+          construirLinkWhatsApp(
+            lead.telefone,
+            mensagem
+          ),
+          "_blank"
+        );
 
       }
 

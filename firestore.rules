@@ -221,7 +221,7 @@ service cloud.firestore {
     }
 
     function eventoDeComparecimentoValido(leadId, dadosEvento) {
-      return dadosEvento.tipo in ['VISITA', 'JORNADA', 'PENDENCIA']
+      return dadosEvento.tipo in ['VISITA', 'JORNADA', 'PENDENCIA', 'VISITA_CONFIRMACAO']
           && ('dados' in dadosEvento)
           && ('visitaId' in dadosEvento.dados)
           && visitaLigadaAoLeadDentroDoTurno(leadId, dadosEvento.dados.visitaId);

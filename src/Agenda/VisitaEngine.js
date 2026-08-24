@@ -44,6 +44,9 @@ export async function criarVisita(
       visita.consultor ||
       "Samir",
 
+    consultoraId:
+      visita.consultoraId || null,
+
     observacao:
       visita.observacao || "",
 

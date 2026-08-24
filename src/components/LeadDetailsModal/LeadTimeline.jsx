@@ -129,6 +129,11 @@ export default function LeadTimeline({ lead }) {
         return "📞 Primeiro Contato";
 
 
+      case "RESPOSTA_LEAD":
+
+        return "💬 Resposta do Lead";
+
+
       case "VISITA":
 
         if (

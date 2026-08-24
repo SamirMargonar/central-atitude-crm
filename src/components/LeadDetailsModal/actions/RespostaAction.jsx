@@ -12,17 +12,45 @@ import {
   nomeDaEtapa,
 } from "../../../core/LeadFlow";
 
+import {
+  useAuth,
+} from "../../../auth/AuthContext";
+
 
 export default function RespostaAction({
   lead,
   setLead,
 }) {
 
+  const {
+    usuario,
+    perfilUsuario,
+  } = useAuth();
+
+
+  // ==========================================================
+  // RESPONSÁVEL — usuário autenticado que está registrando a
+  // resposta do Lead.
+  // ==========================================================
+
+  const nomeResponsavel =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
+
+
   const [aberto, setAberto] =
     useState(false);
 
   const [registrando, setRegistrando] =
     useState(false);
+
+  const [perguntandoTextoResposta, setPerguntandoTextoResposta] =
+    useState(false);
+
+  const [textoResposta, setTextoResposta] =
+    useState("");
 
 
   // ==========================================================
@@ -52,7 +80,9 @@ export default function RespostaAction({
   // LEAD RESPONDEU
   // ==========================================================
 
-  async function registrarResposta() {
+  async function registrarResposta(
+    textoRespostaLead
+  ) {
 
     if (registrando) {
       return;
@@ -177,7 +207,43 @@ export default function RespostaAction({
       });
 
 
+      // ========================================================
+      // REGISTRA O QUE O LEAD RESPONDEU (opcional)
+      //
+      // Tipo separado do evento "RESPOSTA" acima — não altera o
+      // comportamento existente, só acrescenta o texto quando a
+      // recepcionista optar por colar a mensagem recebida.
+      // ========================================================
+
+      if (
+        textoRespostaLead &&
+        textoRespostaLead.trim()
+      ) {
+
+        await registrarEvento({
+
+          leadId:
+            lead.id,
+
+          tipo:
+            "RESPOSTA_LEAD",
+
+          usuario:
+            nomeResponsavel,
+
+          descricao:
+            textoRespostaLead.trim(),
+
+        });
+
+      }
+
+
       setAberto(false);
+
+      setPerguntandoTextoResposta(false);
+
+      setTextoResposta("");
 
 
     } catch (erro) {
@@ -447,161 +513,257 @@ export default function RespostaAction({
           }}
         >
 
-          {/* ================================================
-              EXPLICAÇÃO
-          ================================================ */}
+          {perguntandoTextoResposta ? (
 
-          <p>
+            <>
 
-            Registre aqui o que aconteceu
-            depois do primeiro contato.
+              {/* ============================================
+                  O QUE O LEAD RESPONDEU (opcional)
+              ============================================ */}
 
-          </p>
+              <p>
 
+                O que o Lead respondeu? (opcional)
 
-          {/* ================================================
-              RESPONDEU
-          ================================================ */}
+              </p>
 
-          <button
+              <textarea
 
-            type="button"
+                rows={6}
 
-            onClick={
-              registrarResposta
-            }
+                className="leadNotesInput"
 
-            disabled={
-              registrando
-            }
+                placeholder='Ex.: "Oi, tenho interesse. Queria saber os valores."'
 
-            style={{
-              width: "100%",
-              padding: "16px",
-              borderRadius: "12px",
-              border: "none",
-              background: "#33cf61",
-              color: "#fff",
-              fontWeight: "700",
-              fontSize: "15px",
-              cursor: registrando
-                ? "not-allowed"
-                : "pointer",
-            }}
+                value={
+                  textoResposta
+                }
 
-          >
+                onChange={(e) =>
+                  setTextoResposta(
+                    e.target.value
+                  )
+                }
 
-            {registrando
-              ? "Registrando..."
-              : "🟢 Lead respondeu"}
+                disabled={
+                  registrando
+                }
 
-          </button>
+              />
 
+              <div className="leadActionButtons">
 
-          {/* ================================================
-              NÃO RESPONDEU
-          ================================================ */}
+                <button
 
-          <button
+                  type="button"
 
-            type="button"
+                  className="btnCancelar"
 
-            onClick={
-              registrarNaoRespondeu
-            }
+                  onClick={() =>
+                    registrarResposta()
+                  }
 
-            disabled={
-              registrando
-            }
+                  disabled={
+                    registrando
+                  }
 
-            style={{
-              width: "100%",
-              padding: "16px",
-              borderRadius: "12px",
-              border: "1px solid #ff3b30",
-              background: "#fff",
-              color: "#ff3b30",
-              fontWeight: "700",
-              fontSize: "15px",
-              cursor: registrando
-                ? "not-allowed"
-                : "pointer",
-            }}
+                >
 
-          >
+                  {registrando
+                    ? "Registrando..."
+                    : "Continuar sem registrar"}
 
-            {registrando
-              ? "Registrando..."
-              : "🔴 Não respondeu"}
+                </button>
 
-          </button>
+                <button
 
+                  type="button"
 
-          {/* ================================================
-              CONTADOR
-          ================================================ */}
+                  className="btnSalvar"
 
-          <div
-            style={{
-              padding: "14px",
-              borderRadius: "10px",
-              background: "#f7f7f7",
-              textAlign: "center",
-            }}
-          >
+                  onClick={() =>
+                    registrarResposta(
+                      textoResposta
+                    )
+                  }
 
-            <strong>
+                  disabled={
+                    registrando
+                  }
 
-              Tentativas sem resposta:{" "}
+                >
 
-              {Number(
-                lead?.tentativasSemResposta ||
-                0
-              )}
+                  {registrando
+                    ? "Registrando..."
+                    : "Salvar resposta"}
 
-            </strong>
+                </button>
+
+              </div>
+
+            </>
+
+          ) : (
+
+            <>
+
+              {/* ================================================
+                  EXPLICAÇÃO
+              ================================================ */}
+
+              <p>
+
+                Registre aqui o que aconteceu
+                depois do primeiro contato.
+
+              </p>
 
 
-            <p
-              style={{
-                margin: "6px 0 0",
-                fontSize: "12px",
-                color: "#777",
-              }}
-            >
+              {/* ================================================
+                  RESPONDEU
+              ================================================ */}
 
-              Após 3 tentativas,
-              o Lead entra automaticamente
-              na recuperação.
+              <button
 
-            </p>
+                type="button"
 
-          </div>
+                onClick={() =>
+                  setPerguntandoTextoResposta(true)
+                }
+
+                disabled={
+                  registrando
+                }
+
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  border: "none",
+                  background: "#33cf61",
+                  color: "#fff",
+                  fontWeight: "700",
+                  fontSize: "15px",
+                  cursor: registrando
+                    ? "not-allowed"
+                    : "pointer",
+                }}
+
+              >
+
+                🟢 Lead respondeu
+
+              </button>
 
 
-          {/* ================================================
-              CANCELAR
-          ================================================ */}
+              {/* ================================================
+                  NÃO RESPONDEU
+              ================================================ */}
 
-          <button
+              <button
 
-            type="button"
+                type="button"
 
-            className="btnCancelar"
+                onClick={
+                  registrarNaoRespondeu
+                }
 
-            onClick={() =>
-              setAberto(false)
-            }
+                disabled={
+                  registrando
+                }
 
-            disabled={
-              registrando
-            }
+                style={{
+                  width: "100%",
+                  padding: "16px",
+                  borderRadius: "12px",
+                  border: "1px solid #ff3b30",
+                  background: "#fff",
+                  color: "#ff3b30",
+                  fontWeight: "700",
+                  fontSize: "15px",
+                  cursor: registrando
+                    ? "not-allowed"
+                    : "pointer",
+                }}
 
-          >
+              >
 
-            Cancelar
+                {registrando
+                  ? "Registrando..."
+                  : "🔴 Não respondeu"}
 
-          </button>
+              </button>
+
+
+              {/* ================================================
+                  CONTADOR
+              ================================================ */}
+
+              <div
+                style={{
+                  padding: "14px",
+                  borderRadius: "10px",
+                  background: "#f7f7f7",
+                  textAlign: "center",
+                }}
+              >
+
+                <strong>
+
+                  Tentativas sem resposta:{" "}
+
+                  {Number(
+                    lead?.tentativasSemResposta ||
+                    0
+                  )}
+
+                </strong>
+
+
+                <p
+                  style={{
+                    margin: "6px 0 0",
+                    fontSize: "12px",
+                    color: "#777",
+                  }}
+                >
+
+                  Após 3 tentativas,
+                  o Lead entra automaticamente
+                  na recuperação.
+
+                </p>
+
+              </div>
+
+
+              {/* ================================================
+                  CANCELAR
+              ================================================ */}
+
+              <button
+
+                type="button"
+
+                className="btnCancelar"
+
+                onClick={() =>
+                  setAberto(false)
+                }
+
+                disabled={
+                  registrando
+                }
+
+              >
+
+                Cancelar
+
+              </button>
+
+            </>
+
+          )}
 
         </div>
 

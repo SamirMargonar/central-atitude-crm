@@ -116,7 +116,7 @@ export default function LeadCard({
 
       case ETAPAS.CONTATO:
 
-        return "📅 Agendar Visita";
+        return "💬 Registrar Resposta";
 
 
       case ETAPAS.RESPOSTA:

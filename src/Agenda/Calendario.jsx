@@ -1032,8 +1032,6 @@ export default function Calendario({
 
         consultoraId:
           visita.consultoraId ||
-          perfilUsuario?.uid ||
-          usuario?.uid ||
           null,
 
       };

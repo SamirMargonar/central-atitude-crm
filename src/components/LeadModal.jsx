@@ -169,17 +169,6 @@ export default function LeadModal({
     }
 
 
-    if (!objetivo) {
-
-      alert(
-        "Selecione o objetivo do Lead."
-      );
-
-      return;
-
-    }
-
-
     if (!origem) {
 
       alert(
@@ -554,7 +543,7 @@ export default function LeadModal({
             >
 
               <option value="">
-                Selecione o objetivo
+                Objetivo ainda não definido
               </option>
 
               <option value="Viva Forma">

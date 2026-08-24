@@ -246,7 +246,7 @@
 
     display:grid;
 
-    grid-template-columns:repeat(2,1fr);
+    grid-template-columns:repeat(3,1fr);
 
     gap:20px;
 
@@ -288,6 +288,70 @@
     font-size:22px;
 
     color:#222;
+
+}
+
+
+.ownerObjetivoForm{
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:10px;
+
+    margin-top:10px;
+
+}
+
+
+.ownerObjetivoForm select{
+
+    width:100%;
+
+    padding:10px;
+
+    border:1px solid #ddd;
+
+    border-radius:10px;
+
+    font-size:14px;
+
+    color:#222;
+
+    background:#fff;
+
+    box-sizing:border-box;
+
+}
+
+
+.ownerObjetivoForm button{
+
+    border:none;
+
+    border-radius:10px;
+
+    padding:10px;
+
+    font-size:14px;
+
+    font-weight:700;
+
+    color:#fff;
+
+    background:#6c63ff;
+
+    cursor:pointer;
+
+}
+
+
+.ownerObjetivoForm button:disabled{
+
+    opacity:0.6;
+
+    cursor:not-allowed;
 
 }
 

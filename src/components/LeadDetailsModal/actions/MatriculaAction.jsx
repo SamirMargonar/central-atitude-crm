@@ -216,6 +216,26 @@ export default function MatriculaAction({
 
   async function confirmarMatricula() {
 
+    // ==========================================================
+    // VALIDAÇÃO DEFENSIVA DO OBJETIVO
+    //
+    // O botão que abre este modal já bloqueia antes de chegar
+    // aqui, mas mantemos a mesma checagem aqui também — mesmo
+    // padrão de dupla-checagem já usado em LeadTransfer.jsx
+    // para permissão.
+    // ==========================================================
+
+    if (!lead?.objetivo) {
+
+      alert(
+        "⚠️ Cadastre o objetivo do Lead antes de realizar a matrícula."
+      );
+
+      return;
+
+    }
+
+
     if (!plano) {
 
       alert(
@@ -501,9 +521,21 @@ export default function MatriculaAction({
 
       <button
         className="btnAcaoPrincipal"
-        onClick={() =>
-          setAberto(true)
-        }
+        onClick={() => {
+
+          if (!lead?.objetivo) {
+
+            alert(
+              "⚠️ Cadastre o objetivo do Lead antes de realizar a matrícula."
+            );
+
+            return;
+
+          }
+
+          setAberto(true);
+
+        }}
       >
         💳 Confirmar Matrícula
       </button>

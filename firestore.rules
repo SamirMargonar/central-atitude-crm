@@ -205,13 +205,13 @@ service cloud.firestore {
       let alterados = depois.diff(antes).affectedKeys();
 
       let camposCompareceuOk =
-        alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'ultimaVisitaId'])
+        alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'ultimaVisitaId', 'atualizadoEm'])
         && depois.etapa == 4
         && ('ultimaVisitaId' in depois)
         && visitaLigadaAoLeadDentroDoTurno(leadId, depois.ultimaVisitaId);
 
       let camposNaoCompareceuOk =
-        alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'alertaNaoCompareceuEm', 'alertaNaoCompareceuVisitaId', 'pendenciaComercial'])
+        alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'alertaNaoCompareceuEm', 'alertaNaoCompareceuVisitaId', 'pendenciaComercial', 'atualizadoEm'])
         && depois.etapa == 3
         && depois.pendenciaComercial == 'NOVO_CONTATO_NAO_COMPARECIMENTO'
         && ('alertaNaoCompareceuVisitaId' in depois)

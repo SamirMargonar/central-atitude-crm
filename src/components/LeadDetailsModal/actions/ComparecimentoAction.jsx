@@ -9,10 +9,30 @@ import {
   nomeDaEtapa,
 } from "../../../core/LeadFlow";
 
+import {
+  useAuth,
+} from "../../../auth/AuthContext";
+
 export default function ComparecimentoAction({
   lead,
   setLead,
 }) {
+
+  const {
+    usuario,
+    perfilUsuario,
+  } = useAuth();
+
+  // ==========================================================
+  // RESPONSÁVEL — usuário autenticado que está registrando o
+  // comparecimento (não é mais um nome fixo/default).
+  // ==========================================================
+
+  const nomeResponsavel =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
 
   async function registrarComparecimento() {
 
@@ -63,7 +83,7 @@ export default function ComparecimentoAction({
 
         tipo: "VISITA",
 
-        usuario: "Samir",
+        usuario: nomeResponsavel,
 
         descricao:
           "Cliente compareceu à visita.",
@@ -81,7 +101,7 @@ export default function ComparecimentoAction({
 
         tipo: "JORNADA",
 
-        usuario: "Samir",
+        usuario: nomeResponsavel,
 
         descricao:
           `${lead.nome} avançou para "${nomeDaEtapa(novaEtapa)}"`,

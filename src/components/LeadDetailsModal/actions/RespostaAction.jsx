@@ -160,7 +160,7 @@ export default function RespostaAction({
           "RESPOSTA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `${lead.nome} respondeu ao contato.`,
@@ -189,7 +189,7 @@ export default function RespostaAction({
           "JORNADA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `${lead.nome} avançou para "${nomeDaEtapa(
@@ -367,7 +367,7 @@ export default function RespostaAction({
           "SEM_RESPOSTA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `Tentativa ${novaTentativa} de contato sem resposta.`,
@@ -402,7 +402,7 @@ export default function RespostaAction({
             "RECUPERACAO",
 
           usuario:
-            "Samir",
+            nomeResponsavel,
 
           descricao:
             `${lead.nome} entrou na recuperação após 3 tentativas sem resposta. Nova tentativa programada para 5 dias.`,

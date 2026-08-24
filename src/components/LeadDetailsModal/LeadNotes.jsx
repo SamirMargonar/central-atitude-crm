@@ -1,9 +1,23 @@
 import { useState } from "react";
 import { registrarEvento } from "../../core/EventEngine";
+import { useAuth } from "../../auth/AuthContext";
 
 import "./LeadDetailsModal.css";
 
 export default function LeadNotes({ lead }) {
+
+  const { usuario, perfilUsuario } = useAuth();
+
+  // ==========================================================
+  // RESPONSÁVEL — usuário autenticado que está registrando a
+  // observação (não é mais um nome fixo/default).
+  // ==========================================================
+
+  const nomeResponsavel =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
 
   const [texto, setTexto] = useState("");
   const [salvando, setSalvando] = useState(false);
@@ -19,7 +33,7 @@ export default function LeadNotes({ lead }) {
       await registrarEvento({
         leadId: lead.id,
         tipo: "OBSERVACAO",
-        usuario: "Samir",
+        usuario: nomeResponsavel,
         descricao: texto,
       });
 

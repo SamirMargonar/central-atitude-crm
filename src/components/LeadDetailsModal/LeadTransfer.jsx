@@ -28,8 +28,20 @@ export default function LeadTransfer({
   lead,
 }) {
 
-  const { permissoes } =
+  const { usuario, perfilUsuario, permissoes } =
     useAuth();
+
+
+  // ==========================================================
+  // RESPONSÁVEL — usuário autenticado que está executando a
+  // transferência (não é mais um nome fixo/default).
+  // ==========================================================
+
+  const nomeResponsavel =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
 
 
   const [
@@ -259,7 +271,7 @@ export default function LeadTransfer({
           "TRANSFERENCIA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `Lead transferido de ${

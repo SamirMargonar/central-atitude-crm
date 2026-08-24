@@ -18,11 +18,33 @@ import {
   nomeDaEtapa,
 } from "../../../core/LeadFlow";
 
+import {
+  useAuth,
+} from "../../../auth/AuthContext";
+
 
 export default function PrimeiroContatoAction({
   lead,
   setLead,
 }) {
+
+  const {
+    usuario,
+    perfilUsuario,
+  } = useAuth();
+
+
+  // ==========================================================
+  // RESPONSÁVEL — usuário autenticado que está registrando o
+  // Primeiro Contato (não é mais um nome fixo/default).
+  // ==========================================================
+
+  const nomeResponsavel =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
+
 
   const [aberto, setAberto] =
     useState(false);
@@ -103,7 +125,7 @@ export default function PrimeiroContatoAction({
           "WHATSAPP",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           mensagem,
@@ -124,7 +146,7 @@ export default function PrimeiroContatoAction({
           "JORNADA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `${lead.nome} avançou para "${nomeDaEtapa(
@@ -315,7 +337,7 @@ export default function PrimeiroContatoAction({
           "SEM_RESPOSTA",
 
         usuario:
-          "Samir",
+          nomeResponsavel,
 
         descricao:
           `Tentativa ${novaTentativa} de contato sem resposta.`,
@@ -353,7 +375,7 @@ export default function PrimeiroContatoAction({
             "RECUPERACAO",
 
           usuario:
-            "Samir",
+            nomeResponsavel,
 
           descricao:
             `${lead.nome} entrou na lista de Leads sem resposta. Próxima tentativa programada para 5 dias.`,
@@ -453,6 +475,10 @@ export default function PrimeiroContatoAction({
         <PrimeiroContatoForm
 
           lead={lead}
+
+          nomeResponsavel={
+            nomeResponsavel
+          }
 
           onCancelar={() =>
             setAberto(false)

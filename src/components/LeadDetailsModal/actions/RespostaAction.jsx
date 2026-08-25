@@ -77,6 +77,23 @@ export default function RespostaAction({
 
 
   // ==========================================================
+  // FECHAR MODAL (✕) — reseta o estado interno para a tela
+  // inicial, sem salvar resposta, sem registrar evento, sem
+  // alterar o Lead e sem avançar etapa.
+  // ==========================================================
+
+  function fecharModal() {
+
+    setAberto(false);
+
+    setPerguntandoTextoResposta(false);
+
+    setTextoResposta("");
+
+  }
+
+
+  // ==========================================================
   // LEAD RESPONDEU
   // ==========================================================
 
@@ -507,11 +524,48 @@ export default function RespostaAction({
 
         <div
           style={{
+            position: "relative",
             display: "flex",
             flexDirection: "column",
             gap: "15px",
           }}
         >
+
+          {/* ==================================================
+              FECHAR (✕) — só fecha a modal, sem salvar resposta,
+              sem registrar evento, sem alterar o Lead e sem
+              avançar etapa.
+          ================================================== */}
+
+          <button
+
+            type="button"
+
+            aria-label="Fechar"
+
+            onClick={
+              fecharModal
+            }
+
+            style={{
+              position: "absolute",
+              top: "-48px",
+              right: "-8px",
+              width: "32px",
+              height: "32px",
+              border: "none",
+              background: "transparent",
+              color: "#999999",
+              fontSize: "20px",
+              lineHeight: "1",
+              cursor: "pointer",
+            }}
+
+          >
+
+            ✕
+
+          </button>
 
           {perguntandoTextoResposta ? (
 

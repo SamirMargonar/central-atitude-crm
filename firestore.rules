@@ -220,6 +220,20 @@ service cloud.firestore {
       return ehRecepcionista() && (camposCompareceuOk || camposNaoCompareceuOk);
     }
 
+    // Permite que uma recepcionista NÃO dona do Lead, mas dentro do
+    // turno da visita, grave o espelho do reagendamento no Lead
+    // (visita/ultimoAtendimento/atualizadoEm) — mesmo payload real
+    // enviado por ReagendarVisitaAction.jsx. A dona já está coberta
+    // por podeEditarLead(), sem depender de turno.
+    function podeReagendarViaTurno(leadId, antes, depois) {
+      let alterados = depois.diff(antes).affectedKeys();
+      return ehRecepcionista()
+          && alterados.hasOnly(['visita', 'ultimoAtendimento', 'atualizadoEm'])
+          && ('visita' in depois)
+          && ('id' in depois.visita)
+          && visitaLigadaAoLeadDentroDoTurno(leadId, depois.visita.id);
+    }
+
     function eventoDeComparecimentoValido(leadId, dadosEvento) {
       return dadosEvento.tipo in ['VISITA', 'JORNADA', 'PENDENCIA', 'VISITA_CONFIRMACAO', 'VISITA_OBSERVACAO']
           && ('dados' in dadosEvento)
@@ -241,7 +255,8 @@ service cloud.firestore {
                     && perfilDoChamador() in ['admin', 'coordenador', 'recepcionista'];
 
       allow update: if podeEditarLead(resource.data, request.resource.data)
-                    || podeAtualizarLeadViaComparecimento(leadId, resource.data, request.resource.data);
+                    || podeAtualizarLeadViaComparecimento(leadId, resource.data, request.resource.data)
+                    || podeReagendarViaTurno(leadId, resource.data, request.resource.data);
 
       allow delete: if false;
 
@@ -384,7 +399,7 @@ service cloud.firestore {
 
       allow update: if (
                          ehAdminOuCoordenador()
-                         || (ehRecepcionista() && visitaDentroDoTurnoDoChamador(resource.data))
+                         || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(resource.data) || ehDonaDaVisita(resource.data)))
                        )
                     && autoriaValida(resource.data, request.resource.data);
 

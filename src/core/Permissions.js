@@ -42,6 +42,10 @@ export const PERMISSOES = {
     editarLead: true,
     assumirLead: true,
     transferirLead: true,
+    // Só permitido pela Rule quando o lead não tem visita
+    // vinculada — a checagem de negócio fica em EventEngine.js,
+    // a checagem de acesso fica em firestore.rules.
+    excluirLead: true,
 
     // --- Agenda / Renovações ---
     agendaCompleta: true,
@@ -83,6 +87,7 @@ export const PERMISSOES = {
     editarLead: true,
     assumirLead: true,
     transferirLead: true,
+    excluirLead: true,
 
     // --- Agenda / Renovações ---
     agendaCompleta: true,
@@ -128,6 +133,7 @@ export const PERMISSOES = {
     editarLead: true,
     assumirLead: true,
     transferirLead: false,
+    excluirLead: false,
 
     // --- Agenda / Renovações ---
     // Agenda segue as regras de turno já existentes

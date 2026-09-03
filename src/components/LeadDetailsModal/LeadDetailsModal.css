@@ -1325,3 +1325,61 @@
     }
 
 }
+
+
+/* =========================================================
+   ZONA DE PERIGO — EXCLUIR LEAD
+========================================================= */
+
+.leadDangerZone{
+
+    margin-top:25px;
+
+    padding-top:20px;
+
+    border-top:1px solid #f3d4d4;
+
+}
+
+
+.btnExcluirLead{
+
+    width:100%;
+
+    padding:14px;
+
+    border:1px solid #ff3b30;
+
+    border-radius:12px;
+
+    background:#fff;
+
+    color:#ff3b30;
+
+    font-weight:700;
+
+    font-size:15px;
+
+    font-family:inherit;
+
+    cursor:pointer;
+
+    transition:background 0.2s ease;
+
+}
+
+
+.btnExcluirLead:hover{
+
+    background:rgba(255, 59, 48, 0.08);
+
+}
+
+
+.btnExcluirLead:disabled{
+
+    opacity:0.6;
+
+    cursor:not-allowed;
+
+}

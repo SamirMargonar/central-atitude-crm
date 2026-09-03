@@ -258,7 +258,12 @@ service cloud.firestore {
                     || podeAtualizarLeadViaComparecimento(leadId, resource.data, request.resource.data)
                     || podeReagendarViaTurno(leadId, resource.data, request.resource.data);
 
-      allow delete: if false;
+      // Exclusão permanente — restrita a admin/coordenador. A
+      // regra de negócio "não excluir lead com visita vinculada"
+      // é verificada no cliente (EventEngine.js, ANTES de chamar
+      // deleteDoc) — aqui só decidimos QUEM pode excluir, nunca
+      // QUANDO é seguro.
+      allow delete: if ehAdminOuCoordenador();
 
       match /eventos/{eventoId} {
 

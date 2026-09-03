@@ -9,6 +9,7 @@ import LeadActions from "./LeadActions";
 import LeadNotes from "./LeadNotes";
 import LeadTimeline from "./LeadTimeline";
 import LeadTransfer from "./LeadTransfer";
+import ExcluirLeadAction from "./actions/ExcluirLeadAction";
 
 import { useAuth } from "../../auth/AuthContext";
 
@@ -79,6 +80,11 @@ export default function LeadDetailsModal({
           />
 
         )}
+
+        <ExcluirLeadAction
+          lead={leadLocal}
+          onExcluido={onClose}
+        />
 
       </div>
 

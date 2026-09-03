@@ -608,6 +608,10 @@ export default function LeadModal({
                 Indicação
               </option>
 
+              <option value="Campanha">
+                Campanha
+              </option>
+
             </select>
 
           </div>

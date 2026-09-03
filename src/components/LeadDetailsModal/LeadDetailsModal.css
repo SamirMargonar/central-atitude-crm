@@ -210,6 +210,48 @@
 }
 
 
+.leadHeaderEditar{
+
+    display:inline-flex;
+
+    align-items:center;
+
+    gap:6px;
+
+    margin-top:12px;
+
+    margin-left:10px;
+
+    padding:6px 14px;
+
+    border:none;
+
+    border-radius:999px;
+
+    background:rgba(100, 116, 139, 0.12);
+
+    color:#475569;
+
+    font-size:13px;
+
+    font-weight:700;
+
+    font-family:inherit;
+
+    cursor:pointer;
+
+    transition:background 0.2s ease;
+
+}
+
+
+.leadHeaderEditar:hover{
+
+    background:rgba(100, 116, 139, 0.22);
+
+}
+
+
 .closeButton{
 
     width:42px;

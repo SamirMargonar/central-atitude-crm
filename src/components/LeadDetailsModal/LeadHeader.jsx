@@ -1,7 +1,10 @@
 import { construirLinkWhatsApp } from "../../utils/whatsapp";
 
+import EditarLeadAction from "./actions/EditarLeadAction";
+
 export default function LeadHeader({
   lead,
+  setLead,
   onClose,
 }) {
 
@@ -38,6 +41,11 @@ export default function LeadHeader({
           </a>
 
         )}
+
+        <EditarLeadAction
+          lead={lead}
+          setLead={setLead}
+        />
 
       </div>
 

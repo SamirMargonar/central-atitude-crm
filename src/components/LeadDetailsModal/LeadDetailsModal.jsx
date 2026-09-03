@@ -45,6 +45,7 @@ export default function LeadDetailsModal({
 
         <LeadHeader
           lead={leadLocal}
+          setLead={setLeadLocal}
           onClose={onClose}
         />
 

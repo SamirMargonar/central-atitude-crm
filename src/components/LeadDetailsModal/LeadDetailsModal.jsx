@@ -57,6 +57,7 @@ export default function LeadDetailsModal({
 
         <LeadJourney
           lead={leadLocal}
+          setLead={setLeadLocal}
         />
 
         <LeadActions

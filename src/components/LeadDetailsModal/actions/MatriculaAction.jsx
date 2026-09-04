@@ -20,6 +20,9 @@ import {
 export default function MatriculaAction({
   lead,
   setLead,
+  mostrarBotao = true,
+  abertoExterno = false,
+  fecharExterno,
 }) {
 
   const {
@@ -39,6 +42,35 @@ export default function MatriculaAction({
     "Usuário";
 
   const [aberto, setAberto] = useState(false);
+
+
+  // ============================================================
+  // ABERTURA EXTERNA
+  //
+  // Além do próprio botão "💳 Confirmar Matrícula", este
+  // formulário também pode ser aberto de fora (ex.: clique na
+  // bolinha "Matrícula" da Jornada do Cliente) — sem duplicar
+  // nenhuma lógica de confirmação, só reaproveitando este mesmo
+  // modal. `abertoExterno` nunca é usado sozinho para fechar:
+  // quem abriu de fora precisa também tratar `fecharExterno`.
+  // ============================================================
+
+  const modalAberto =
+    aberto ||
+    abertoExterno;
+
+
+  function fecharModal() {
+
+    setAberto(false);
+
+    if (fecharExterno) {
+
+      fecharExterno();
+
+    }
+
+  }
 
   const [observacao, setObservacao] = useState("");
 
@@ -476,7 +508,7 @@ export default function MatriculaAction({
           .split("T")[0]
       );
 
-      setAberto(false);
+      fecharModal();
 
 
       alert(
@@ -519,30 +551,34 @@ export default function MatriculaAction({
 
     <>
 
-      <button
-        className="btnAcaoPrincipal"
-        onClick={() => {
+      {mostrarBotao && (
 
-          if (!lead?.objetivo) {
+        <button
+          className="btnAcaoPrincipal"
+          onClick={() => {
 
-            alert(
-              "⚠️ Cadastre o objetivo do Lead antes de realizar a matrícula."
-            );
+            if (!lead?.objetivo) {
 
-            return;
+              alert(
+                "⚠️ Cadastre o objetivo do Lead antes de realizar a matrícula."
+              );
 
-          }
+              return;
 
-          setAberto(true);
+            }
 
-        }}
-      >
-        💳 Confirmar Matrícula
-      </button>
+            setAberto(true);
+
+          }}
+        >
+          💳 Confirmar Matrícula
+        </button>
+
+      )}
 
 
       <LeadActionModal
-        aberto={aberto}
+        aberto={modalAberto}
         titulo="Confirmar Matrícula"
       >
 
@@ -710,7 +746,7 @@ export default function MatriculaAction({
 
               setObservacao("");
 
-              setAberto(false);
+              fecharModal();
 
             }}
           >

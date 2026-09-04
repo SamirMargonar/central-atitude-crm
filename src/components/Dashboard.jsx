@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "../styles/dashboard.css";
 import "../styles/painelComercial.css";
 
-import { ETAPAS } from "../core/LeadFlow";
+import { ETAPAS, nomeDaEtapa } from "../core/LeadFlow";
 
 import {
   buscarVisitasPorPerfil,
@@ -75,6 +75,12 @@ export default function Dashboard({
     useState(null);
 
   const [mostrarVisitasHoje, setMostrarVisitasHoje] =
+    useState(false);
+
+  const [mostrarAguardando, setMostrarAguardando] =
+    useState(false);
+
+  const [mostrarEmAtendimento, setMostrarEmAtendimento] =
     useState(false);
 
   const [mostrarRelatorioMatriculas, setMostrarRelatorioMatriculas] =
@@ -1046,7 +1052,23 @@ export default function Dashboard({
 
         {/* AGUARDANDO ATENDIMENTO */}
 
-        <div className="cardDashboard">
+        <button
+          type="button"
+          className={`
+            cardDashboard
+            cardDashboardClicavel
+            ${
+              mostrarAguardando
+                ? "cardDashboardAtivo"
+                : ""
+            }
+          `}
+          onClick={() =>
+            setMostrarAguardando(
+              !mostrarAguardando
+            )
+          }
+        >
 
           <h3>
             🆕 Aguardando Atendimento
@@ -1057,15 +1079,33 @@ export default function Dashboard({
           </span>
 
           <p>
-            Leads aguardando recepção
+            {mostrarAguardando
+              ? "Clique para ocultar"
+              : "Leads aguardando recepção"}
           </p>
 
-        </div>
+        </button>
 
 
         {/* EM ATENDIMENTO */}
 
-        <div className="cardDashboard">
+        <button
+          type="button"
+          className={`
+            cardDashboard
+            cardDashboardClicavel
+            ${
+              mostrarEmAtendimento
+                ? "cardDashboardAtivo"
+                : ""
+            }
+          `}
+          onClick={() =>
+            setMostrarEmAtendimento(
+              !mostrarEmAtendimento
+            )
+          }
+        >
 
           <h3>
             🤝 Em Atendimento
@@ -1076,10 +1116,12 @@ export default function Dashboard({
           </span>
 
           <p>
-            Leads em andamento
+            {mostrarEmAtendimento
+              ? "Clique para ocultar"
+              : "Leads em andamento"}
           </p>
 
-        </div>
+        </button>
 
 
         {/* MATRÍCULAS */}
@@ -1418,6 +1460,221 @@ export default function Dashboard({
                   );
 
                 })}
+
+            </div>
+
+          )}
+
+        </section>
+
+      )}
+
+
+      {/* ======================================================
+          AGUARDANDO ATENDIMENTO
+      ====================================================== */}
+
+      {mostrarAguardando && (
+
+        <section
+          className="dashboardBloco"
+          id="aguardando-atendimento"
+        >
+
+          <div className="dashboardBlocoHeader">
+
+            <div>
+
+              <h2>
+                🆕 Aguardando Atendimento
+              </h2>
+
+              <p>
+                Clique em um lead para abrir
+                o histórico completo.
+              </p>
+
+            </div>
+
+
+            <strong>
+              {leadsRecebidos.length}
+            </strong>
+
+          </div>
+
+
+          {leadsRecebidos.length === 0 ? (
+
+            <div className="dashboardVazio">
+
+              🆕 Nenhum lead aguardando atendimento.
+
+            </div>
+
+          ) : (
+
+            <div className="listaVisitasDashboard">
+
+              {leadsRecebidos.map((lead) => (
+
+                <button
+                  type="button"
+                  className="visitaDashboard"
+                  key={lead.id}
+                  onClick={() =>
+                    abrirLeadPorId(lead.id)
+                  }
+                >
+
+                  <div>
+
+                    <strong>
+
+                      {lead.nome || "Lead"}
+
+                    </strong>
+
+                    <p>
+                      📞{" "}
+                      {lead.telefone ||
+                        "Não informado"}
+                    </p>
+
+                    {lead.origem && (
+
+                      <p>
+                        📍{" "}
+                        {lead.origem}
+                      </p>
+
+                    )}
+
+                  </div>
+
+
+                  <span
+                    className="abrirLeadDashboard"
+                  >
+
+                    👁️ Ver histórico do Lead →
+
+                  </span>
+
+                </button>
+
+              ))}
+
+            </div>
+
+          )}
+
+        </section>
+
+      )}
+
+
+      {/* ======================================================
+          EM ATENDIMENTO
+      ====================================================== */}
+
+      {mostrarEmAtendimento && (
+
+        <section
+          className="dashboardBloco"
+          id="em-atendimento"
+        >
+
+          <div className="dashboardBlocoHeader">
+
+            <div>
+
+              <h2>
+                🤝 Em Atendimento
+              </h2>
+
+              <p>
+                Clique em um lead para abrir
+                o histórico completo.
+              </p>
+
+            </div>
+
+
+            <strong>
+              {emAtendimento.length}
+            </strong>
+
+          </div>
+
+
+          {emAtendimento.length === 0 ? (
+
+            <div className="dashboardVazio">
+
+              🤝 Nenhum lead em atendimento.
+
+            </div>
+
+          ) : (
+
+            <div className="listaVisitasDashboard">
+
+              {emAtendimento.map((lead) => (
+
+                <button
+                  type="button"
+                  className="visitaDashboard"
+                  key={lead.id}
+                  onClick={() =>
+                    abrirLeadPorId(lead.id)
+                  }
+                >
+
+                  <div>
+
+                    <strong>
+
+                      {lead.nome || "Lead"}
+
+                    </strong>
+
+                    <p>
+                      📞{" "}
+                      {lead.telefone ||
+                        "Não informado"}
+                    </p>
+
+                    <p>
+                      👤{" "}
+                      {lead.responsavel ||
+                        lead.consultora ||
+                        "Sem responsável"}
+                    </p>
+
+                  </div>
+
+
+                  <span>
+
+                    {nomeDaEtapa(
+                      obterEtapa(lead)
+                    )}
+
+                  </span>
+
+
+                  <span
+                    className="abrirLeadDashboard"
+                  >
+
+                    👁️ Ver histórico do Lead →
+
+                  </span>
+
+                </button>
+
+              ))}
 
             </div>
 

@@ -18,10 +18,42 @@ import { criarVisita } from "../../../Agenda/VisitaEngine";
 export default function AgendarVisitaAction({
   lead,
   setLead,
+  mostrarBotao = true,
+  abertoExterno = false,
+  fecharExterno,
 }) {
 
   const [aberto, setAberto] =
     useState(false);
+
+
+  // ============================================================
+  // ABERTURA EXTERNA
+  //
+  // Além do próprio botão "📅 Agendar Visita", este formulário
+  // também pode ser aberto de fora (ex.: clique na bolinha
+  // "Visita" da Jornada do Cliente) — sem duplicar nenhuma
+  // lógica de agendamento, só reaproveitando este mesmo modal.
+  // `abertoExterno` nunca é usado sozinho para fechar: quem abriu
+  // de fora precisa também tratar `fecharExterno`.
+  // ============================================================
+
+  const modalAberto =
+    aberto ||
+    abertoExterno;
+
+
+  function fecharModal() {
+
+    setAberto(false);
+
+    if (fecharExterno) {
+
+      fecharExterno();
+
+    }
+
+  }
 
   const [data, setData] =
     useState("");
@@ -228,7 +260,7 @@ export default function AgendarVisitaAction({
 
       setObservacao("");
 
-      setAberto(false);
+      fecharModal();
 
 
       alert(
@@ -256,18 +288,22 @@ export default function AgendarVisitaAction({
 
     <>
 
-      <button
-        className="btnAcaoPrincipal"
-        onClick={() =>
-          setAberto(true)
-        }
-      >
-        📅 Agendar Visita
-      </button>
+      {mostrarBotao && (
+
+        <button
+          className="btnAcaoPrincipal"
+          onClick={() =>
+            setAberto(true)
+          }
+        >
+          📅 Agendar Visita
+        </button>
+
+      )}
 
 
       <LeadActionModal
-        aberto={aberto}
+        aberto={modalAberto}
         titulo="Agendar Visita"
       >
 
@@ -330,9 +366,7 @@ export default function AgendarVisitaAction({
 
           <button
             className="btnCancelar"
-            onClick={() =>
-              setAberto(false)
-            }
+            onClick={fecharModal}
           >
             Cancelar
           </button>

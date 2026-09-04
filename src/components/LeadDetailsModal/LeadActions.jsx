@@ -18,6 +18,9 @@ import ComparecimentoAction
 import MatriculaAction
   from "./actions/MatriculaAction";
 
+import EditarMatriculaAction
+  from "./actions/EditarMatriculaAction";
+
 
 export default function LeadActions({
   lead,
@@ -183,15 +186,31 @@ export default function LeadActions({
 
     return (
 
-      <button
-        type="button"
-        className="btnAcaoPrincipal"
-        disabled
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          width: "100%",
+        }}
       >
 
-        ✅ Jornada Finalizada
+        <button
+          type="button"
+          className="btnAcaoPrincipal"
+          disabled
+        >
 
-      </button>
+          ✅ Jornada Finalizada
+
+        </button>
+
+        <EditarMatriculaAction
+          lead={lead}
+          setLead={setLead}
+        />
+
+      </div>
 
     );
 

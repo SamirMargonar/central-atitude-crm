@@ -179,6 +179,11 @@ export default function LeadTimeline({ lead }) {
         return "🎓 Matrícula";
 
 
+      case "MATRICULA_EDITADA":
+
+        return "✏️ Matrícula Editada";
+
+
       case "JORNADA":
 
         return "🔄 Avanço na Jornada";

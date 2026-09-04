@@ -19,6 +19,10 @@ import {
 } from "../../../core/LeadFlow";
 
 import {
+  construirLinkWhatsApp,
+} from "../../../utils/whatsapp";
+
+import {
   useAuth,
 } from "../../../auth/AuthContext";
 
@@ -163,20 +167,12 @@ export default function PrimeiroContatoAction({
       // ABRE WHATSAPP
       // ========================================================
 
-      const telefone =
-        String(
-          lead.telefone
-        ).replace(
-          /\D/g,
-          ""
-        );
-
-
       window.open(
 
-        `https://wa.me/55${telefone}?text=${encodeURIComponent(
+        construirLinkWhatsApp(
+          lead.telefone,
           mensagem
-        )}`,
+        ),
 
         "_blank"
 

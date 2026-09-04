@@ -26,6 +26,9 @@ import LeadBoard
 import FiltersBar
   from "./Filters/FiltersBar";
 
+import WhatsAppLivreModal
+  from "./WhatsAppLivreModal";
+
 import {
   filtrarLeads,
 } from "../utils/leadFilters";
@@ -33,10 +36,6 @@ import {
 import {
   filtrarNaoCompareceram,
 } from "../utils/naoCompareceramFilters";
-
-import {
-  construirLinkWhatsApp,
-} from "../utils/whatsapp";
 
 import {
   buscarVisitasPorPerfil,
@@ -232,6 +231,11 @@ export default function Leads({
   const [
     leadDetalhes,
     setLeadDetalhes,
+  ] = useState(null);
+
+  const [
+    whatsappAlvo,
+    setWhatsappAlvo,
   ] = useState(null);
 
 
@@ -672,6 +676,35 @@ export default function Leads({
 
 
       {/* ====================================================
+          WHATSAPP LIVRE
+      ==================================================== */}
+
+      <WhatsAppLivreModal
+
+        aberto={
+          !!whatsappAlvo
+        }
+
+        fechar={() =>
+          setWhatsappAlvo(null)
+        }
+
+        leadId={
+          whatsappAlvo?.leadId
+        }
+
+        nome={
+          whatsappAlvo?.nome
+        }
+
+        telefone={
+          whatsappAlvo?.telefone
+        }
+
+      />
+
+
+      {/* ====================================================
           PÁGINA DE LEADS
       ==================================================== */}
 
@@ -848,19 +881,25 @@ export default function Leads({
 
                       {lead?.telefone && (
 
-                        <a
+                        <button
+                          type="button"
                           className="leadsAlertaWhatsApp"
-                          href={
-                            construirLinkWhatsApp(
-                              lead.telefone,
-                              `Olá ${nome}!`
-                            )
+                          onClick={() =>
+                            setWhatsappAlvo({
+
+                              leadId:
+                                visita.leadId,
+
+                              nome,
+
+                              telefone:
+                                lead.telefone,
+
+                            })
                           }
-                          target="_blank"
-                          rel="noreferrer"
                         >
                           💬 WhatsApp
-                        </a>
+                        </button>
 
                       )}
 

@@ -1,6 +1,8 @@
 import {
-  construirLinkWhatsApp,
-} from "../utils/whatsapp";
+  useState,
+} from "react";
+
+import WhatsAppLivreModal from "./WhatsAppLivreModal";
 
 // ==========================================================
 // Cor de prioridade por categoria — só afeta a aparência do
@@ -39,6 +41,10 @@ export default function PrecisaAtencao({
         soma + categoria.itens.length,
       0
     );
+
+
+  const [whatsappAlvo, setWhatsappAlvo] =
+    useState(null);
 
   return (
 
@@ -132,19 +138,26 @@ export default function PrecisaAtencao({
 
                           {item.telefone && (
 
-                            <a
+                            <button
+                              type="button"
                               className="precisaAtencaoWhatsApp"
-                              href={
-                                construirLinkWhatsApp(
-                                  item.telefone,
-                                  `Olá ${item.nome}!`
-                                )
+                              onClick={() =>
+                                setWhatsappAlvo({
+
+                                  leadId:
+                                    item.leadId,
+
+                                  nome:
+                                    item.nome,
+
+                                  telefone:
+                                    item.telefone,
+
+                                })
                               }
-                              target="_blank"
-                              rel="noreferrer"
                             >
                               💬 WhatsApp
-                            </a>
+                            </button>
 
                           )}
 
@@ -165,6 +178,31 @@ export default function PrecisaAtencao({
         )}
 
       </div>
+
+
+      <WhatsAppLivreModal
+
+        aberto={
+          !!whatsappAlvo
+        }
+
+        fechar={() =>
+          setWhatsappAlvo(null)
+        }
+
+        leadId={
+          whatsappAlvo?.leadId
+        }
+
+        nome={
+          whatsappAlvo?.nome
+        }
+
+        telefone={
+          whatsappAlvo?.telefone
+        }
+
+      />
 
     </section>
 

@@ -16,7 +16,7 @@ export default function PrimeiroContatoForm({
 
 `Olá ${lead?.nome || ""}! 😊
 
-Meu nome é ${nomeResponsavel} e faço parte da equipe da Academia Viva Attitude.
+Meu nome é ${nomeResponsavel} e faço parte da equipe da Academia Viva Atitude.
 
 Recebemos seu interesse e gostaríamos de entender melhor seu objetivo para podermos te ajudar da melhor forma.
 

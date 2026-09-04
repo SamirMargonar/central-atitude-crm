@@ -93,12 +93,15 @@
   gap: 4px;
   font-size: 11px;
   font-weight: 700;
+  font-family: inherit;
   color: #16a34a;
   background: rgba(34, 197, 94, 0.12);
+  border: none;
   border-radius: 999px;
   padding: 4px 10px;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
   transition: background 0.2s ease;
 }
 

@@ -129,6 +129,11 @@ export default function LeadTimeline({ lead }) {
         return "📞 Primeiro Contato";
 
 
+      case "WHATSAPP_LIVRE":
+
+        return "💬 WhatsApp iniciado";
+
+
       case "RESPOSTA_LEAD":
 
         return "💬 Resposta do Lead";

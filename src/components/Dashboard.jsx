@@ -16,6 +16,7 @@ import RelatorioMatriculas from "./RelatorioMatriculas";
 import FunilComercial from "./FunilComercial";
 import IndicadoresPeriodo from "./IndicadoresPeriodo";
 import PrecisaAtencao from "./PrecisaAtencao";
+import WhatsAppLivreModal from "./WhatsAppLivreModal";
 
 import {
   calcularIndicadores,
@@ -31,10 +32,6 @@ import {
 import {
   filtrarNaoCompareceram,
 } from "../utils/naoCompareceramFilters";
-
-import {
-  construirLinkWhatsApp,
-} from "../utils/whatsapp";
 
 import {
   useAuth,
@@ -72,6 +69,9 @@ export default function Dashboard({
     useState(true);
 
   const [leadSelecionado, setLeadSelecionado] =
+    useState(null);
+
+  const [whatsappAlvo, setWhatsappAlvo] =
     useState(null);
 
   const [mostrarVisitasHoje, setMostrarVisitasHoje] =
@@ -963,19 +963,25 @@ export default function Dashboard({
 
                     {lead?.telefone && (
 
-                      <a
+                      <button
+                        type="button"
                         className="precisaAtencaoWhatsApp"
-                        href={
-                          construirLinkWhatsApp(
-                            lead.telefone,
-                            `Olá ${nome}!`
-                          )
+                        onClick={() =>
+                          setWhatsappAlvo({
+
+                            leadId:
+                              visita.leadId,
+
+                            nome,
+
+                            telefone:
+                              lead.telefone,
+
+                          })
                         }
-                        target="_blank"
-                        rel="noreferrer"
                       >
                         💬 WhatsApp
-                      </a>
+                      </button>
 
                     )}
 
@@ -1457,6 +1463,35 @@ export default function Dashboard({
 
         fechar={() =>
           setMostrarRelatorioMatriculas(false)
+        }
+
+      />
+
+
+      {/* ======================================================
+          WHATSAPP LIVRE
+      ====================================================== */}
+
+      <WhatsAppLivreModal
+
+        aberto={
+          !!whatsappAlvo
+        }
+
+        fechar={() =>
+          setWhatsappAlvo(null)
+        }
+
+        leadId={
+          whatsappAlvo?.leadId
+        }
+
+        nome={
+          whatsappAlvo?.nome
+        }
+
+        telefone={
+          whatsappAlvo?.telefone
         }
 
       />

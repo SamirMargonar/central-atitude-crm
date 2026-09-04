@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import LeadActionModal from "./LeadDetailsModal/LeadActionModal";
+import WhatsAppLivreModal from "./WhatsAppLivreModal";
 
 import {
   atualizarLead,
@@ -16,7 +17,6 @@ import {
   construirMatriculaRenovada,
   construirMatriculaComRecusa,
   construirMensagemContato,
-  construirLinkWhatsApp,
 } from "../utils/renovacaoAcoes";
 
 
@@ -45,6 +45,9 @@ export default function RenovacaoAcoes({
   };
 
 
+  const [modalContato, setModalContato] =
+    useState(false);
+
   const [modalResposta, setModalResposta] =
     useState(false);
 
@@ -72,58 +75,17 @@ export default function RenovacaoAcoes({
 
 
   // ==========================================================
-  // 1. ENTRAR EM CONTATO (WhatsApp + registro)
+  // 1. ENTRAR EM CONTATO (WhatsApp)
+  //
+  // Abre o modal único de WhatsApp com a mensagem automática de
+  // renovação já preenchida (editável antes de enviar). Registro
+  // na Timeline e abertura do WhatsApp acontecem dentro do
+  // próprio modal, ao clicar "Enviar pelo WhatsApp".
   // ==========================================================
 
-  async function registrarContato() {
+  function abrirContato() {
 
-    if (enviando) {
-      return;
-    }
-
-    try {
-
-      setEnviando(true);
-
-      const mensagem =
-        construirMensagemContato(cliente);
-
-      await registrarEvento({
-
-        leadId: cliente.id,
-
-        tipo: "RENOVACAO_CONTATO",
-
-        usuario: usuarioAtual.nome,
-
-        descricao: mensagem,
-
-      });
-
-      window.open(
-        construirLinkWhatsApp(
-          cliente.telefone,
-          mensagem
-        ),
-        "_blank"
-      );
-
-    } catch (erro) {
-
-      console.error(
-        "Erro ao registrar contato de renovação:",
-        erro
-      );
-
-      alert(
-        "Não foi possível registrar o contato."
-      );
-
-    } finally {
-
-      setEnviando(false);
-
-    }
+    setModalContato(true);
 
   }
 
@@ -394,11 +356,24 @@ export default function RenovacaoAcoes({
       <button
         type="button"
         className="btnRenovacaoContato"
-        onClick={registrarContato}
+        onClick={abrirContato}
         disabled={enviando}
       >
         📱 Entrar em contato
       </button>
+
+
+      <WhatsAppLivreModal
+        aberto={modalContato}
+        fechar={() =>
+          setModalContato(false)
+        }
+        leadId={cliente.id}
+        nome={cliente.nome}
+        telefone={cliente.telefone}
+        mensagemInicial={construirMensagemContato(cliente)}
+        tipoEvento="RENOVACAO_CONTATO"
+      />
 
 
       <button

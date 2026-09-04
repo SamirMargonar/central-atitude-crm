@@ -1,4 +1,6 @@
-import { construirLinkWhatsApp } from "../../utils/whatsapp";
+import { useState } from "react";
+
+import WhatsAppLivreModal from "../WhatsAppLivreModal";
 
 import EditarLeadAction from "./actions/EditarLeadAction";
 
@@ -7,6 +9,9 @@ export default function LeadHeader({
   setLead,
   onClose,
 }) {
+
+  const [whatsappAberto, setWhatsappAberto] =
+    useState(false);
 
   return (
 
@@ -28,17 +33,15 @@ export default function LeadHeader({
 
         {lead.telefone && (
 
-          <a
+          <button
+            type="button"
             className="leadHeaderWhatsApp"
-            href={construirLinkWhatsApp(
-              lead.telefone,
-              `Olá ${lead.nome}!`
-            )}
-            target="_blank"
-            rel="noreferrer"
+            onClick={() =>
+              setWhatsappAberto(true)
+            }
           >
             💬 WhatsApp
-          </a>
+          </button>
 
         )}
 
@@ -55,6 +58,22 @@ export default function LeadHeader({
       >
         ✕
       </button>
+
+      <WhatsAppLivreModal
+
+        aberto={whatsappAberto}
+
+        fechar={() =>
+          setWhatsappAberto(false)
+        }
+
+        leadId={lead.id}
+
+        nome={lead.nome}
+
+        telefone={lead.telefone}
+
+      />
 
     </div>
 

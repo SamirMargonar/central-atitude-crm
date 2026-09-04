@@ -25,9 +25,7 @@ import {
   useAuth,
 } from "../auth/AuthContext";
 
-import {
-  construirLinkWhatsApp,
-} from "../utils/whatsapp";
+import ConfirmarVisitaWhatsAppModal from "./ConfirmarVisitaWhatsAppModal";
 
 
 export default function DetalhesVisita({
@@ -76,6 +74,9 @@ export default function DetalhesVisita({
     useState("");
 
   const [salvando, setSalvando] =
+    useState(false);
+
+  const [modoConfirmarWhatsApp, setModoConfirmarWhatsApp] =
     useState(false);
 
 
@@ -245,21 +246,18 @@ export default function DetalhesVisita({
 
 
       // ------------------------------------------------------
-      // ABRE WHATSAPP DO LEAD
+      // ABRE A MODAL DE MENSAGEM DO WHATSAPP
+      //
+      // Só depois que confirmarVisitaEngine() e o registro da
+      // Timeline (VISITA_CONFIRMACAO) já tiverem sucesso. A
+      // modal é quem efetivamente abre o WhatsApp, a partir de
+      // um clique real do usuário — não precisa mais do truque
+      // de abrir a aba em branco antes do await.
       // ------------------------------------------------------
 
       if (lead?.telefone) {
 
-        const mensagem =
-          `Olá, ${lead?.nome || visita.leadNome || ""}! 😊 Passando para confirmar sua visita na Academia Viva Atitude hoje às ${visita.hora || ""}. Podemos contar com você? 💪`;
-
-        window.open(
-          construirLinkWhatsApp(
-            lead.telefone,
-            mensagem
-          ),
-          "_blank"
-        );
+        setModoConfirmarWhatsApp(true);
 
       }
 
@@ -1736,6 +1734,43 @@ export default function DetalhesVisita({
         </button>
 
       </div>
+
+      <ConfirmarVisitaWhatsAppModal
+
+        aberto={modoConfirmarWhatsApp}
+
+        fechar={() =>
+          setModoConfirmarWhatsApp(false)
+        }
+
+        leadId={
+          lead?.id ||
+          visita.leadId
+        }
+
+        visitaId={
+          visita.id
+        }
+
+        nomeLead={
+          lead?.nome ||
+          visita.leadNome ||
+          ""
+        }
+
+        nomeRecepcionista={
+          usuarioAtual.nome
+        }
+
+        horario={
+          visita.hora || ""
+        }
+
+        telefone={
+          lead?.telefone
+        }
+
+      />
 
     </div>
 

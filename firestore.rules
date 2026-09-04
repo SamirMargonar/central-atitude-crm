@@ -36,6 +36,13 @@ rules_version = '2';
 //      valor de etapa além do exigido por cada ramo. Validada em
 //      firestore-v6-comparecimento-cross-turno.rules (145 testes:
 //      116 da suíte geral + 29 específicos deste cenário).
+//   7. eventoDeComparecimentoValido() passa a aceitar também o tipo
+//      'WHATSAPP_LIVRE', só para cobrir o envio da mensagem de
+//      confirmação de visita pelo WhatsApp (que sempre carrega
+//      dados.visitaId e prova o vínculo com a visita dentro do
+//      turno) — mesmo cenário cross-turno do item 6, agora também
+//      para esse evento. Não abre WhatsApp Livre solto (sem visita)
+//      para não-donos do Lead.
 //
 // O código React correspondente (responsavelUid em Leads.jsx:
 // assumirLead(), e ultimaVisitaId em Agenda/DetalhesVisita.jsx)
@@ -234,8 +241,15 @@ service cloud.firestore {
           && visitaLigadaAoLeadDentroDoTurno(leadId, depois.visita.id);
     }
 
+    // 'WHATSAPP_LIVRE' entrou nesta whitelist só para cobrir o
+    // envio da mensagem de confirmação de visita pelo WhatsApp
+    // (ConfirmarVisitaWhatsAppModal.jsx) — como ele sempre exige
+    // 'visitaId' em dados e a prova de vínculo abaixo, um WhatsApp
+    // Livre solto (sem visita, ex.: Dashboard/Leads/Kanban) nunca
+    // passa por aqui; continua exigindo podeAgirNoLead() como já
+    // era antes desta mudança.
     function eventoDeComparecimentoValido(leadId, dadosEvento) {
-      return dadosEvento.tipo in ['VISITA', 'JORNADA', 'PENDENCIA', 'VISITA_CONFIRMACAO', 'VISITA_OBSERVACAO']
+      return dadosEvento.tipo in ['VISITA', 'JORNADA', 'PENDENCIA', 'VISITA_CONFIRMACAO', 'VISITA_OBSERVACAO', 'WHATSAPP_LIVRE']
           && ('dados' in dadosEvento)
           && ('visitaId' in dadosEvento.dados)
           && visitaLigadaAoLeadDentroDoTurno(leadId, dadosEvento.dados.visitaId);

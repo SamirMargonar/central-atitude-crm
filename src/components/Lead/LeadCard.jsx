@@ -179,6 +179,8 @@ export default function LeadCard({
 
       <LeadTimer
         createdAt={lead.createdAt}
+        assumido={lead.assumido}
+        assumidoEm={lead.assumidoEm}
       />
 
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-export default function LeadTimer({ createdAt }) {
+export default function LeadTimer({ createdAt, assumido, assumidoEm }) {
 
   const [tempo, setTempo] =
     useState("0 minutos");
@@ -17,27 +17,28 @@ export default function LeadTimer({ createdAt }) {
 
 
     // ==========================================
-    // OBTÉM DATA DE CRIAÇÃO
+    // CONVERTE QUALQUER FORMATO DE DATA/TIMESTAMP
+    // PARA MILISSEGUNDOS
     // ==========================================
 
-    function obterInicio() {
+    function paraMillis(valor) {
 
       // Firebase Timestamp
       if (
-        typeof createdAt?.toMillis ===
+        typeof valor?.toMillis ===
         "function"
       ) {
 
-        return createdAt.toMillis();
+        return valor.toMillis();
 
       }
 
 
       // Firebase Timestamp em formato bruto
-      if (createdAt?.seconds) {
+      if (valor?.seconds) {
 
         return (
-          createdAt.seconds *
+          valor.seconds *
           1000
         );
 
@@ -46,7 +47,7 @@ export default function LeadTimer({ createdAt }) {
 
       // Data normal
       const data =
-        new Date(createdAt);
+        new Date(valor);
 
 
       if (
@@ -66,7 +67,7 @@ export default function LeadTimer({ createdAt }) {
 
 
     const inicio =
-      obterInicio();
+      paraMillis(createdAt);
 
 
     if (!inicio) {
@@ -171,21 +172,10 @@ export default function LeadTimer({ createdAt }) {
 
 
     // ==========================================
-    // ATUALIZA TEMPO
+    // APLICA UMA DIFERENÇA (EM MS) NA TELA
     // ==========================================
 
-    function atualizarTempo() {
-
-      const agora =
-        Date.now();
-
-
-      const diferenca =
-        Math.max(
-          0,
-          agora - inicio
-        );
-
+    function aplicarDiferenca(diferenca) {
 
       setTempo(
         formatarTempo(
@@ -233,6 +223,59 @@ export default function LeadTimer({ createdAt }) {
         setCor("#ff3b30");
 
       }
+
+    }
+
+
+    // ==========================================
+    // LEAD JÁ ASSUMIDO — CONGELA O TEMPO
+    //
+    // O tempo de resposta termina no momento em
+    // que o lead foi assumido (assumidoEm), não
+    // deve continuar contando depois disso.
+    // ==========================================
+
+    if (assumido) {
+
+      const fim =
+        paraMillis(assumidoEm);
+
+
+      if (!fim) {
+
+        setTempo("—");
+
+        setCor("#999999");
+
+        return;
+
+      }
+
+
+      aplicarDiferenca(
+        Math.max(
+          0,
+          fim - inicio
+        )
+      );
+
+      return;
+
+    }
+
+
+    // ==========================================
+    // LEAD AINDA NA FILA — CRONÔMETRO AO VIVO
+    // ==========================================
+
+    function atualizarTempo() {
+
+      aplicarDiferenca(
+        Math.max(
+          0,
+          Date.now() - inicio
+        )
+      );
 
     }
 
@@ -299,7 +342,7 @@ export default function LeadTimer({ createdAt }) {
 
     };
 
-  }, [createdAt]);
+  }, [createdAt, assumido, assumidoEm]);
 
 
   return (

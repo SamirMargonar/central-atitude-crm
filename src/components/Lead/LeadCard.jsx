@@ -1,7 +1,4 @@
-import { useState } from "react";
-
 import LeadTimer from "./LeadTimer";
-import WhatsAppLivreModal from "../WhatsAppLivreModal";
 import { ETAPAS, nomeDaEtapa } from "../../core/LeadFlow";
 
 export default function LeadCard({
@@ -9,9 +6,6 @@ export default function LeadCard({
   onAssumir,
   onVerHistorico,
 }) {
-
-  const [whatsappAberto, setWhatsappAberto] =
-    useState(false);
 
   const etapa =
     lead.etapa ?? ETAPAS.RECEBIDO;
@@ -350,40 +344,7 @@ export default function LeadCard({
         </button>
 
 
-        {/* =====================================
-            WHATSAPP
-        ===================================== */}
-
-        <button
-          type="button"
-          className="btnVerde"
-          onClick={() =>
-            setWhatsappAberto(true)
-          }
-        >
-
-          WhatsApp
-
-        </button>
-
-
       </div>
-
-      <WhatsAppLivreModal
-
-        aberto={whatsappAberto}
-
-        fechar={() =>
-          setWhatsappAberto(false)
-        }
-
-        leadId={lead.id}
-
-        nome={lead.nome}
-
-        telefone={lead.telefone}
-
-      />
 
     </div>
 

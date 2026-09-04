@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "../styles/dashboard.css";
 import "../styles/painelComercial.css";
 
-import { ETAPAS, nomeDaEtapa } from "../core/LeadFlow";
+import { ETAPAS } from "../core/LeadFlow";
 
 import {
   buscarVisitasPorPerfil,
@@ -12,6 +12,7 @@ import {
 import LeadDetailsModal from "../components/LeadDetailsModal/LeadDetailsModal";
 
 import RelatorioMatriculas from "./RelatorioMatriculas";
+import EmAtendimentoModal from "./EmAtendimentoModal";
 
 import FunilComercial from "./FunilComercial";
 import IndicadoresPeriodo from "./IndicadoresPeriodo";
@@ -1091,19 +1092,9 @@ export default function Dashboard({
 
         <button
           type="button"
-          className={`
-            cardDashboard
-            cardDashboardClicavel
-            ${
-              mostrarEmAtendimento
-                ? "cardDashboardAtivo"
-                : ""
-            }
-          `}
+          className="cardDashboard cardDashboardClicavel"
           onClick={() =>
-            setMostrarEmAtendimento(
-              !mostrarEmAtendimento
-            )
+            setMostrarEmAtendimento(true)
           }
         >
 
@@ -1116,9 +1107,7 @@ export default function Dashboard({
           </span>
 
           <p>
-            {mostrarEmAtendimento
-              ? "Clique para ocultar"
-              : "Leads em andamento"}
+            Clique para ver os leads
           </p>
 
         </button>
@@ -1575,114 +1564,24 @@ export default function Dashboard({
 
 
       {/* ======================================================
-          EM ATENDIMENTO
+          EM ATENDIMENTO — modal (mesmo padrão do Relatório de
+          Matrículas: overlay + lista com scroll próprio, sem
+          empurrar a página do Dashboard).
       ====================================================== */}
 
-      {mostrarEmAtendimento && (
+      <EmAtendimentoModal
 
-        <section
-          className="dashboardBloco"
-          id="em-atendimento"
-        >
+        leads={emAtendimento}
 
-          <div className="dashboardBlocoHeader">
+        aberto={mostrarEmAtendimento}
 
-            <div>
+        fechar={() =>
+          setMostrarEmAtendimento(false)
+        }
 
-              <h2>
-                🤝 Em Atendimento
-              </h2>
+        onAbrirLead={abrirLeadPorId}
 
-              <p>
-                Clique em um lead para abrir
-                o histórico completo.
-              </p>
-
-            </div>
-
-
-            <strong>
-              {emAtendimento.length}
-            </strong>
-
-          </div>
-
-
-          {emAtendimento.length === 0 ? (
-
-            <div className="dashboardVazio">
-
-              🤝 Nenhum lead em atendimento.
-
-            </div>
-
-          ) : (
-
-            <div className="listaVisitasDashboard">
-
-              {emAtendimento.map((lead) => (
-
-                <button
-                  type="button"
-                  className="visitaDashboard"
-                  key={lead.id}
-                  onClick={() =>
-                    abrirLeadPorId(lead.id)
-                  }
-                >
-
-                  <div>
-
-                    <strong>
-
-                      {lead.nome || "Lead"}
-
-                    </strong>
-
-                    <p>
-                      📞{" "}
-                      {lead.telefone ||
-                        "Não informado"}
-                    </p>
-
-                    <p>
-                      👤{" "}
-                      {lead.responsavel ||
-                        lead.consultora ||
-                        "Sem responsável"}
-                    </p>
-
-                  </div>
-
-
-                  <span>
-
-                    {nomeDaEtapa(
-                      obterEtapa(lead)
-                    )}
-
-                  </span>
-
-
-                  <span
-                    className="abrirLeadDashboard"
-                  >
-
-                    👁️ Ver histórico do Lead →
-
-                  </span>
-
-                </button>
-
-              ))}
-
-            </div>
-
-          )}
-
-        </section>
-
-      )}
+      />
 
 
       {/* ======================================================

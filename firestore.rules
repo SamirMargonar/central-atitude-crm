@@ -43,6 +43,14 @@ rules_version = '2';
 //      turno) — mesmo cenário cross-turno do item 6, agora também
 //      para esse evento. Não abre WhatsApp Livre solto (sem visita)
 //      para não-donos do Lead.
+//   8. Consulta de leads entre recepcionistas — possoVerLead()
+//      passa a liberar LEITURA (get/list de leads/{leadId}, e por
+//      tabela a leitura de leads/{leadId}/eventos/{eventoId}, que
+//      reusa esta mesma função) para QUALQUER recepcionista, em
+//      QUALQUER lead. Mudança isolada à leitura: podeAgirNoLead()
+//      e podeEditarLead() (usadas por allow update/delete e pela
+//      criação de eventos) não chamam possoVerLead() e continuam
+//      exigindo dono/admin/coordenador, sem nenhuma alteração.
 //
 // O código React correspondente (responsavelUid em Leads.jsx:
 // assumirLead(), e ultimaVisitaId em Agenda/DetalhesVisita.jsx)
@@ -155,10 +163,20 @@ service cloud.firestore {
       );
     }
 
+    // 'possoVerLead' passou a liberar LEITURA (get/list, e por
+    // tabela a leitura de leads/{leadId}/eventos, que reusa esta
+    // mesma função) para QUALQUER recepcionista, em QUALQUER
+    // lead — consulta operacional (ex.: cliente na recepção que
+    // já foi atendido por outra recepcionista). Isto NÃO afeta
+    // nenhuma escrita: podeAgirNoLead()/podeEditarLead() (usadas
+    // por allow update/delete e pela criação de eventos) não
+    // chamam possoVerLead() e continuam exigindo dono/admin/
+    // coordenador, sem nenhuma alteração.
     function possoVerLead(dados) {
       return ehAdminOuCoordenador()
           || souDonoDoLead(dados)
-          || (ehRecepcionista() && leadNaFilaRecebidos(dados));
+          || (ehRecepcionista() && leadNaFilaRecebidos(dados))
+          || ehRecepcionista();
     }
 
     function podeAgirNoLead(dados) {

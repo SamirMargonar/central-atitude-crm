@@ -4,7 +4,7 @@ import { useAuth } from "../../auth/AuthContext";
 
 import "./LeadDetailsModal.css";
 
-export default function LeadNotes({ lead }) {
+export default function LeadNotes({ lead, podeAgir = true }) {
 
   const { usuario, perfilUsuario } = useAuth();
 
@@ -48,6 +48,26 @@ export default function LeadNotes({ lead }) {
     }
 
     setSalvando(false);
+
+  }
+
+  if (!podeAgir) {
+
+    return (
+
+      <section className="leadNotes">
+
+        <h3>📝 Observações</h3>
+
+        <p className="leadNotesConsulta">
+          Observações registradas aparecem no histórico
+          (Timeline) abaixo. Só o responsável pelo lead pode
+          adicionar uma nova observação.
+        </p>
+
+      </section>
+
+    );
 
   }
 

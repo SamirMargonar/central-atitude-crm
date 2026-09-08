@@ -8,6 +8,7 @@ export default function LeadHeader({
   lead,
   setLead,
   onClose,
+  podeAgir = true,
 }) {
 
   const [whatsappAberto, setWhatsappAberto] =
@@ -31,7 +32,7 @@ export default function LeadHeader({
 
         </div>
 
-        {lead.telefone && (
+        {lead.telefone && podeAgir && (
 
           <button
             type="button"
@@ -45,10 +46,14 @@ export default function LeadHeader({
 
         )}
 
-        <EditarLeadAction
-          lead={lead}
-          setLead={setLead}
-        />
+        {podeAgir && (
+
+          <EditarLeadAction
+            lead={lead}
+            setLead={setLead}
+          />
+
+        )}
 
       </div>
 

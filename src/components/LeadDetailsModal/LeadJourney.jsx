@@ -43,6 +43,7 @@ import MatriculaAction from "./actions/MatriculaAction";
 export default function LeadJourney({
   lead,
   setLead,
+  podeAgir = true,
 }) {
 
   const {
@@ -75,7 +76,8 @@ export default function LeadJourney({
 
 
   const podeEditar =
-    permissoes?.editarLead === true;
+    permissoes?.editarLead === true &&
+    podeAgir;
 
 
   // ==========================================================

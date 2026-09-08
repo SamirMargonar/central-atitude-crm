@@ -7,8 +7,14 @@ import {
 } from "../firebase/firebase";
 
 import {
+  useState,
+} from "react";
+
+import {
   useAuth,
 } from "../auth/AuthContext";
+
+import ConsultaLeadModal from "./ConsultaLeadModal";
 
 import "../styles/sidebar.css";
 
@@ -23,6 +29,16 @@ export default function Sidebar({
     isRecepcionista,
     permissoes,
   } = useAuth();
+
+
+  // ==========================================================
+  // CONSULTAR LEAD (recepcionista consultando lead de outra
+  // recepcionista) — visualização apenas; ver
+  // ConsultaLeadModal.jsx / useConsultaLeads.js.
+  // ==========================================================
+
+  const [consultaAberta, setConsultaAberta] =
+    useState(false);
 
 
   // ==========================================================
@@ -283,6 +299,31 @@ export default function Sidebar({
 
         )}
 
+
+        {/* ==================================================
+            CONSULTAR LEAD
+            SOMENTE RECEPCIONISTA (admin/coordenador já veem
+            todos os leads normalmente, sem precisar consultar)
+        ================================================== */}
+
+        {isRecepcionista && (
+
+          <button
+
+            type="button"
+
+            onClick={() =>
+              setConsultaAberta(true)
+            }
+
+          >
+
+            🔍 Consultar Lead
+
+          </button>
+
+        )}
+
       </nav>
 
 
@@ -301,6 +342,17 @@ export default function Sidebar({
         🚪 Sair
 
       </button>
+
+
+      <ConsultaLeadModal
+
+        aberto={consultaAberta}
+
+        fechar={() =>
+          setConsultaAberta(false)
+        }
+
+      />
 
 
     </aside>

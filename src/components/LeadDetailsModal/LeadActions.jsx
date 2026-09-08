@@ -25,7 +25,39 @@ import EditarMatriculaAction
 export default function LeadActions({
   lead,
   setLead,
+  podeAgir = true,
 }) {
+
+  // ==========================================================
+  // MODO CONSULTA
+  //
+  // Nenhuma das ações abaixo depende só da etapa — todas
+  // exigem ser dona do lead (ou admin/coordenador) nas Rules.
+  // Em vez de mostrar um botão que hoje já falharia, mostramos
+  // uma mensagem neutra.
+  // ==========================================================
+
+  if (!podeAgir) {
+
+    return (
+
+      <div className="leadActions">
+
+        <button
+          type="button"
+          className="btnAcaoPrincipal"
+          disabled
+        >
+          🔍 Modo consulta — ação disponível apenas para o
+          responsável pelo lead
+        </button>
+
+      </div>
+
+    );
+
+  }
+
 
   // ==========================================================
   // ETAPA ATUAL DO LEAD

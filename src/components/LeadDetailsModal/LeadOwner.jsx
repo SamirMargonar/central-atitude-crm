@@ -6,7 +6,7 @@ import {
 
 import "./LeadDetailsModal.css";
 
-export default function LeadOwner({ lead, setLead }) {
+export default function LeadOwner({ lead, setLead, podeAgir = true }) {
 
   const [objetivoSelecionado, setObjetivoSelecionado] =
     useState("");
@@ -107,7 +107,7 @@ export default function LeadOwner({ lead, setLead }) {
           {lead?.objetivo || "Não definido"}
         </h3>
 
-        {!lead?.objetivo && (
+        {!lead?.objetivo && podeAgir && (
 
           <div className="ownerObjetivoForm">
 

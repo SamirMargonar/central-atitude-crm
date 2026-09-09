@@ -701,6 +701,11 @@ export default function Leads({
           whatsappAlvo?.telefone
         }
 
+        resolverPendenciaVisitaId={
+          whatsappAlvo?.visitaId ||
+          null
+        }
+
       />
 
 
@@ -894,6 +899,9 @@ export default function Leads({
 
                               telefone:
                                 lead.telefone,
+
+                              visitaId:
+                                visita.id,
 
                             })
                           }

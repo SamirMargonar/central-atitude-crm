@@ -136,6 +136,12 @@ export default function ReagendarVisitaAction({
 
       // ==========================================
       // 1. ATUALIZA A VISITA EXISTENTE
+      //
+      // Reseta comparecimento/status/confirmação e resolve a
+      // pendência de "não compareceu" (se houver) — mesmo
+      // comportamento do reagendamento já existente na Agenda
+      // (src/Agenda/DetalhesVisita.jsx), agora também aqui no
+      // Kanban. Ver auditoria "Lead não compareceu".
       // ==========================================
 
       await atualizarVisita(
@@ -152,6 +158,24 @@ export default function ReagendarVisitaAction({
             nomeResponsavel,
 
           observacao,
+
+          comparecimento:
+            "",
+
+          pendenciaResolvida:
+            true,
+
+          status:
+            "AGENDADA",
+
+          confirmadoPor:
+            null,
+
+          confirmadoPorNome:
+            null,
+
+          confirmadoEm:
+            null,
 
         }
 

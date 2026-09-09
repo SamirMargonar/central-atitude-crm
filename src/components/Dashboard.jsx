@@ -614,6 +614,13 @@ export default function Dashboard({
 
               leadId: visita.leadId,
 
+              // Só esta categoria carrega visitaId — usado por
+              // PrecisaAtencao.jsx para resolver a pendência de
+              // "não compareceu" via WhatsApp. As demais
+              // categorias não têm esse campo e continuam sem
+              // nenhuma mudança de comportamento.
+              visitaId: visita.id,
+
               nome:
                 visita.leadNome ||
                 lead?.nome ||

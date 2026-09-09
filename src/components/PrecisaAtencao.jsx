@@ -153,6 +153,16 @@ export default function PrecisaAtencao({
                                   telefone:
                                     item.telefone,
 
+                                  // Só a categoria "Não
+                                  // compareceram" traz visitaId
+                                  // (ver Dashboard.jsx) — nas
+                                  // demais, fica undefined e o
+                                  // WhatsAppLivreModal se
+                                  // comporta exatamente como
+                                  // antes.
+                                  visitaId:
+                                    item.visitaId,
+
                                 })
                               }
                             >
@@ -200,6 +210,11 @@ export default function PrecisaAtencao({
 
         telefone={
           whatsappAlvo?.telefone
+        }
+
+        resolverPendenciaVisitaId={
+          whatsappAlvo?.visitaId ||
+          null
         }
 
       />

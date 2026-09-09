@@ -10,6 +10,10 @@ import {
 } from "../core/EventEngine";
 
 import {
+  atualizarVisita,
+} from "../Agenda/VisitaEngine";
+
+import {
   construirLinkWhatsApp,
 } from "../utils/whatsapp";
 
@@ -38,6 +42,13 @@ import {
 // "RENOVACAO_CONTATO"; padrão "WHATSAPP_LIVRE"). Não registra
 // como "enviado" — o CRM não tem como saber se o usuário
 // realmente apertou Enviar dentro do WhatsApp.
+//
+// PENDÊNCIA OPERACIONAL (auditoria "Lead não compareceu") —
+// suporte ADITIVO e OPCIONAL: se `resolverPendenciaVisitaId` for
+// passado, depois do registrarEvento() de sempre, marca essa
+// visita como pendenciaResolvida = true. Chamadores que não
+// passarem essa prop continuam exatamente como antes — nenhum
+// outro fluxo de WhatsApp é afetado.
 // ==========================================================
 
 export default function WhatsAppLivreModal({
@@ -49,6 +60,7 @@ export default function WhatsAppLivreModal({
   mensagemInicial = "",
   tipoEvento = "WHATSAPP_LIVRE",
   dadosExtras = {},
+  resolverPendenciaVisitaId = null,
 }) {
 
   const {
@@ -121,6 +133,26 @@ export default function WhatsAppLivreModal({
           dadosExtras,
 
       });
+
+
+      if (
+        resolverPendenciaVisitaId
+      ) {
+
+        await atualizarVisita(
+
+          resolverPendenciaVisitaId,
+
+          {
+
+            pendenciaResolvida:
+              true,
+
+          }
+
+        );
+
+      }
 
 
       window.open(

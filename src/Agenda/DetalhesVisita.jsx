@@ -329,6 +329,11 @@ export default function DetalhesVisita({
 
       // ======================================================
       // ATUALIZA COMPARECIMENTO
+      //
+      // NAO_COMPARECEU reabre a pendência operacional
+      // (pendenciaResolvida: false) — mesmo que essa mesma
+      // visita já tenha sido resolvida antes (contato ou
+      // reagendamento). Ver auditoria "Lead não compareceu".
       // ======================================================
 
       const dadosComparecimento = {
@@ -338,6 +343,13 @@ export default function DetalhesVisita({
 
         status:
           "CONFIRMADA",
+
+        ...(tipo === "NAO_COMPARECEU"
+          ? {
+              pendenciaResolvida:
+                false,
+            }
+          : {}),
 
       };
 

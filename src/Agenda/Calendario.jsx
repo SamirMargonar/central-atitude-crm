@@ -18,6 +18,8 @@ import {
   useAuth,
 } from "../auth/AuthContext";
 
+import useLeadsPontuais from "../hooks/useLeadsPontuais";
+
 
 export default function Calendario({
   leads = [],
@@ -87,6 +89,42 @@ export default function Calendario({
     carregando,
     setCarregando,
   ] = useState(true);
+
+
+  // ==========================================================
+  // LEAD DA VISITA SELECIONADA — FALLBACK PONTUAL
+  //
+  // encontrarLeadDaVisita() (definida mais abaixo, function
+  // declaration — hoisted) só procura no array `leads` local
+  // (escopado por useLeads()). Quando a visita selecionada é
+  // visível (ex.: por turno) mas o lead dela não está nesse
+  // array, buscamos só esse leadId pontualmente — nunca a
+  // coleção inteira. Só pedimos o fallback para a visita
+  // ABERTA (DetalhesVisita), não para todas as visitas do mês.
+  // ==========================================================
+
+  const leadLocalDaSelecionada =
+    encontrarLeadDaVisita(
+      visitaSelecionada
+    );
+
+  const leadIdParaFallback =
+    !leadLocalDaSelecionada &&
+    visitaSelecionada?.leadId
+      ? [visitaSelecionada.leadId]
+      : [];
+
+  const leadsPontuais =
+    useLeadsPontuais(
+      leadIdParaFallback
+    );
+
+  const leadDaVisitaSelecionada =
+    leadLocalDaSelecionada ||
+    (visitaSelecionada?.leadId
+      ? leadsPontuais[visitaSelecionada.leadId]
+      : null) ||
+    null;
 
 
   // ==========================================================
@@ -1813,7 +1851,10 @@ export default function Calendario({
                           }
 
                           lead={
-                            lead
+                            // Local, quando disponível; senão
+                            // o fallback pontual buscado acima
+                            // (mesma visita — selecionada).
+                            leadDaVisitaSelecionada
                           }
 
                           onAtualizar={

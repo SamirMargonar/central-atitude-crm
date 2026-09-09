@@ -34,6 +34,8 @@ import {
   filtrarNaoCompareceram,
 } from "../utils/naoCompareceramFilters";
 
+import useLeadsPontuais from "../hooks/useLeadsPontuais";
+
 import {
   useAuth,
 } from "../auth/AuthContext";
@@ -530,6 +532,37 @@ export default function Dashboard({
     filtrarNaoCompareceram(visitas);
 
 
+  // ==========================================================
+  // TELEFONE — FALLBACK PONTUAL
+  //
+  // Mesmo motivo de src/components/Leads.jsx: `leads` aqui é
+  // escopado por useLeads() (própria recepcionista + fila) e
+  // uma pendência de "não compareceu" pode ser de um lead de
+  // outra recepcionista, visível só pela visita (turno). Sem
+  // isso, o botão de WhatsApp da categoria "Não compareceram"
+  // simplesmente não apareceria em PrecisaAtencao.jsx.
+  // ==========================================================
+
+  const leadIdsFaltantesNaoCompareceram =
+    naoComparecidosPendentes
+      .filter(
+        (visita) =>
+          !leads.some(
+            (item) =>
+              item.id === visita.leadId
+          )
+      )
+      .map(
+        (visita) =>
+          visita.leadId
+      );
+
+  const leadsPontuaisNaoCompareceram =
+    useLeadsPontuais(
+      leadIdsFaltantesNaoCompareceram
+    );
+
+
   const leadsSemResposta =
     filtrarLeadsSemResposta(leads);
 
@@ -602,11 +635,20 @@ export default function Dashboard({
         naoComparecidosPendentes.map(
           (visita) => {
 
-            const lead =
+            const leadLocal =
               leads.find(
                 (item) =>
                   item.id === visita.leadId
               );
+
+            // Local primeiro; só usa o fallback pontual
+            // quando o lead não está no array local.
+            const lead =
+              leadLocal ||
+              leadsPontuaisNaoCompareceram[
+                visita.leadId
+              ] ||
+              null;
 
             return {
 

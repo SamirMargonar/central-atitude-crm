@@ -1,0 +1,109 @@
+/* ==========================================================
+   LOGIN — MOBILE
+   ========================================================== */
+
+.mobileLoginTela {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #071426 0%, #0b1d36 55%, #111b32 100%);
+  padding: 20px;
+}
+
+.mobileLoginCartao {
+  width: 100%;
+  max-width: 420px;
+  background: #ffffff;
+  border-radius: 22px;
+  padding: 32px 24px;
+  box-shadow: 0 25px 70px rgba(0, 0, 0, 0.35);
+}
+
+.mobileLoginLogo {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.mobileLoginLogo span {
+  font-size: 40px;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.mobileLoginLogo h1 {
+  margin: 0;
+  color: #101828;
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+.mobileLoginSubtitulo {
+  margin-top: 2px;
+  color: #667085;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 4px;
+}
+
+.mobileLoginLogo p {
+  margin-top: 16px;
+  margin-bottom: 0;
+  color: #667085;
+  font-size: 14px;
+}
+
+.mobileLoginErro {
+  background: #fff1f0;
+  border: 1px solid #ffccc7;
+  color: #d4380d;
+  padding: 12px 14px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mobileLoginCartao form label {
+  display: block;
+  margin-bottom: 6px;
+  color: #344054;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mobileLoginCartao form input {
+  width: 100%;
+  height: 52px;
+  padding: 0 14px;
+  border: 1px solid #d0d5dd;
+  border-radius: 12px;
+  outline: none;
+  font-size: 16px;
+  margin-bottom: 18px;
+}
+
+.mobileLoginCartao form button {
+  width: 100%;
+  height: 54px;
+  border: none;
+  border-radius: 14px;
+  background: #33cf61;
+  color: #ffffff;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.mobileLoginCartao form button:disabled {
+  background: #98a2b3;
+  cursor: not-allowed;
+}
+
+.mobileLoginRodape {
+  text-align: center;
+  margin-top: 24px;
+  color: #98a2b3;
+  font-size: 11px;
+}

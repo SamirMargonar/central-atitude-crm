@@ -1,0 +1,120 @@
+/* ==========================================================
+   SHELL DO MOBILE — layout vertical, botões grandes, sem grid
+   de 3 colunas. CSS exclusivo do Mobile, nunca importado pelo
+   Desktop nem importa nada do Desktop.
+   ========================================================== */
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #f4f5f7;
+  -webkit-tap-highlight-color: transparent;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.mobileCarregando {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #071426 0%, #0b1d36 55%, #111b32 100%);
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 20px;
+  text-align: center;
+}
+
+.mobileShell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f4f5f7;
+}
+
+.mobileConteudo {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 90px;
+  /* espaço para o bottom nav fixo não cobrir conteúdo */
+}
+
+.mobileEmConstrucao {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 24px;
+  color: #475569;
+}
+
+.mobileEmConstrucaoIcone {
+  font-size: 40px;
+  margin-bottom: 12px;
+}
+
+.mobileEmConstrucao h2 {
+  margin: 0 0 8px 0;
+  color: #1e293b;
+  font-size: 18px;
+}
+
+.mobileEmConstrucao p {
+  margin: 0;
+  font-size: 14px;
+  max-width: 280px;
+}
+
+/* ==========================================================
+   BOTTOM NAVIGATION
+   ========================================================== */
+
+.mobileBottomNav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  padding: 6px 4px calc(6px + env(safe-area-inset-bottom, 0px)) 4px;
+  z-index: 100;
+}
+
+.mobileBottomNavItem {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 2px;
+  border: none;
+  background: none;
+  color: #94a3b8;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 12px;
+  min-height: 52px;
+}
+
+.mobileBottomNavItemAtivo {
+  color: #6C63FF;
+  background: #f0efff;
+}
+
+.mobileBottomNavIcone {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.mobileBottomNavRotulo {
+  font-size: 11px;
+  font-weight: 700;
+}

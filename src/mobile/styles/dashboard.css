@@ -1,0 +1,172 @@
+/* ==========================================================
+   DASHBOARD — MOBILE (layout vertical, cards empilhados)
+   ========================================================== */
+
+.mobileDashboard {
+  padding: 20px 16px 16px 16px;
+  max-width: 640px;
+  margin: 0 auto;
+}
+
+.mobileDashboardHeader {
+  margin-bottom: 20px;
+}
+
+.mobileDashboardHeaderTag {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  color: #6C63FF;
+  background: #f0efff;
+  padding: 4px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.mobileDashboardHeader h1 {
+  margin: 0;
+  font-size: 24px;
+  color: #101828;
+}
+
+.mobileDashboardHeader p {
+  margin: 4px 0 0 0;
+  color: #667085;
+  font-size: 15px;
+}
+
+.mobileDashboardVazio {
+  background: #fff9eb;
+  border: 1px solid #fde8b0;
+  color: #92650a;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+/* ==========================================================
+   INDICADORES
+   ========================================================== */
+
+.mobileIndicadoresLista {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.mobileIndicadorCard {
+  width: 100%;
+  min-height: 76px;
+  background: #ffffff;
+  border: 1px solid #eef0f2;
+  border-radius: 16px;
+  padding: 16px 18px;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mobileIndicadorCard:disabled {
+  cursor: default;
+}
+
+.mobileIndicadorCardDestaque {
+  border-color: #d8d5ff;
+  background: #f6f5ff;
+}
+
+.mobileIndicadorCardBloqueado {
+  background: #f8f9fa;
+  opacity: 0.7;
+}
+
+.mobileIndicadorCardTopo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mobileIndicadorCardIcone {
+  font-size: 18px;
+}
+
+.mobileIndicadorCardRotulo {
+  font-size: 14px;
+  font-weight: 700;
+  color: #344054;
+}
+
+.mobileIndicadorCardNumero {
+  font-size: 32px;
+  color: #101828;
+  font-weight: 800;
+  line-height: 1.1;
+}
+
+.mobileIndicadorCardSubtitulo {
+  font-size: 12px;
+  color: #98a2b3;
+}
+
+.mobileIndicadorCardIndisponivel {
+  font-size: 13px;
+  color: #98a2b3;
+  font-weight: 600;
+}
+
+/* ==========================================================
+   SEÇÃO DE ATENÇÃO
+   ========================================================== */
+
+.mobileSecaoAtencao {
+  background: #ffffff;
+  border: 1px solid #eef0f2;
+  border-radius: 16px;
+  padding: 18px;
+  box-shadow: 0 2px 8px rgba(16, 24, 40, 0.04);
+}
+
+.mobileSecaoAtencao h2 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #101828;
+}
+
+.mobileSecaoAtencaoItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px;
+  background: #fff9eb;
+  border: 1px solid #fde8b0;
+  border-radius: 12px;
+}
+
+.mobileSecaoAtencaoIcone {
+  font-size: 20px;
+}
+
+.mobileSecaoAtencaoItem strong {
+  display: block;
+  font-size: 14px;
+  color: #101828;
+}
+
+.mobileSecaoAtencaoItem p {
+  margin: 2px 0 0 0;
+  font-size: 12px;
+  color: #92650a;
+}
+
+.mobileSecaoAtencaoAviso {
+  margin: 12px 0 0 0;
+  font-size: 11px;
+  color: #98a2b3;
+  line-height: 1.5;
+}

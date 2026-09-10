@@ -1745,7 +1745,16 @@ export default function Calendario({
                           </p>
 
 
-                          {visita.confirmadoPorNome && (
+                          {/* Também exige `confirmada`
+                              (status), não só a presença do
+                              nome — depois de um reagendamento,
+                              confirmadoPorNome pode continuar
+                              preenchido (histórico, nunca
+                              zerado pelas Rules), mas a visita
+                              não está mais confirmada. */}
+
+                          {confirmada &&
+                            visita.confirmadoPorNome && (
 
                             <p>
 

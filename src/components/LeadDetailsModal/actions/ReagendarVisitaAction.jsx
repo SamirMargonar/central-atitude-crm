@@ -137,11 +137,20 @@ export default function ReagendarVisitaAction({
       // ==========================================
       // 1. ATUALIZA A VISITA EXISTENTE
       //
-      // Reseta comparecimento/status/confirmação e resolve a
-      // pendência de "não compareceu" (se houver) — mesmo
-      // comportamento do reagendamento já existente na Agenda
-      // (src/Agenda/DetalhesVisita.jsx), agora também aqui no
-      // Kanban. Ver auditoria "Lead não compareceu".
+      // Reseta comparecimento/status e resolve a pendência de
+      // "não compareceu" (se houver) — mesmo comportamento do
+      // reagendamento já existente na Agenda
+      // (src/Agenda/DetalhesVisita.jsx). Ver auditoria "Lead
+      // não compareceu".
+      //
+      // NÃO envia confirmadoPor/confirmadoPorNome/confirmadoEm:
+      // as Rules (autoriaValida) só aceitam gravar esses 3
+      // campos com o valor do próprio chamador, nunca null —
+      // numa visita já confirmada antes, zerá-los faz o
+      // updateDoc inteiro ser negado (permission-denied) e o
+      // reagendamento nunca termina. status:"AGENDADA" já é
+      // suficiente para a UI parar de mostrar a visita como
+      // confirmada.
       // ==========================================
 
       await atualizarVisita(
@@ -167,15 +176,6 @@ export default function ReagendarVisitaAction({
 
           status:
             "AGENDADA",
-
-          confirmadoPor:
-            null,
-
-          confirmadoPorNome:
-            null,
-
-          confirmadoEm:
-            null,
 
         }
 

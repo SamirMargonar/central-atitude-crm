@@ -887,6 +887,18 @@ export default function DetalhesVisita({
       setSalvando(true);
 
 
+      // ATENÇÃO — não incluir confirmadoPor/confirmadoPorNome/
+      // confirmadoEm aqui. As Rules (autoriaValida) só aceitam
+      // gravar esses 3 campos com o valor do próprio chamador
+      // (nunca null) quando eles estão sendo alterados — numa
+      // visita já confirmada antes (ex.: NAO_COMPARECEU depois
+      // de confirmada), tentar zerá-los faz o updateDoc inteiro
+      // ser negado (permission-denied), e o reagendamento nunca
+      // termina. status:"AGENDADA" já é suficiente para a UI
+      // parar de mostrar a visita como confirmada (ver
+      // visitaConfirmada abaixo e Calendario.jsx) — o valor
+      // antigo de confirmadoPor* fica só como histórico, sem
+      // efeito visual.
       const visitaAtualizada =
         await atualizarVisita(
           visita.id,
@@ -907,15 +919,6 @@ export default function DetalhesVisita({
 
             status:
               "AGENDADA",
-
-            confirmadoPor:
-              null,
-
-            confirmadoPorNome:
-              null,
-
-            confirmadoEm:
-              null,
 
           }
         );
@@ -940,15 +943,6 @@ export default function DetalhesVisita({
 
           status:
             "AGENDADA",
-
-          confirmadoPor:
-            null,
-
-          confirmadoPorNome:
-            null,
-
-          confirmadoEm:
-            null,
 
         });
 

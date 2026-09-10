@@ -193,7 +193,7 @@
 }
 
 
-.conteudo p {
+.conteudo p:not(.modalOverlay *) {
 
   color: #cbd5e1;
 }

@@ -185,9 +185,9 @@
 }
 
 
-.conteudo h1,
-.conteudo h2,
-.conteudo h3 {
+.conteudo h1:not(.modalOverlay *),
+.conteudo h2:not(.modalOverlay *),
+.conteudo h3:not(.modalOverlay *) {
 
   color: #f8fafc;
 }

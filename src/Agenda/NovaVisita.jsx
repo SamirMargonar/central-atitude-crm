@@ -11,6 +11,7 @@ export default function NovaVisita({
   fechar,
   leads = [],
   onSalvar,
+  salvando = false,
   dataInicial,
 }) {
 
@@ -198,6 +199,17 @@ export default function NovaVisita({
   // ==========================================================
 
   function salvar() {
+
+    // Protege contra double-submit — ver auditoria "duplicação
+    // de visitas". O estado de "salvando" de verdade vem de
+    // Calendario.jsx (quem faz o addDoc); aqui só reforçamos
+    // não reenviar enquanto ele estiver true.
+    if (salvando) {
+
+      return;
+
+    }
+
 
     if (
       !leadId ||
@@ -599,6 +611,7 @@ export default function NovaVisita({
               type="button"
               className="btnCancelarVisita"
               onClick={fechar}
+              disabled={salvando}
             >
               Cancelar
             </button>
@@ -608,8 +621,11 @@ export default function NovaVisita({
               type="button"
               className="btnSalvarVisita"
               onClick={salvar}
+              disabled={salvando}
             >
-              📅 Agendar Visita
+              {salvando
+                ? "Salvando..."
+                : "📅 Agendar Visita"}
             </button>
 
           </div>

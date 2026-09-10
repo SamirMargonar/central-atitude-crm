@@ -41,6 +41,11 @@ export default function ReagendarVisitaAction({
       visitaAtual.observacao || ""
     );
 
+  // Protege reagendar() contra double-submit — ver auditoria
+  // "duplicação de visitas".
+  const [salvando, setSalvando] =
+    useState(false);
+
 
   // ============================================================
   // RESPONSÁVEL DO LEAD
@@ -77,6 +82,13 @@ export default function ReagendarVisitaAction({
 
 
   async function reagendar() {
+
+    if (salvando) {
+
+      return;
+
+    }
+
 
     if (!data || !hora) {
 
@@ -117,6 +129,9 @@ export default function ReagendarVisitaAction({
 
 
     try {
+
+      setSalvando(true);
+
 
       const novaVisita = {
 
@@ -281,6 +296,10 @@ export default function ReagendarVisitaAction({
         "Não foi possível reagendar a visita."
       );
 
+    } finally {
+
+      setSalvando(false);
+
     }
 
   }
@@ -365,6 +384,7 @@ export default function ReagendarVisitaAction({
             onClick={() =>
               setAberto(false)
             }
+            disabled={salvando}
           >
             Cancelar
           </button>
@@ -373,8 +393,11 @@ export default function ReagendarVisitaAction({
           <button
             className="btnSalvar"
             onClick={reagendar}
+            disabled={salvando}
           >
-            🔄 Salvar Reagendamento
+            {salvando
+              ? "Salvando..."
+              : "🔄 Salvar Reagendamento"}
           </button>
 
         </div>

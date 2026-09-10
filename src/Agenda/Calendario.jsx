@@ -73,6 +73,15 @@ export default function Calendario({
   ] = useState(false);
 
 
+  // Protege salvarVisita() contra double-submit (duplo clique
+  // em "📅 Agendar Visita" no modal Nova Visita) — ver auditoria
+  // "duplicação de visitas".
+  const [
+    salvandoNovaVisita,
+    setSalvandoNovaVisita,
+  ] = useState(false);
+
+
   const [
     visitaSelecionada,
     setVisitaSelecionada,
@@ -1050,7 +1059,22 @@ export default function Calendario({
     visita
   ) {
 
+    // Protege contra double-submit — ver auditoria "duplicação
+    // de visitas" (dois documentos criados a ~52s de distância
+    // pelo mesmo clique repetido).
+    if (salvandoNovaVisita) {
+
+      return;
+
+    }
+
+
     try {
+
+      setSalvandoNovaVisita(
+        true
+      );
+
 
       const visitaComDono = {
 
@@ -1143,6 +1167,12 @@ export default function Calendario({
 
       alert(
         "Não foi possível salvar a visita."
+      );
+
+    } finally {
+
+      setSalvandoNovaVisita(
+        false
       );
 
     }
@@ -1909,6 +1939,10 @@ export default function Calendario({
 
         onSalvar={
           salvarVisita
+        }
+
+        salvando={
+          salvandoNovaVisita
         }
 
         dataInicial={

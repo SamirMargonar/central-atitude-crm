@@ -64,6 +64,13 @@ export default function AgendarVisitaAction({
   const [observacao, setObservacao] =
     useState("");
 
+  // Protege agendar() contra double-submit — ver auditoria
+  // "duplicação de visitas" (dois documentos de visita criados
+  // a ~52s de distância pelo mesmo clique repetido, sem nenhum
+  // feedback visual de que o primeiro já tinha sido salvo).
+  const [salvando, setSalvando] =
+    useState(false);
+
 
   // ============================================================
   // RESPONSÁVEL DO LEAD
@@ -80,6 +87,13 @@ export default function AgendarVisitaAction({
 
 
   async function agendar() {
+
+    if (salvando) {
+
+      return;
+
+    }
+
 
     if (!data || !hora) {
 
@@ -104,6 +118,9 @@ export default function AgendarVisitaAction({
 
 
     try {
+
+      setSalvando(true);
+
 
       const novaEtapa =
         proximaEtapa(
@@ -279,6 +296,10 @@ export default function AgendarVisitaAction({
         "Não foi possível agendar a visita. Verifique o console."
       );
 
+    } finally {
+
+      setSalvando(false);
+
     }
 
   }
@@ -367,6 +388,7 @@ export default function AgendarVisitaAction({
           <button
             className="btnCancelar"
             onClick={fecharModal}
+            disabled={salvando}
           >
             Cancelar
           </button>
@@ -375,8 +397,11 @@ export default function AgendarVisitaAction({
           <button
             className="btnSalvar"
             onClick={agendar}
+            disabled={salvando}
           >
-            Salvar Agendamento
+            {salvando
+              ? "Salvando..."
+              : "Salvar Agendamento"}
           </button>
 
         </div>

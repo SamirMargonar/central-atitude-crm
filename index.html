@@ -2,6 +2,41 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // ==========================================================
+      // REDIRECIONAMENTO AUTOMÁTICO — CELULAR/TABLET → MOBILE
+      // ==========================================================
+      //
+      // Só existe neste arquivo (index.html, entrada Desktop) —
+      // index-mobile.html nunca recebe este script, então não há
+      // como formar um loop de redirecionamento por construção.
+      //
+      // Detecção por User-Agent (não por largura de janela): um
+      // Desktop com janela estreita precisa continuar sendo
+      // Desktop. iPad é tratado à parte porque o Safari moderno
+      // reporta User-Agent de Mac por padrão — a combinação
+      // platform "MacIntel" + suporte a toque é a forma padrão de
+      // identificá-lo mesmo assim.
+      // ==========================================================
+      (function () {
+        if (/index-mobile\.html/i.test(location.pathname)) {
+          return;
+        }
+
+        var ua = navigator.userAgent || "";
+
+        var ehMobilePorUA =
+          /Android|iPhone|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(ua);
+
+        var ehIPad =
+          /iPad/i.test(ua) ||
+          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+
+        if (ehMobilePorUA || ehIPad) {
+          location.replace("/index-mobile.html" + location.search + location.hash);
+        }
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light only" />

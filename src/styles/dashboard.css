@@ -185,15 +185,15 @@
 }
 
 
-.conteudo h1:not(.modalOverlay *),
-.conteudo h2:not(.modalOverlay *),
-.conteudo h3:not(.modalOverlay *) {
+.conteudo h1:not(:where(.modalOverlay *)),
+.conteudo h2:not(:where(.modalOverlay *)),
+.conteudo h3:not(:where(.modalOverlay *)) {
 
   color: #f8fafc;
 }
 
 
-.conteudo p:not(.modalOverlay *) {
+.conteudo p:not(:where(.modalOverlay *)) {
 
   color: #cbd5e1;
 }

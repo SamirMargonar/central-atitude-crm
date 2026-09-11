@@ -1,0 +1,91 @@
+/* ==========================================================
+   AÇÕES DO LEAD — MOBILE (Assumir / Primeiro Contato / Resposta)
+
+   CSS exclusivo do Mobile — reaproveita as classes genéricas de
+   modal já existentes em leadDetails.css (.mobileModalOverlay,
+   .mobileModalCartao, .mobileModalHeader, .mobileModalBotoes,
+   .mobileModalBotaoPrimario/Secundario) para os popups; aqui só
+   ficam as classes novas que essas telas precisam e que ainda
+   não existiam (botão primário genérico, botão de "negativa",
+   erro inline, nota, contador de tentativas).
+   ========================================================== */
+
+.mobileAcaoPrimaria {
+  width: 100%;
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: #6C63FF;
+  color: #ffffff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobileAcaoPrimaria:disabled {
+  background: #98a2b3;
+  cursor: not-allowed;
+}
+
+.mobileAcaoSecundariaPerigo {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 12px;
+  border: 1px solid #ff3b30;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #ff3b30;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mobileAcaoSecundariaPerigo:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mobileAcaoErro {
+  margin: 0 0 12px 0;
+  padding: 10px 12px;
+  background: #fff1f0;
+  border: 1px solid #ffccc7;
+  border-radius: 10px;
+  color: #d4380d;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.mobileAcaoNota {
+  margin: 10px 0 0 0;
+  font-size: 11px;
+  color: #98a2b3;
+  text-align: center;
+  line-height: 1.5;
+}
+
+.mobileAcaoContador {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #f7f7f7;
+  text-align: center;
+}
+
+.mobileAcaoContador strong {
+  font-size: 14px;
+  color: #1e293b;
+}
+
+.mobileAcaoContador p {
+  margin: 6px 0 0 0;
+  font-size: 12px;
+  color: #667085;
+}
+
+.mobileAcaoConsulta {
+  margin: 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.5;
+}

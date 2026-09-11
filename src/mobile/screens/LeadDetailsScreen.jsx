@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import "../styles/leadDetails.css";
 
@@ -6,21 +6,28 @@ import {
   JORNADA,
 } from "../../core/LeadFlow.js";
 
+import LeadActionsMobile from "../components/LeadActionsMobile.jsx";
 import LeadTimelineMobile from "../components/LeadTimelineMobile.jsx";
 import WhatsAppModalMobile from "../components/WhatsAppModalMobile.jsx";
 
 
 // ==========================================================
-// DETALHES DO LEAD — MOBILE (FASE 4)
+// DETALHES DO LEAD — MOBILE (FASE 4 + AÇÕES)
 // ==========================================================
 //
 // Tela própria do Mobile — não importa LeadDetailsModal.jsx nem
 // nenhum subcomponente do Desktop. Mostra os mesmos campos que
 // já existem no documento do lead (nada inventado) e a mesma
 // Jornada (JORNADA/nomeDaEtapa de core/LeadFlow.js, não
-// alterado) — só como leitura nesta fase, sem clique para trocar
-// etapa (isso é uma ação, fica para uma fase futura — ver
-// relatório final).
+// alterado) — a Jornada continua só leitura (sem clique para
+// trocar etapa manualmente), mas agora a etapa AVANÇA como
+// efeito colateral das ações reais (Assumir/Primeiro Contato/
+// Resposta, via LeadActionsMobile.jsx), igual ao Desktop.
+//
+// Estado local do lead (leadLocal/setLeadLocal, sincronizado com
+// a prop via useEffect) — mesmo padrão que LeadDetailsModal.jsx
+// (Desktop) já usa — permite que as ações atualizem a tela sem
+// precisar fechar/reabrir.
 //
 // "Observações" do Desktop (LeadNotes.jsx) não é um campo do
 // lead — é sempre um evento tipo "OBSERVACAO" na própria
@@ -57,13 +64,24 @@ export default function LeadDetailsScreen({
   onVoltar,
 }) {
 
+  const [leadLocal, setLeadLocal] =
+    useState(lead);
+
+
+  useEffect(() => {
+
+    setLeadLocal(lead);
+
+  }, [lead]);
+
+
   const [whatsappAberto, setWhatsappAberto] =
     useState(false);
 
 
   const etapaAtual =
     Number(
-      lead?.etapa ?? 0
+      leadLocal?.etapa ?? 0
     );
 
 
@@ -86,7 +104,7 @@ export default function LeadDetailsScreen({
         </button>
 
         <h1>
-          {lead?.nome || "Lead"}
+          {leadLocal?.nome || "Lead"}
         </h1>
 
       </header>
@@ -96,7 +114,7 @@ export default function LeadDetailsScreen({
           AÇÃO — WHATSAPP
       ==================================================== */}
 
-      {lead?.telefone && (
+      {leadLocal?.telefone && (
 
         <button
           type="button"
@@ -126,17 +144,17 @@ export default function LeadDetailsScreen({
           <div className="mobileLeadDetalheCampo">
             <span>📞 Telefone</span>
             <strong>
-              {lead?.telefone ||
+              {leadLocal?.telefone ||
                 "Não informado"}
             </strong>
           </div>
 
-          {lead?.idade && (
+          {leadLocal?.idade && (
 
             <div className="mobileLeadDetalheCampo">
               <span>🎂 Idade</span>
               <strong>
-                {lead.idade} anos
+                {leadLocal.idade} anos
               </strong>
             </div>
 
@@ -145,7 +163,7 @@ export default function LeadDetailsScreen({
           <div className="mobileLeadDetalheCampo">
             <span>🎯 Objetivo</span>
             <strong>
-              {lead?.objetivo ||
+              {leadLocal?.objetivo ||
                 "Não definido"}
             </strong>
           </div>
@@ -153,7 +171,7 @@ export default function LeadDetailsScreen({
           <div className="mobileLeadDetalheCampo">
             <span>📍 Origem</span>
             <strong>
-              {lead?.origem ||
+              {leadLocal?.origem ||
                 "Não informada"}
             </strong>
           </div>
@@ -161,8 +179,8 @@ export default function LeadDetailsScreen({
           <div className="mobileLeadDetalheCampo">
             <span>👤 Responsável</span>
             <strong>
-              {lead?.responsavel ||
-                lead?.consultora ||
+              {leadLocal?.responsavel ||
+                leadLocal?.consultora ||
                 "Sem responsável"}
             </strong>
           </div>
@@ -170,7 +188,7 @@ export default function LeadDetailsScreen({
           <div className="mobileLeadDetalheCampo">
             <span>🕒 Criado em</span>
             <strong>
-              {formatarData(lead?.createdAt)}
+              {formatarData(leadLocal?.createdAt)}
             </strong>
           </div>
 
@@ -248,11 +266,21 @@ export default function LeadDetailsScreen({
 
 
       {/* ====================================================
+          AÇÕES (Assumir / Primeiro Contato / Resposta)
+      ==================================================== */}
+
+      <LeadActionsMobile
+        lead={leadLocal}
+        setLead={setLeadLocal}
+      />
+
+
+      {/* ====================================================
           TIMELINE (inclui observações, quando existirem)
       ==================================================== */}
 
       <LeadTimelineMobile
-        leadId={lead?.id}
+        leadId={leadLocal?.id}
       />
 
 
@@ -264,11 +292,11 @@ export default function LeadDetailsScreen({
           setWhatsappAberto(false)
         }
 
-        leadId={lead?.id}
+        leadId={leadLocal?.id}
 
-        nome={lead?.nome}
+        nome={leadLocal?.nome}
 
-        telefone={lead?.telefone}
+        telefone={leadLocal?.telefone}
 
       />
 

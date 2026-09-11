@@ -4,6 +4,8 @@ import "../styles/agenda.css";
 
 import useLeads from "../../hooks/useLeads.js";
 
+import useLeadsPontuais from "../../hooks/useLeadsPontuais.js";
+
 import {
   buscarVisitasPorPerfil,
 } from "../../Agenda/VisitaEngine.js";
@@ -29,14 +31,14 @@ import LeadDetailsScreen from "./LeadDetailsScreen.jsx";
 // Mostra só as visitas de HOJE, ordenadas por horário.
 //
 // Detalhes do lead: tocar no card abre LeadDetailsScreen
-// (Mobile, já existente, não alterado) — mas só quando o lead
-// já está no array local de useLeads() (mesmo hook do
-// Dashboard/Leads Mobile, não alterado). Se o lead não estiver
-// nesse escopo local (ex.: visita de outra recepcionista,
-// visível só por turno), o card fica informativo, sem toque —
-// reproduzir o fallback pontual que o Desktop já tem
-// (useLeadsPontuais) fica para uma fase futura, conforme
-// combinado.
+// (Mobile, já existente, não alterado). O lead vem primeiro do
+// array local de useLeads() e, quando não está nesse escopo
+// (ex.: visita de outra recepcionista, visível só por turno),
+// cai no fallback pontual useLeadsPontuais() (src/hooks/
+// useLeadsPontuais.js, NÃO alterado, só importado) — mesmo
+// padrão já usado por Dashboard.jsx (Desktop): calcula os
+// leadIds que faltam em `leads` a partir de toda a lista visível
+// e busca só esses, pontualmente.
 // ==========================================================
 
 function obterDataHoje() {
@@ -189,13 +191,34 @@ export default function AgendaScreen() {
       );
 
 
+  const leadIdsFaltantes =
+    visitasHoje
+      .filter(
+        (visita) =>
+          !leads.some(
+            (lead) =>
+              lead.id === visita.leadId
+          )
+      )
+      .map(
+        (visita) =>
+          visita.leadId
+      );
+
+  const leadsPontuais =
+    useLeadsPontuais(
+      leadIdsFaltantes
+    );
+
   function encontrarLead(visita) {
 
     return (
       leads.find(
         (lead) =>
           lead.id === visita.leadId
-      ) || null
+      ) ||
+      leadsPontuais[visita.leadId] ||
+      null
     );
 
   }

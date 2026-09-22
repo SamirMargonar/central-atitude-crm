@@ -125,6 +125,138 @@ export default function NotificationCenter({
     useRef(null);
 
 
+  // ==========================================================
+  // DESBLOQUEIO DO ÁUDIO NO PRIMEIRO GESTO REAL DO USUÁRIO
+  // ==========================================================
+  //
+  // Navegadores só permitem audio.play() programático depois de
+  // um gesto do usuário (clique/toque/tecla) NAQUELA página. Se a
+  // recepcionista já está logada e parada, sem ter clicado em
+  // nada ainda quando o primeiro alerta chega, o play() abaixo
+  // (bloco "ALERTA SONORO") pode ser bloqueado silenciosamente —
+  // só um console.warn, sem nenhum som.
+  //
+  // Aqui só "destrava" o MESMO elemento de áudio (play + pause
+  // imediato, silencioso) assim que o primeiro gesto acontece,
+  // sem inventar nenhum áudio novo nem mexer na lógica de detecção
+  // ou na lógica de tocar/parar já existente mais abaixo. Depois
+  // de destravado, os play() futuros do bloco "ALERTA SONORO" já
+  // têm a permissão do navegador, sem precisar de reload/login.
+  //
+  // Ouve só pointerdown/keydown (cobre clique, toque e teclado),
+  // anexados uma única vez (dependências vazias — o componente já
+  // fica montado a sessão inteira). Nunca fica tentando de novo
+  // sozinho: cada tentativa só acontece em resposta a um gesto
+  // real do usuário, nunca em loop/temporizador. Se o áudio já
+  // estiver tocando (um alerta real em andamento), não mexe em
+  // nada — só marca como destravado.
+  // ==========================================================
+
+  useEffect(() => {
+
+    let desbloqueado =
+      false;
+
+
+    function removerOuvintes() {
+
+      window.removeEventListener(
+        "pointerdown",
+        tentarDesbloquear
+      );
+
+      window.removeEventListener(
+        "keydown",
+        tentarDesbloquear
+      );
+
+    }
+
+
+    function tentarDesbloquear() {
+
+      if (
+        desbloqueado ||
+        !audio.current
+      ) {
+
+        return;
+
+      }
+
+
+      const elemento =
+        audio.current;
+
+
+      // Já tocando um alerta real — nada a destravar.
+      if (!elemento.paused) {
+
+        desbloqueado = true;
+
+        removerOuvintes();
+
+        return;
+
+      }
+
+
+      const promessa =
+        elemento.play();
+
+
+      if (
+        promessa &&
+        typeof promessa.then ===
+          "function"
+      ) {
+
+        promessa
+          .then(() => {
+
+            elemento.pause();
+
+            elemento.currentTime = 0;
+
+            desbloqueado = true;
+
+            removerOuvintes();
+
+          })
+          .catch(() => {
+
+            // Continua bloqueado — tenta de novo só no
+            // próximo gesto real do usuário.
+
+          });
+
+      } else {
+
+        desbloqueado = true;
+
+        removerOuvintes();
+
+      }
+
+    }
+
+
+    window.addEventListener(
+      "pointerdown",
+      tentarDesbloquear
+    );
+
+    window.addEventListener(
+      "keydown",
+      tentarDesbloquear
+    );
+
+
+    return removerOuvintes;
+
+  }, []);
+
+
   const {
     usuario,
     isAdmin,

@@ -60,6 +60,41 @@ export default function LeadActions({
 
 
   // ==========================================================
+  // LEAD EM REATIVAÇÃO — STATUS ESPECIAL
+  //
+  // Não é uma etapa (lead.etapa continua intocado) — só troca
+  // a ação principal normal da etapa por um aviso, já que o
+  // lead está fora do fluxo comercial ativo neste momento. A
+  // opção de reativar/enviar para Reativação fica em
+  // ReativarLeadAction.jsx (renderizado à parte, em
+  // LeadDetailsModal.jsx).
+  // ==========================================================
+
+  if (
+    lead?.status ===
+    "REATIVACAO"
+  ) {
+
+    return (
+
+      <div className="leadActions">
+
+        <button
+          type="button"
+          className="btnAcaoPrincipal"
+          disabled
+        >
+          🔄 Lead em Reativação — fora do fluxo comercial ativo
+        </button>
+
+      </div>
+
+    );
+
+  }
+
+
+  // ==========================================================
   // ETAPA ATUAL DO LEAD
   // ==========================================================
   //

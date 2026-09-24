@@ -24,6 +24,8 @@ const CORES_POR_TITULO = {
 
   "Renovação próxima": "verde",
 
+  "Reativação": "laranja",
+
 };
 
 

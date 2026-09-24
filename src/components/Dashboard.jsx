@@ -567,6 +567,19 @@ export default function Dashboard({
     filtrarLeadsSemResposta(leads);
 
 
+  // ----------------------------------------------------------
+  // REATIVAÇÃO — status especial (não é etapa), calculado
+  // direto sobre `leads` (mesmo array já escopado por
+  // useLeads(), sem consulta nova).
+  // ----------------------------------------------------------
+
+  const leadsEmReativacao =
+    leads.filter(
+      (lead) =>
+        lead.status === "REATIVACAO"
+    );
+
+
   const categoriasAtencao = [
 
     {
@@ -604,24 +617,29 @@ export default function Dashboard({
       icone: "📵",
 
       itens:
-        leadsSemResposta.map(
-          (lead) => ({
+        leadsSemResposta
+          .filter(
+            (lead) =>
+              lead.status !== "REATIVACAO"
+          )
+          .map(
+            (lead) => ({
 
-            id: lead.id,
+              id: lead.id,
 
-            leadId: lead.id,
+              leadId: lead.id,
 
-            nome:
-              lead.nome || "Lead",
+              nome:
+                lead.nome || "Lead",
 
-            telefone:
-              lead.telefone,
+              telefone:
+                lead.telefone,
 
-            subtitulo:
-              `${Number(lead.tentativasSemResposta || 0)} tentativa(s) sem resposta`,
+              subtitulo:
+                `${Number(lead.tentativasSemResposta || 0)} tentativa(s) sem resposta`,
 
-          })
-        ),
+            })
+          ),
 
     },
 
@@ -632,7 +650,51 @@ export default function Dashboard({
       icone: "🔴",
 
       itens:
-        naoComparecidosPendentes.map(
+        naoComparecidosPendentes
+          .filter(
+            (visita) => {
+
+              // Admin/coordenador continuam vendo todas as
+              // pendências — comportamento atual preservado,
+              // sem nenhuma mudança.
+              if (
+                isAdmin ||
+                isCoordenador
+              ) {
+
+                return true;
+
+              }
+
+              // Recepcionista: a pendência só é dela quando ela
+              // é a RESPONSÁVEL PELO LEAD (responsavelUid, mesmo
+              // campo que firestore.rules/souDonoDoLead e
+              // LeadDetailsModal.jsx já usam como fonte oficial
+              // de "dono do lead"). O turno continua decidindo
+              // a consulta/permissão de escrita da visita (não
+              // alterado aqui) — só não decide mais quem VÊ a
+              // pendência no Dashboard.
+              const leadLocalFiltro =
+                leads.find(
+                  (item) =>
+                    item.id === visita.leadId
+                );
+
+              const leadFiltro =
+                leadLocalFiltro ||
+                leadsPontuaisNaoCompareceram[
+                  visita.leadId
+                ] ||
+                null;
+
+              return (
+                leadFiltro?.responsavelUid ===
+                perfilUsuario?.id
+              );
+
+            }
+          )
+          .map(
           (visita) => {
 
             const leadLocal =
@@ -731,6 +793,35 @@ export default function Dashboard({
 
             subtitulo:
               `Vence em ${formatarData(lead.matricula?.dataVencimento)}`,
+
+          })
+        ),
+
+    },
+
+    {
+
+      titulo: "Reativação",
+
+      icone: "🔄",
+
+      itens:
+        leadsEmReativacao.map(
+          (lead) => ({
+
+            id: lead.id,
+
+            leadId: lead.id,
+
+            nome:
+              lead.nome || "Lead",
+
+            telefone:
+              lead.telefone,
+
+            subtitulo:
+              lead.motivoReativacao ||
+              "Sem motivo registrado",
 
           })
         ),

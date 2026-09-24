@@ -10,13 +10,24 @@ export default function LeadBoard({
 
   // ==========================================
   // SEPARA OS LEADS POR ETAPA
+  //
+  // Lead em Reativação (status:"REATIVACAO") sai de TODAS as
+  // colunas comerciais normais, mesmo mantendo `etapa` intocada
+  // por baixo — mesmo princípio já usado por "Sem Resposta"
+  // (leads.semResposta), só que aplicado a todas as colunas em
+  // vez de só "Primeiro Contato".
   // ==========================================
+
+  const emReativacao = (lead) =>
+    lead.status === "REATIVACAO";
+
 
   const recebidos = leads.filter((lead) => {
 
     return (
       (lead.etapa ?? ETAPAS.RECEBIDO) ===
-      ETAPAS.RECEBIDO
+      ETAPAS.RECEBIDO &&
+      !emReativacao(lead)
     );
 
   });
@@ -27,7 +38,8 @@ export default function LeadBoard({
     return (
       (lead.etapa ?? ETAPAS.RECEBIDO) ===
       ETAPAS.CONTATO &&
-      !lead.semResposta
+      !lead.semResposta &&
+      !emReativacao(lead)
     );
 
   });
@@ -35,7 +47,10 @@ export default function LeadBoard({
 
   const semResposta = leads.filter((lead) => {
 
-    return lead.semResposta === true;
+    return (
+      lead.semResposta === true &&
+      !emReativacao(lead)
+    );
 
   });
 
@@ -44,7 +59,8 @@ export default function LeadBoard({
 
     return (
       (lead.etapa ?? ETAPAS.RECEBIDO) ===
-      ETAPAS.RESPOSTA
+      ETAPAS.RESPOSTA &&
+      !emReativacao(lead)
     );
 
   });
@@ -54,7 +70,8 @@ export default function LeadBoard({
 
     return (
       (lead.etapa ?? ETAPAS.RECEBIDO) ===
-      ETAPAS.VISITA
+      ETAPAS.VISITA &&
+      !emReativacao(lead)
     );
 
   });
@@ -64,7 +81,8 @@ export default function LeadBoard({
 
     return (
       (lead.etapa ?? ETAPAS.RECEBIDO) ===
-      ETAPAS.NEGOCIACAO
+      ETAPAS.NEGOCIACAO &&
+      !emReativacao(lead)
     );
 
   });
@@ -74,18 +92,25 @@ export default function LeadBoard({
 
     return (
       (lead.etapa ?? ETAPAS.RECEBIDO) ===
-      ETAPAS.MATRICULA
+      ETAPAS.MATRICULA &&
+      !emReativacao(lead)
     );
 
   });
 
 
+  const reativacao = leads.filter(emReativacao);
+
+
   // ==========================================
-  // VERIFICA SE EXISTE COLUNA SEM RESPOSTA
+  // VERIFICA SE EXISTEM COLUNAS EXTRAS
   // ==========================================
 
   const temSemResposta =
     semResposta.length > 0;
+
+  const temReativacao =
+    reativacao.length > 0;
 
 
   // ==========================================
@@ -147,6 +172,11 @@ export default function LeadBoard({
   // RENDER
   // ==========================================
 
+  const totalColunas =
+    6 +
+    (temSemResposta ? 1 : 0) +
+    (temReativacao ? 1 : 0);
+
   return (
 
     <section
@@ -155,6 +185,10 @@ export default function LeadBoard({
           ? "leadBoardComSemResposta"
           : ""
       }`}
+      style={{
+        gridTemplateColumns:
+          `repeat(${totalColunas}, minmax(0, 1fr))`,
+      }}
     >
 
       <Coluna
@@ -208,6 +242,17 @@ export default function LeadBoard({
         icone="🎓"
         lista={matriculas}
       />
+
+
+      {temReativacao && (
+
+        <Coluna
+          titulo="Reativação"
+          icone="🔄"
+          lista={reativacao}
+        />
+
+      )}
 
     </section>
 

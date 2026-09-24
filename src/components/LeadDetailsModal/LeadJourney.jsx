@@ -365,6 +365,43 @@ export default function LeadJourney({
           }
         )}
 
+
+        {/* ==================================================
+            REATIVAÇÃO — indicação visual do status especial,
+            NUNCA uma etapa (JORNADA continua com só 6 itens,
+            core/LeadFlow.js não é alterado). Só aparece quando
+            o lead está em Reativação; não é clicável — a ação
+            de enviar/reverter Reativação fica em
+            ReativarLeadAction.jsx, não aqui.
+        ================================================== */}
+
+        {lead?.status ===
+          "REATIVACAO" && (
+
+          <div className="journeyItem">
+
+            <div className="journeyCircle journeyCircleReativacao">
+
+              🔄
+
+            </div>
+
+            <span>
+
+              Reativação
+
+            </span>
+
+            <small>
+
+              Status especial
+
+            </small>
+
+          </div>
+
+        )}
+
       </div>
 
 

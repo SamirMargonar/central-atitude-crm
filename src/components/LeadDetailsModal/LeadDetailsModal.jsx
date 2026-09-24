@@ -10,6 +10,7 @@ import LeadNotes from "./LeadNotes";
 import LeadTimeline from "./LeadTimeline";
 import LeadTransfer from "./LeadTransfer";
 import ExcluirLeadAction from "./actions/ExcluirLeadAction";
+import ReativarLeadAction from "./actions/ReativarLeadAction";
 
 import { useAuth } from "../../auth/AuthContext";
 
@@ -107,6 +108,15 @@ export default function LeadDetailsModal({
           setLead={setLeadLocal}
           podeAgir={podeAgir}
         />
+
+        {podeAgir && (
+
+          <ReativarLeadAction
+            lead={leadLocal}
+            setLead={setLeadLocal}
+          />
+
+        )}
 
         <LeadNotes
           lead={leadLocal}

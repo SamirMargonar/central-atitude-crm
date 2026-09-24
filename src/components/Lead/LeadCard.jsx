@@ -20,6 +20,17 @@ export default function LeadCard({
 
 
   // ==========================================
+  // LEAD EM REATIVAÇÃO — status especial, não
+  // uma etapa (lead.etapa continua preservada).
+  // Prioridade sobre "Sem Resposta" quando os
+  // dois coincidirem (caso raro).
+  // ==========================================
+
+  const emReativacao =
+    lead.status === "REATIVACAO";
+
+
+  // ==========================================
   // FORMATA PRÓXIMA TENTATIVA
   // ==========================================
 
@@ -103,6 +114,13 @@ export default function LeadCard({
     if (!lead.assumido) {
 
       return "Assumir Lead";
+
+    }
+
+
+    if (emReativacao) {
+
+      return "🔄 Em Reativação";
 
     }
 
@@ -203,10 +221,53 @@ export default function LeadCard({
 
 
       {/* =====================================
-          SEM RESPOSTA
+          REATIVAÇÃO
       ===================================== */}
 
-      {semResposta ? (
+      {emReativacao ? (
+
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "12px",
+            borderRadius: "10px",
+            background: "#fff8ed",
+            border: "1px solid #ffddaa",
+          }}
+        >
+
+          <strong
+            style={{
+              display: "block",
+              color: "#ff9500",
+              marginBottom: "6px",
+            }}
+          >
+
+            🔄 Em Reativação
+
+          </strong>
+
+
+          {lead.motivoReativacao && (
+
+            <span
+              style={{
+                display: "block",
+                fontSize: "13px",
+                color: "#555",
+              }}
+            >
+
+              {lead.motivoReativacao}
+
+            </span>
+
+          )}
+
+        </div>
+
+      ) : semResposta ? (
 
         <div
           style={{

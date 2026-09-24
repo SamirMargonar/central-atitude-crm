@@ -62,6 +62,7 @@ export default function Leads({
 
   const {
     isAdmin,
+    isCoordenador,
     perfilUsuario,
   } = useAuth();
 
@@ -163,6 +164,45 @@ export default function Leads({
   const leadsPontuaisNaoCompareceram =
     useLeadsPontuais(
       leadIdsFaltantesNaoCompareceram
+    );
+
+
+  // ==========================================================
+  // VISIBILIDADE POR RESPONSÁVEL — mesmo critério já usado em
+  // Dashboard.jsx: admin/coordenador vê tudo; recepcionista só
+  // vê a pendência quando é a RESPONSÁVEL PELO LEAD
+  // (lead.responsavelUid), não apenas por estar no turno.
+  // ==========================================================
+
+  const naoCompareceramVisivel =
+    naoCompareceram.filter(
+      (visita) => {
+
+        if (
+          isAdmin ||
+          isCoordenador
+        ) {
+
+          return true;
+
+        }
+
+        const leadFiltro =
+          leads.find(
+            (item) =>
+              item.id === visita.leadId
+          ) ||
+          leadsPontuaisNaoCompareceram[
+            visita.leadId
+          ] ||
+          null;
+
+        return (
+          leadFiltro?.responsavelUid ===
+          perfilUsuario?.id
+        );
+
+      }
     );
 
 
@@ -836,7 +876,7 @@ export default function Leads({
             NÃO COMPARECERAM
         ================================================== */}
 
-        {naoCompareceram.length > 0 && (
+        {naoCompareceramVisivel.length > 0 && (
 
           <section className="leadsAlertaNaoCompareceram">
 
@@ -856,14 +896,14 @@ export default function Leads({
               </div>
 
               <strong>
-                {naoCompareceram.length}
+                {naoCompareceramVisivel.length}
               </strong>
 
             </div>
 
             <div className="leadsAlertaLista">
 
-              {naoCompareceram.map((visita) => {
+              {naoCompareceramVisivel.map((visita) => {
 
                 const leadLocal =
                   leads.find(

@@ -116,12 +116,21 @@ export function AuthProvider({
 
             if (resultado.exists()) {
 
+              // id e uid vêm DEPOIS dos dados do documento para que
+              // campos "id"/"uid" gravados dentro de usuarios/{uid}
+              // (que podem estar errados ou ausentes) nunca
+              // sobrescrevam a identidade real: id = ID do documento
+              // e uid = UID do Firebase Auth (que é o mesmo valor,
+              // já que o documento é buscado por usuarioAtual.uid).
               setPerfilUsuario({
+
+                ...resultado.data(),
 
                 id:
                   resultado.id,
 
-                ...resultado.data(),
+                uid:
+                  usuarioAtual.uid,
 
               });
 

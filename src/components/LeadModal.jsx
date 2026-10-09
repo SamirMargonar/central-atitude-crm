@@ -5,6 +5,7 @@ import {
 import {
   collection,
   addDoc,
+  getDocs,
   serverTimestamp,
 } from "firebase/firestore";
 
@@ -16,12 +17,88 @@ import {
   useAuth,
 } from "../auth/AuthContext";
 
+import {
+  registrarEvento,
+} from "../core/EventEngine";
+
+import LeadDetailsModal from "./LeadDetailsModal/LeadDetailsModal";
+
 import "../styles/leadModal.css";
+
+
+// ==========================================================
+// TELEFONE — CHAVE DE COMPARAÇÃO (só usada no modo gerencial)
+//
+// Ignora formatação (espaços, hífen, parênteses, "+"), zeros à
+// esquerda e o código do país (55). Com DDD, compara DDD + os
+// 8 últimos dígitos, para que "41 99618-3695" e "41 9618-3695"
+// (sem o 9 extra) sejam reconhecidos como o mesmo número.
+// ==========================================================
+
+function chaveTelefone(valor) {
+
+  let digitos =
+    String(valor || "")
+      .replace(/\D/g, "")
+      .replace(/^0+/, "");
+
+  if (
+    digitos.startsWith("55") &&
+    digitos.length >= 12
+  ) {
+
+    digitos =
+      digitos.slice(2);
+
+  }
+
+  return digitos.length >= 10
+    ? digitos.slice(0, 2) +
+      digitos.slice(-8)
+    : digitos;
+
+}
+
+
+async function buscarLeadsComMesmoTelefone(
+  telefone
+) {
+
+  const chave =
+    chaveTelefone(telefone);
+
+  if (!chave) {
+    return [];
+  }
+
+  const snapshot =
+    await getDocs(
+      collection(
+        db,
+        "leads"
+      )
+    );
+
+  return snapshot.docs
+    .map((documento) => ({
+      id:
+        documento.id,
+      ...documento.data(),
+    }))
+    .filter(
+      (lead) =>
+        chaveTelefone(
+          lead.telefone
+        ) === chave
+    );
+
+}
 
 
 export default function LeadModal({
   aberto,
   fechar,
+  modoGerencial = false,
 }) {
 
   // ==========================================================
@@ -97,10 +174,50 @@ export default function LeadModal({
 
 
   // ==========================================================
+  // CADASTRO GERENCIAL — só usado quando modoGerencial === true
+  // ==========================================================
+
+  const [
+    duplicados,
+    setDuplicados,
+  ] = useState(null);
+
+  const [
+    leadConsultado,
+    setLeadConsultado,
+  ] = useState(null);
+
+
+  // UID REAL da sessão autenticada (Firebase Auth) — não o campo
+  // `uid` do documento de usuário, que pode estar divergente.
+  const uidReal =
+    usuario?.uid ||
+    "";
+
+  const perfilPodeCadastroGerencial =
+    perfil === "admin" ||
+    perfil === "coordenador";
+
+
+  // ==========================================================
   // SE MODAL FECHADO
   // ==========================================================
 
   if (!aberto) {
+
+    return null;
+
+  }
+
+
+  // ==========================================================
+  // MODO GERENCIAL BLOQUEADO PARA OUTROS PERFIS
+  // ==========================================================
+
+  if (
+    modoGerencial &&
+    !perfilPodeCadastroGerencial
+  ) {
 
     return null;
 
@@ -122,6 +239,238 @@ export default function LeadModal({
     setObjetivo("");
 
     setOrigem("");
+
+  }
+
+
+  // ==========================================================
+  // SALVAR LEAD GERENCIAL
+  //
+  // O lead nasce JÁ ASSUMIDO e sob responsabilidade de quem
+  // cadastrou (admin/coordenador), então não atende às condições
+  // da fila compartilhada (responsavelUid vazio + etapa 0 + não
+  // assumido) nem às do alerta de novo lead (etapa 0 + não
+  // assumido). `cadastroGerencial: true` permite identificá-lo
+  // depois. A validação dos campos já foi feita por salvarLead().
+  // ==========================================================
+
+  async function salvarLeadGerencial(
+    ignorarDuplicidade
+  ) {
+
+    if (
+      !perfilPodeCadastroGerencial ||
+      !uidReal
+    ) {
+
+      alert(
+        "Somente administrador ou coordenador, com sessão ativa, pode usar o Cadastro Gerencial."
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      setSalvando(true);
+
+
+      // ----------------------------------------------------
+      // TELEFONE JÁ CADASTRADO? (só avisa — nunca altera,
+      // mescla ou exclui o lead existente)
+      // ----------------------------------------------------
+
+      if (!ignorarDuplicidade) {
+
+        let encontrados = [];
+
+        try {
+
+          encontrados =
+            await buscarLeadsComMesmoTelefone(
+              telefone
+            );
+
+        } catch (erroBusca) {
+
+          console.error(
+            "Erro ao verificar telefone duplicado:",
+            erroBusca
+          );
+
+          const continuar =
+            window.confirm(
+              "Não foi possível verificar se este telefone já está cadastrado. Deseja cadastrar mesmo assim?"
+            );
+
+          if (!continuar) {
+            return;
+          }
+
+        }
+
+        if (encontrados.length > 0) {
+
+          setDuplicados({
+            telefone:
+              telefone.trim(),
+            lista:
+              encontrados,
+          });
+
+          return;
+
+        }
+
+      }
+
+
+      const duplicidadeIgnorada =
+        ignorarDuplicidade &&
+        !!duplicados?.lista?.length;
+
+
+      // ----------------------------------------------------
+      // CRIA O LEAD
+      // ----------------------------------------------------
+
+      const leadRef =
+        await addDoc(
+          collection(
+            db,
+            "leads"
+          ),
+          {
+
+            nome:
+              nome.trim(),
+
+            telefone:
+              telefone.trim(),
+
+            idade:
+              Number(idade),
+
+            objetivo,
+
+            origem,
+
+            etapa:
+              0,
+
+            status:
+              "Novo Lead",
+
+            cadastradoPor:
+              nomeUsuario,
+
+            cadastradoPorUid:
+              uidReal,
+
+            cadastradoPorPerfil:
+              perfil,
+
+            assumido:
+              true,
+
+            responsavel:
+              nomeUsuario,
+
+            consultora:
+              nomeUsuario,
+
+            responsavelUid:
+              uidReal,
+
+            assumidoEm:
+              serverTimestamp(),
+
+            cadastroGerencial:
+              true,
+
+            createdAt:
+              serverTimestamp(),
+
+          }
+        );
+
+
+      // ----------------------------------------------------
+      // TIMELINE — evento novo (append-only), pelo padrão
+      // existente de registrarEvento()
+      // ----------------------------------------------------
+
+      let eventoRegistrado = true;
+
+      try {
+
+        await registrarEvento({
+
+          leadId:
+            leadRef.id,
+
+          tipo:
+            "CADASTRO_GERENCIAL",
+
+          usuario:
+            nomeUsuario,
+
+          descricao:
+            `Lead cadastrado pela gestão (${perfil}) e mantido sob responsabilidade de ${nomeUsuario}. Não entrou na fila das recepcionistas.`,
+
+          dados: {
+            cadastroGerencial:
+              true,
+            perfilCadastro:
+              perfil,
+            duplicidadeIgnorada,
+          },
+
+        });
+
+      } catch (erroEvento) {
+
+        eventoRegistrado = false;
+
+        console.error(
+          "Lead gerencial criado, mas o evento da timeline falhou:",
+          erroEvento
+        );
+
+      }
+
+
+      alert(
+        eventoRegistrado
+          ? "Lead cadastrado e mantido sob sua responsabilidade. Ele não entra na fila das recepcionistas."
+          : "Lead cadastrado e mantido sob sua responsabilidade, mas o registro na timeline falhou. Avise o suporte."
+      );
+
+
+      limparFormulario();
+
+      setDuplicados(null);
+
+      fechar();
+
+    } catch (erro) {
+
+      console.error(
+        "Erro ao cadastrar Lead gerencial:",
+        erro
+      );
+
+      alert(
+        "Não foi possível cadastrar o Lead."
+      );
+
+    } finally {
+
+      setSalvando(false);
+
+    }
 
   }
 
@@ -174,6 +523,20 @@ export default function LeadModal({
       alert(
         "Selecione a origem do Lead."
       );
+
+      return;
+
+    }
+
+
+    // --------------------------------------------------------
+    // CADASTRO GERENCIAL — fluxo separado; o cadastro normal
+    // (abaixo) não é alterado.
+    // --------------------------------------------------------
+
+    if (modoGerencial) {
+
+      await salvarLeadGerencial(false);
 
       return;
 
@@ -387,11 +750,15 @@ export default function LeadModal({
           <div>
 
             <h2>
-              👤 Novo Lead
+              {modoGerencial
+                ? "🗂️ Cadastro Gerencial de Leads"
+                : "👤 Novo Lead"}
             </h2>
 
             <p>
-              Cadastre um novo cliente.
+              {modoGerencial
+                ? "Cadastre um contato que ficará sob responsabilidade da gestão."
+                : "Cadastre um novo cliente."}
             </p>
 
           </div>
@@ -621,7 +988,36 @@ export default function LeadModal({
               INFORMAÇÃO DE RESPONSABILIDADE
           ================================================= */}
 
-          {perfil === "recepcionista" ? (
+          {modoGerencial ? (
+
+            <div
+              style={{
+                padding:
+                  "12px 14px",
+                borderRadius:
+                  "10px",
+                background:
+                  "#f5f3ff",
+                border:
+                  "1px solid #ddd6fe",
+                color:
+                  "#5b21b6",
+                fontSize:
+                  "13px",
+                fontWeight:
+                  "600",
+              }}
+            >
+
+              🗂️ Este Lead ficará sob a sua
+              responsabilidade e não entrará na
+              fila das recepcionistas. Depois ele
+              poderá ser encaminhado a uma
+              recepcionista pela transferência.
+
+            </div>
+
+          ) : perfil === "recepcionista" ? (
 
             <div
               style={{
@@ -690,6 +1086,106 @@ export default function LeadModal({
 
 
           {/* =================================================
+              POSSÍVEL TELEFONE DUPLICADO (modo gerencial)
+              Só avisa. Nada é excluído, mesclado ou alterado.
+          ================================================= */}
+
+          {modoGerencial &&
+            duplicados?.telefone === telefone.trim() &&
+            duplicados.lista.length > 0 && (
+
+            <div
+              style={{
+                padding:
+                  "12px 14px",
+                borderRadius:
+                  "10px",
+                background:
+                  "#fffbeb",
+                border:
+                  "1px solid #fde68a",
+                color:
+                  "#92400e",
+                fontSize:
+                  "13px",
+                fontWeight:
+                  "600",
+                display:
+                  "flex",
+                flexDirection:
+                  "column",
+                gap:
+                  "8px",
+              }}
+            >
+
+              <span>
+                ⚠️ Este telefone já está cadastrado.
+                Consulte o cadastro existente antes de
+                continuar:
+              </span>
+
+              {duplicados.lista.map(
+                (existente) => (
+
+                  <div
+                    key={existente.id}
+                    style={{
+                      display:
+                        "flex",
+                      justifyContent:
+                        "space-between",
+                      alignItems:
+                        "center",
+                      gap:
+                        "10px",
+                    }}
+                  >
+
+                    <span>
+                      {existente.nome || "Sem nome"}
+                      {" — "}
+                      {existente.responsavel ||
+                        existente.consultora ||
+                        "Sem responsável"}
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setLeadConsultado(
+                          existente
+                        )
+                      }
+                    >
+                      Consultar cadastro
+                    </button>
+
+                  </div>
+
+                )
+              )}
+
+              <div>
+
+                <button
+                  type="button"
+                  disabled={salvando}
+                  onClick={() =>
+                    salvarLeadGerencial(true)
+                  }
+                >
+                  Cadastrar mesmo assim
+                </button>
+
+              </div>
+
+            </div>
+
+          )}
+
+
+          {/* =================================================
               BOTÕES
           ================================================= */}
 
@@ -720,7 +1216,9 @@ export default function LeadModal({
 
               {salvando
                 ? "Salvando..."
-                : "Cadastrar Lead"}
+                : modoGerencial
+                  ? "Cadastrar Lead Gerencial"
+                  : "Cadastrar Lead"}
 
             </button>
 
@@ -729,6 +1227,23 @@ export default function LeadModal({
         </div>
 
       </div>
+
+
+      {/* ===================================================
+          CONSULTA DO CADASTRO EXISTENTE (modo gerencial)
+          — mesmo modal de detalhes já usado em "Consultar Lead"
+      =================================================== */}
+
+      {modoGerencial && leadConsultado && (
+
+        <LeadDetailsModal
+          lead={leadConsultado}
+          onClose={() =>
+            setLeadConsultado(null)
+          }
+        />
+
+      )}
 
     </div>
 

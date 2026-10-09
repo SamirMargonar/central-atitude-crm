@@ -14,7 +14,13 @@ import {
   useAuth,
 } from "../auth/AuthContext";
 
+import {
+  createPortal,
+} from "react-dom";
+
 import ConsultaLeadModal from "./ConsultaLeadModal";
+
+import LeadModal from "./LeadModal";
 
 import "../styles/sidebar.css";
 
@@ -26,10 +32,26 @@ export default function Sidebar({
 
   const {
     perfilUsuario,
+    isAdmin,
     isRecepcionista,
     isCoordenador,
     permissoes,
   } = useAuth();
+
+
+  // ==========================================================
+  // CADASTRO GERENCIAL DE LEADS (somente administrador e
+  // coordenador) — reaproveita LeadModal.jsx em modoGerencial.
+  // ==========================================================
+
+  const podeCadastroGerencial =
+    isAdmin ||
+    isCoordenador;
+
+  const [
+    cadastroGerencialAberto,
+    setCadastroGerencialAberto,
+  ] = useState(false);
 
 
   // ==========================================================
@@ -328,6 +350,30 @@ export default function Sidebar({
 
         )}
 
+
+        {/* ==================================================
+            CADASTRO GERENCIAL DE LEADS
+            SOMENTE ADMINISTRADOR e COORDENADOR
+        ================================================== */}
+
+        {podeCadastroGerencial && (
+
+          <button
+
+            type="button"
+
+            onClick={() =>
+              setCadastroGerencialAberto(true)
+            }
+
+          >
+
+            🗂️ Cadastro Gerencial de Leads
+
+          </button>
+
+        )}
+
       </nav>
 
 
@@ -357,6 +403,30 @@ export default function Sidebar({
         }
 
       />
+
+
+      {/* O modal é renderizado direto no <body> (portal) para
+          nunca ficar preso ao contexto de empilhamento da
+          Sidebar (position: sticky). */}
+
+      {podeCadastroGerencial &&
+        createPortal(
+
+          <LeadModal
+
+            aberto={cadastroGerencialAberto}
+
+            fechar={() =>
+              setCadastroGerencialAberto(false)
+            }
+
+            modoGerencial
+
+          />,
+
+          document.body
+
+        )}
 
 
     </aside>

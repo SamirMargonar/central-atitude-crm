@@ -27,14 +27,18 @@ export default function Sidebar({
   const {
     perfilUsuario,
     isRecepcionista,
+    isCoordenador,
     permissoes,
   } = useAuth();
 
 
   // ==========================================================
   // CONSULTAR LEAD (recepcionista consultando lead de outra
-  // recepcionista) — visualização apenas; ver
-  // ConsultaLeadModal.jsx / useConsultaLeads.js.
+  // recepcionista; coordenador localizando qualquer lead,
+  // em qualquer etapa) — ver ConsultaLeadModal.jsx /
+  // useConsultaLeads.js. O que cada perfil pode FAZER no lead
+  // aberto continua sendo decidido por LeadDetailsModal.jsx
+  // e pelas Rules.
   // ==========================================================
 
   const [consultaAberta, setConsultaAberta] =
@@ -302,11 +306,11 @@ export default function Sidebar({
 
         {/* ==================================================
             CONSULTAR LEAD
-            SOMENTE RECEPCIONISTA (admin/coordenador já veem
-            todos os leads normalmente, sem precisar consultar)
+            RECEPCIONISTA e COORDENADOR (admin continua sem o
+            botão, como antes)
         ================================================== */}
 
-        {isRecepcionista && (
+        {(isRecepcionista || isCoordenador) && (
 
           <button
 

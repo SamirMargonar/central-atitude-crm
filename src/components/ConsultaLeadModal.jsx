@@ -75,9 +75,10 @@ export default function ConsultaLeadModal({
       >
 
         <p>
-          Busque por nome ou telefone para consultar um lead —
-          inclusive de outra recepcionista. A consulta é
-          somente leitura.
+          Busque por nome ou telefone para localizar um lead em
+          qualquer etapa — inclusive de outra recepcionista.
+          Leads de outro responsável abrem somente para
+          consulta para quem não tem permissão de edição.
         </p>
 
         <div className="consultaLeadBusca">

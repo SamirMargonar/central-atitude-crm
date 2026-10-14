@@ -14,12 +14,15 @@ import ReativarLeadAction from "./actions/ReativarLeadAction";
 
 import { useAuth } from "../../auth/AuthContext";
 
+import { podeTransferirEmMassa } from "../../config/transferenciaEmMassa";
+
 export default function LeadDetailsModal({
   lead,
   onClose,
 }) {
 
   const {
+    usuario,
     perfilUsuario,
     isAdmin,
     isCoordenador,
@@ -66,6 +69,18 @@ export default function LeadDetailsModal({
     isAdmin ||
     isCoordenador ||
     souDonoDoLead;
+
+
+  // Trocar o responsável (transferência individual ou em massa) e
+  // EXCLUIR lead são restritos a duas identidades fixas — aplicado
+  // pelas Rules (excluir era o contorno "apagar e recriar"); aqui só
+  // evitamos mostrar um botão que seria negado.
+  const podeTrocarResponsavel =
+    permissoes.transferirLead &&
+    podeTransferirEmMassa(
+      usuario?.uid,
+      perfilUsuario?.perfil
+    );
 
 
   return (
@@ -128,7 +143,7 @@ export default function LeadDetailsModal({
           lead={leadLocal}
         />
 
-        {permissoes.transferirLead && podeAgir && (
+        {podeTrocarResponsavel && podeAgir && (
 
           <LeadTransfer
             lead={leadLocal}
@@ -136,7 +151,7 @@ export default function LeadDetailsModal({
 
         )}
 
-        {podeAgir && (
+        {podeAgir && podeTrocarResponsavel && (
 
           <ExcluirLeadAction
             lead={leadLocal}

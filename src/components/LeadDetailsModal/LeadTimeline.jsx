@@ -216,6 +216,11 @@ export default function LeadTimeline({ lead }) {
         return "❌ Não Renovação";
 
 
+      case "TRANSFERENCIA":
+
+        return "🔄 Transferência";
+
+
       default:
 
         return "📌 Evento";

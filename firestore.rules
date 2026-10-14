@@ -52,6 +52,26 @@ rules_version = '2';
 //      criação de eventos) não chamam possoVerLead() e continuam
 //      exigindo dono/admin/coordenador, sem nenhuma alteração.
 //
+//   9. Transferência em massa de leads / troca de dono — SOMENTE duas
+//      identidades fixas (UIDs reais do Firebase Authentication,
+//      conferidos em produção em 2026-10-10) podem trocar o dono de um
+//      lead que já tem dono, individualmente ou em massa. Destino normal
+//      = recepcionista ATIVA. Reversão de uma operação real é a única
+//      exceção que aceita destino inativo, e só devolvendo ao dono
+//      anterior registrado em item de auditoria. Coleção
+//      transferenciasEmMassa (+ itens) = trilha de auditoria; uma
+//      reversão por operação (ID 'rev-<opId>'). Excluir lead e criar
+//      lead atribuído a OUTRA pessoa também são restritos aos
+//      autorizados (fecha o contorno "apagar e recriar").
+//
+//  10. Assumir lead da fila só em nome de si mesmo: UID real e o nome do
+//      próprio cadastro (antes só o UID era conferido — dava para gravar
+//      o nome de outra pessoa). Auditoria da transferência em massa com
+//      campos descritivos conferidos (anterior, nomes, evento) e contadores
+//      declarados coerentes; o que as Rules NÃO conseguem conferir (lista
+//      de visitas do item, contagem real de itens) está documentado junto
+//      às funções e NÃO é usado para decidir nada.
+//
 // O código React correspondente (responsavelUid em Leads.jsx:
 // assumirLead(), e ultimaVisitaId em Agenda/DetalhesVisita.jsx)
 // já foi implementado e commitado separadamente.
@@ -98,8 +118,12 @@ service cloud.firestore {
       return estaLogado() && perfilDoChamador() == 'coordenador';
     }
 
+    // Uma única leitura de usuarios/{uid} (antes eram até duas: ehAdmin()
+    // e ehCoordenador() liam o mesmo documento). Mesma semântica; reduz
+    // as chamadas get() contadas contra os limites de 10 por operação e
+    // 20 por transação/lote.
     function ehAdminOuCoordenador() {
-      return ehAdmin() || ehCoordenador();
+      return estaLogado() && perfilDoChamador() in ['admin', 'coordenador'];
     }
 
     function ehRecepcionista() {
@@ -189,15 +213,169 @@ service cloud.firestore {
           || valorOuVazio(antes, 'responsavel')      != valorOuVazio(depois, 'responsavel');
     }
 
+    // ASSUMIR lead da fila (desktop: Leads.jsx; mobile: assumirLeadMobile.js).
+    // O lead precisa estar sem responsável e quem assume só pode gravar a
+    // PRÓPRIA identidade: UID real do Authentication (request.auth.uid) e o
+    // nome do próprio cadastro (usuarios/{uid}.nome) em 'responsavel' e
+    // 'consultora'. Antes só o UID era conferido, então dava para assumir
+    // um lead gravando o NOME de outra pessoa (que passava a ser dona por
+    // nome — ver souDonoDoLead). Os campos de auditoria da assunção
+    // (assumidoPor / assumidoPorUid), quando enviados, também precisam ser
+    // os do próprio chamador.
     function ehAssumirValido(antes, depois) {
       return leadSemResponsavel(antes)
-          && valorOuVazio(depois, 'responsavelUid') == request.auth.uid;
+          && valorOuVazio(depois, 'responsavelUid') == request.auth.uid
+          && valorOuVazio(depois, 'responsavel') == nomeDoChamador()
+          && valorOuVazio(depois, 'consultora') == nomeDoChamador()
+          && assumidoPorConfere(depois);
     }
 
-    function podeEditarLead(antes, depois) {
-      return ehAdminOuCoordenador()
+    function assumidoPorConfere(depois) {
+      return (!('assumidoPorUid' in depois) || depois.assumidoPorUid == request.auth.uid)
+          && (!('assumidoPor' in depois) || depois.assumidoPor == nomeDoChamador());
+    }
+
+    // ----------------------------------------------------------
+    // TROCA DE DONO DE LEAD (transferência individual ou em massa)
+    //
+    // Só as duas identidades abaixo — comparadas pelo UID REAL do
+    // Firebase Authentication (request.auth.uid), nunca por nome nem
+    // por qualquer campo gravado em usuarios/{uid}, que um
+    // coordenador consegue editar. Para mudar a lista é preciso
+    // publicar novas Rules (nenhum usuário consegue se autorizar).
+    //   jDYvHOHYROec7Gr8DAFASz0ZfUy2 — Samir (administrador)
+    //   jLZDUG9DtlZtRhBR04pxyMUlWxj2 — Naykison (coordenador)
+    // ----------------------------------------------------------
+
+    function ehAutorizadoATransferirCarteira() {
+      return estaLogado()
+          && request.auth.uid in ['jDYvHOHYROec7Gr8DAFASz0ZfUy2', 'jLZDUG9DtlZtRhBR04pxyMUlWxj2']
+          && ehAdminOuCoordenador();
+    }
+
+    // Destino precisa ser recepcionista e os 3 campos de dono do lead
+    // precisam coincidir com o cadastro dela.
+    function destinoRecepcionistaConfere(depois) {
+      let alvo = get(/databases/$(database)/documents/usuarios/$(depois.responsavelUid)).data;
+      return alvo.perfil == 'recepcionista'
+          && depois.responsavel == alvo.nome
+          && depois.consultora == alvo.nome;
+    }
+
+    // Transferência NORMAL: destino precisa estar ATIVO. (Uma única
+    // leitura do cadastro do destino.)
+    function transferenciaNormalValida(depois) {
+      let alvo = get(/databases/$(database)/documents/usuarios/$(depois.responsavelUid)).data;
+      return alvo.perfil == 'recepcionista'
+          && alvo.get('ativo', true) != false
+          && depois.responsavel == alvo.nome
+          && depois.consultora == alvo.nome;
+    }
+
+    // REVERSÃO: única exceção que aceita destino inativo. Só vale se, na
+    // MESMA transação, existir o item de auditoria da reversão e se o
+    // item da transferência original provar que este lead saiu de
+    // depois.responsavelUid e está agora com antes.responsavelUid.
+    //
+    // PROTEÇÃO CONTRA REVERTER LEAD TRABALHADO (M2), com os dados que as
+    // Rules enxergam, sem documentos novos para o update do lead (o item
+    // original e a operação já eram lidos; o item de uma reversão lê o
+    // item original — o mesmo documento — uma vez):
+    //   - o lead continua marcado pela transferência original
+    //     (ultimaTransferenciaEmMassaId == op.reverteOpId);
+    //   - o lead NÃO foi gravado desde a transferência: o atualizadoEm
+    //     dele é o instante do item original (a transferência grava os
+    //     dois com request.time — ver itemCorrespondeATransferencia —, e
+    //     atualizarLead() regrava atualizadoEm em toda edição do app);
+    //   - a etapa é a mesma do item original (etapa gravada no item é
+    //     conferida contra o lead na criação do item);
+    //   - a reversão só muda campos de dono (+ visita.consultor).
+    //
+    // O QUE AS RULES NÃO CONSEGUEM COMPROVAR (continua só no serviço):
+    //   - eventos da timeline sem gravação no lead (observações,
+    //     WhatsApp): não há como consultá-los aqui;
+    //   - gravações no lead que não passem por atualizarLead() (hoje só o
+    //     "assumir" da fila, que muda o dono e portanto já impede a
+    //     reversão);
+    //   - a correção da restauração das VISITAS (consultoraId de cada
+    //     visita): as Rules só garantem que quem muda é autorizado;
+    //   - a veracidade dos campos de auditoria que o cliente grava no
+    //     item (anterior, visitasAtualizadas).
+    function reversaoDeLeadValida(leadId, antes, depois) {
+      let opId = depois.ultimaTransferenciaEmMassaId;
+      let op = getAfter(/databases/$(database)/documents/transferenciasEmMassa/$(opId)).data;
+      let itemRev = /databases/$(database)/documents/transferenciasEmMassa/$(opId)/itens/$(leadId);
+      let itemOriginal = /databases/$(database)/documents/transferenciasEmMassa/$(op.reverteOpId)/itens/$(leadId);
+      return op.tipo == 'reversao'
+          && op.status == 'em_andamento'
+          && op.origemUid == antes.responsavelUid
+          && op.destinoUid == depois.responsavelUid
+          && existsAfter(itemRev)
+          && exists(itemOriginal)
+          && itemOriginalConfere(itemOriginal, op, antes, depois)
+          && soCamposDeDonoMudaram(antes, depois)
+          && destinoRecepcionistaConfere(depois);
+    }
+
+    // Só é chamada depois de exists(itemOriginal): uma única leitura do
+    // item da transferência original.
+    function itemOriginalConfere(itemOriginal, op, antes, depois) {
+      let original = get(itemOriginal).data;
+      return original.paraUid == antes.responsavelUid
+          && original.deUid == depois.responsavelUid
+          && ('ultimaTransferenciaEmMassaId' in antes)
+          && antes.ultimaTransferenciaEmMassaId == op.reverteOpId
+          && ('atualizadoEm' in antes)
+          && antes.atualizadoEm == original.criadoEm
+          && etapaDoLead(antes) == original.etapa;
+    }
+
+    function etapaDoLead(dados) {
+      return 'etapa' in dados ? dados.etapa : null;
+    }
+
+    // A reversão não pode ser usada para alterar nada além do dono (e
+    // do nome do consultor dentro do espelho da visita).
+    function soCamposDeDonoMudaram(antes, depois) {
+      let alterados = depois.diff(antes).affectedKeys();
+      return alterados.hasOnly(['responsavelUid', 'responsavel', 'consultora',
+                                'ultimaTransferenciaEmMassaId', 'atualizadoEm', 'visita'])
+          && (!('visita' in alterados)
+              || depois.visita.diff(antes.visita).affectedKeys().hasOnly(['consultor']));
+    }
+
+    // Os dois autorizados são avaliados primeiro (para quem não está na
+    // lista, ehAutorizadoATransferirCarteira() não lê nenhum documento:
+    // o UID é comparado antes do perfil).
+    function podeEditarLead(leadId, antes, depois) {
+      return (ehAutorizadoATransferirCarteira()
+              && (!propriedadeMudou(antes, depois)
+                  || transferenciaNormalValida(depois)
+                  || reversaoDeLeadValida(leadId, antes, depois)
+                  || ehAssumirValido(antes, depois)))
+          || (ehAdminOuCoordenador()
+              && (!propriedadeMudou(antes, depois)
+                  || ehAssumirValido(antes, depois)))
           || (souDonoDoLead(antes) && !propriedadeMudou(antes, depois))
           || (ehRecepcionista() && ehAssumirValido(antes, depois));
+    }
+
+    // ----------------------------------------------------------
+    // PROPRIEDADE INICIAL DE UM LEAD NOVO (create)
+    //
+    // Fecha o contorno "apagar e recriar": quem não é autorizado só
+    // cria lead SEM responsável (fila) ou em nome de si mesmo
+    // (UID e nomes = o próprio chamador). Cobre os fluxos reais:
+    // cadastro normal (admin/coordenador → fila; recepcionista → ela
+    // mesma) e Cadastro Gerencial (o próprio gestor). Atribuir um lead
+    // novo a OUTRA pessoa é troca de carteira: só os autorizados.
+    // ----------------------------------------------------------
+
+    function propriedadeInicialValida(dados) {
+      return leadSemResponsavel(dados)
+          || (valorOuVazio(dados, 'responsavelUid') == request.auth.uid
+              && valorOuVazio(dados, 'responsavel') in ['', nomeDoChamador()]
+              && valorOuVazio(dados, 'consultora') in ['', nomeDoChamador()]);
     }
 
     // ----------------------------------------------------------
@@ -284,18 +462,23 @@ service cloud.firestore {
       allow list: if possoVerLead(resource.data);
 
       allow create: if estaLogado()
-                    && perfilDoChamador() in ['admin', 'coordenador', 'recepcionista'];
+                    && perfilDoChamador() in ['admin', 'coordenador', 'recepcionista']
+                    && (ehAutorizadoATransferirCarteira()
+                        || propriedadeInicialValida(request.resource.data));
 
-      allow update: if podeEditarLead(resource.data, request.resource.data)
+      allow update: if podeEditarLead(leadId, resource.data, request.resource.data)
                     || podeAtualizarLeadViaComparecimento(leadId, resource.data, request.resource.data)
                     || podeReagendarViaTurno(leadId, resource.data, request.resource.data);
 
-      // Exclusão permanente — restrita a admin/coordenador. A
-      // regra de negócio "não excluir lead com visita vinculada"
-      // é verificada no cliente (EventEngine.js, ANTES de chamar
-      // deleteDoc) — aqui só decidimos QUEM pode excluir, nunca
+      // Exclusão permanente — restrita às duas identidades autorizadas
+      // (mesma política da troca de dono). Antes bastava ser
+      // admin/coordenador, o que permitia APAGAR um lead e RECRIÁ-LO
+      // com outro responsável, contornando a restrição de
+      // transferência. A regra de negócio "não excluir lead com visita
+      // vinculada" é verificada no cliente (EventEngine.js, ANTES de
+      // chamar deleteDoc) — aqui só decidimos QUEM pode excluir, nunca
       // QUANDO é seguro.
-      allow delete: if ehAdminOuCoordenador();
+      allow delete: if ehAutorizadoATransferirCarteira();
 
       match /eventos/{eventoId} {
 
@@ -434,13 +617,201 @@ service cloud.firestore {
                          get(/databases/$(database)/documents/leads/$(request.resource.data.leadId)).data
                        );
 
-      allow update: if (
-                         ehAdminOuCoordenador()
-                         || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(resource.data) || ehDonaDaVisita(resource.data)))
-                       )
-                    && autoriaValida(resource.data, request.resource.data);
+      // consultoraId (dona da visita) e a marca ultimaTransferenciaEmMassaId
+      // (que a reversão usa para saber QUAIS visitas a transferência mexeu)
+      // só mudam pelos autorizados. Eles são
+      // avaliados primeiro: 1 leitura de perfil por visita atualizada
+      // (em vez de 2), o que importa porque a transferência/reversão
+      // atualiza várias visitas na mesma transação.
+      allow update: if (ehAutorizadoATransferirCarteira()
+                        && autoriaValida(resource.data, request.resource.data))
+                    || ((ehAdminOuCoordenador()
+                         || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(resource.data) || ehDonaDaVisita(resource.data))))
+                        && autoriaValida(resource.data, request.resource.data)
+                        && !('consultoraId' in camposAlterados(resource.data, request.resource.data))
+                        && !('ultimaTransferenciaEmMassaId' in camposAlterados(resource.data, request.resource.data)));
 
       allow delete: if false;
+
+    }
+
+    // ==========================================================
+    // TRANSFERÊNCIAS EM MASSA — TRILHA DE AUDITORIA
+    //
+    // transferenciasEmMassa/{opId}        = a operação (a reversão tem ID
+    //                                       fixo 'rev-<opId original>': só pode
+    //                                       existir UMA por operação)
+    // transferenciasEmMassa/{opId}/itens  = 1 item por lead
+    //                                       efetivamente movido
+    //
+    // Leitura e escrita: somente as duas identidades autorizadas.
+    // Ninguém apaga. A operação só muda enquanto 'em_andamento' e
+    // só nos campos de progresso; ao finalizar fica imutável. O item
+    // é imutável e só existe se o lead realmente mudou de dono na
+    // MESMA transação (getAfter).
+    // ==========================================================
+
+    function operacaoMassa(opId) {
+      return get(/databases/$(database)/documents/transferenciasEmMassa/$(opId)).data;
+    }
+
+    function reversaoDeOperacaoValida(nova) {
+      let original = operacaoMassa(nova.reverteOpId);
+      return original.tipo == 'transferencia'
+          && original.status in ['concluida', 'concluida_com_pendencias']
+          && original.destinoUid == nova.origemUid
+          && original.origemUid == nova.destinoUid;
+    }
+
+    function valorOuNulo(dados, chave) {
+      return chave in dados ? dados[chave] : null;
+    }
+
+    // 'anterior' = o responsável do lead ANTES desta transação (lido de
+    // verdade; ausente vira null, como o serviço grava).
+    function anteriorConfere(item, leadAntes) {
+      return item.anterior is map
+          && item.anterior.responsavelUid == valorOuNulo(leadAntes, 'responsavelUid')
+          && item.anterior.responsavel == valorOuNulo(leadAntes, 'responsavel')
+          && item.anterior.consultora == valorOuNulo(leadAntes, 'consultora');
+    }
+
+    // 'eventoId' = um evento TRANSFERENCIA REAL deste lead, criado na MESMA
+    // transação (getAfter), desta operação, entre os mesmos responsáveis.
+    function eventoDoItemConfere(opId, leadId, item) {
+      let evento = getAfter(/databases/$(database)/documents/leads/$(leadId)/eventos/$(item.eventoId)).data;
+      return item.eventoId is string
+          && evento.tipo == 'TRANSFERENCIA'
+          && evento.leadId == leadId
+          && evento.dados.operacaoId == opId
+          && evento.dados.responsavelAnteriorUid == item.deUid
+          && evento.dados.novoResponsavelUid == item.paraUid;
+    }
+
+    function reversaoDeItemValida(op, leadId, antes, depois) {
+      let itemOriginal = /databases/$(database)/documents/transferenciasEmMassa/$(op.reverteOpId)/itens/$(leadId);
+      return exists(itemOriginal)
+          && itemOriginalConfere(itemOriginal, op, antes, depois)
+          && soCamposDeDonoMudaram(antes, depois);
+    }
+
+    // Leituras do item: operação (1), lead antes (1), lead depois (1) —
+    // cada documento é lido UMA vez (let), em vez de várias chamadas.
+    // As conferências de etapa e atualizadoEm usam dados já lidos; só o
+    // item de uma REVERSÃO lê também o item da transferência original
+    // (1 leitura, já feita pelo update do lead quando a origem é inativa).
+    function itemCorrespondeATransferencia(opId, leadId, item) {
+      let op = operacaoMassa(opId);
+      let leadAntes = get(/databases/$(database)/documents/leads/$(leadId)).data;
+      let leadDepois = getAfter(/databases/$(database)/documents/leads/$(leadId)).data;
+      return op.status == 'em_andamento'
+          && item.deUid == op.origemUid
+          && item.paraUid == op.destinoUid
+          && leadAntes.responsavelUid == item.deUid
+          && leadDepois.responsavelUid == item.paraUid
+          && leadDepois.ultimaTransferenciaEmMassaId == opId
+          // etapa registrada no item = etapa real do lead (a reversão usa
+          // isto para saber se o lead avançou no funil depois)
+          && etapaDoLead(leadAntes) == item.etapa
+          // o atualizadoEm do lead É o instante da transferência (o mesmo
+          // do item.criadoEm): é o marco "lead intocado desde então"
+          && ('atualizadoEm' in leadDepois)
+          && leadDepois.atualizadoEm == request.time
+          // B3 — os dados descritivos do item são CONFERIDOS com o que as
+          // Rules enxergam, em vez de aceitos como o cliente enviou:
+          && item.deNome == op.origemNome
+          && item.paraNome == op.destinoNome
+          && anteriorConfere(item, leadAntes)
+          && eventoDoItemConfere(opId, leadId, item)
+          && item.visitasAtualizadas is list
+          // item de uma REVERSÃO: as mesmas proteções (lead de volta ao dono
+          // anterior, não trabalhado depois, só campos de dono) valem
+          // MESMO quando a origem está ATIVA — caso em que o update do
+          // lead passa como transferência normal e não passaria pela
+          // reversaoDeLeadValida()
+          && (op.tipo != 'reversao'
+              || reversaoDeItemValida(op, leadId, leadAntes, leadDepois));
+    }
+
+    // Os nomes gravados na operação são os do cadastro dos dois usuários
+    // (2 leituras, só na CRIAÇÃO da operação).
+    function nomesDaOperacaoConferem(dados) {
+      let origem = get(/databases/$(database)/documents/usuarios/$(dados.origemUid)).data;
+      let destino = get(/databases/$(database)/documents/usuarios/$(dados.destinoUid)).data;
+      return dados.origemNome == origem.nome
+          && dados.destinoNome == destino.nome;
+    }
+
+    function inteiroOuZero(dados, chave) {
+      return chave in dados ? dados[chave] : 0;
+    }
+
+    // Contadores/estado final DECLARADOS pelo executor: coerentes entre si e
+    // com o total previsto. As Rules NÃO conseguem contar os itens gravados
+    // (não há agregação nem iteração), então "concluída" continua sendo uma
+    // declaração: a fonte da verdade são os itens de auditoria.
+    function contadoresCoerentes(dados) {
+      let c = inteiroOuZero(dados, 'totalConcluido');
+      let f = inteiroOuZero(dados, 'totalFalhas');
+      let p = inteiroOuZero(dados, 'totalPulados');
+      return c is int && f is int && p is int
+          && c >= 0 && f >= 0 && p >= 0
+          && c + f + p <= dados.totalPrevisto
+          && (!('falhas' in dados) || dados.falhas.size() == f)
+          && (!('pulados' in dados) || dados.pulados.size() == p)
+          && (dados.status != 'concluida'
+              || (c == dados.totalPrevisto && f == 0 && p == 0));
+    }
+
+    match /transferenciasEmMassa/{opId} {
+
+      allow read: if ehAutorizadoATransferirCarteira();
+
+      allow create: if ehAutorizadoATransferirCarteira()
+                    && request.resource.data.executadoPorUid == request.auth.uid
+                    && request.resource.data.status == 'em_andamento'
+                    && request.resource.data.criadoEm == request.time
+                    && request.resource.data.tipo in ['transferencia', 'reversao']
+                    && request.resource.data.origemUid is string
+                    && request.resource.data.destinoUid is string
+                    && request.resource.data.origemUid != request.resource.data.destinoUid
+                    // B3 — identidade e contagens declaradas conferidas na criação
+                    && request.resource.data.executadoPorNome == nomeDoChamador()
+                    && nomesDaOperacaoConferem(request.resource.data)
+                    && request.resource.data.leadIds is list
+                    && request.resource.data.leadIds.size() > 0
+                    && request.resource.data.totalPrevisto == request.resource.data.leadIds.size()
+                    && (request.resource.data.tipo == 'transferencia'
+                          ? !('reverteOpId' in request.resource.data)
+                          : (opId == 'rev-' + request.resource.data.reverteOpId
+                             && reversaoDeOperacaoValida(request.resource.data)));
+
+      allow update: if ehAutorizadoATransferirCarteira()
+                    && resource.data.status == 'em_andamento'
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                         .hasOnly(['status', 'totalConcluido', 'totalFalhas', 'totalPulados',
+                                   'falhas', 'pulados', 'visitasTardias',
+                                   'finalizadoEm', 'finalizadoPorUid'])
+                    && request.resource.data.status in ['em_andamento', 'concluida', 'concluida_com_pendencias']
+                    && contadoresCoerentes(request.resource.data)
+                    && (request.resource.data.status == 'em_andamento'
+                        || (request.resource.data.finalizadoPorUid == request.auth.uid
+                            && request.resource.data.finalizadoEm == request.time));
+
+      allow delete: if false;
+
+      match /itens/{leadId} {
+
+        allow read: if ehAutorizadoATransferirCarteira();
+
+        allow create: if ehAutorizadoATransferirCarteira()
+                      && request.resource.data.executadoPorUid == request.auth.uid
+                      && request.resource.data.criadoEm == request.time
+                      && itemCorrespondeATransferencia(opId, leadId, request.resource.data);
+
+        allow update, delete: if false;
+
+      }
 
     }
 

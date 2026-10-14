@@ -93,11 +93,14 @@ export default function LeadTransfer({
         const lista =
           snapshot.docs
 
+            // O ID real do documento vem DEPOIS dos dados para
+            // prevalecer sobre qualquer campo "id" gravado dentro
+            // de usuarios/{uid} (que pode estar errado).
             .map((doc) => ({
+              ...doc.data(),
+
               id:
                 doc.id,
-
-              ...doc.data(),
 
             }))
 

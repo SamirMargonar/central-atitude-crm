@@ -22,6 +22,10 @@ import ConsultaLeadModal from "./ConsultaLeadModal";
 
 import LeadModal from "./LeadModal";
 
+import TransferenciaEmMassaModal from "./TransferenciaEmMassa/TransferenciaEmMassaModal";
+
+import { podeTransferirEmMassa } from "../config/transferenciaEmMassa";
+
 import "../styles/sidebar.css";
 
 
@@ -31,6 +35,7 @@ export default function Sidebar({
 }) {
 
   const {
+    usuario,
     perfilUsuario,
     isAdmin,
     isRecepcionista,
@@ -51,6 +56,25 @@ export default function Sidebar({
   const [
     cadastroGerencialAberto,
     setCadastroGerencialAberto,
+  ] = useState(false);
+
+
+  // ==========================================================
+  // TRANSFERÊNCIA EM MASSA DE LEADS — somente as duas identidades
+  // autorizadas (UIDs reais; ver src/config/transferenciaEmMassa.js).
+  // O botão é só conveniência: quem pode de verdade é decidido
+  // pelas Firestore Rules.
+  // ==========================================================
+
+  const podeTransferenciaEmMassa =
+    podeTransferirEmMassa(
+      usuario?.uid,
+      perfilUsuario?.perfil
+    );
+
+  const [
+    transferenciaEmMassaAberta,
+    setTransferenciaEmMassaAberta,
   ] = useState(false);
 
 
@@ -374,6 +398,29 @@ export default function Sidebar({
 
         )}
 
+        {/* ==================================================
+            TRANSFERÊNCIA EM MASSA DE LEADS
+            SOMENTE AS DUAS IDENTIDADES AUTORIZADAS
+        ================================================== */}
+
+        {podeTransferenciaEmMassa && (
+
+          <button
+
+            type="button"
+
+            onClick={() =>
+              setTransferenciaEmMassaAberta(true)
+            }
+
+          >
+
+            🔄 Transferência em Massa de Leads
+
+          </button>
+
+        )}
+
       </nav>
 
 
@@ -421,6 +468,24 @@ export default function Sidebar({
             }
 
             modoGerencial
+
+          />,
+
+          document.body
+
+        )}
+
+
+      {podeTransferenciaEmMassa &&
+        createPortal(
+
+          <TransferenciaEmMassaModal
+
+            aberto={transferenciaEmMassaAberta}
+
+            fechar={() =>
+              setTransferenciaEmMassaAberta(false)
+            }
 
           />,
 

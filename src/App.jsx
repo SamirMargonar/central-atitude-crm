@@ -33,6 +33,10 @@ import {
   useAuth,
 } from "./auth/AuthContext";
 
+import { signOut } from "firebase/auth";
+
+import { auth } from "./firebase/firebase";
+
 
 export default function App() {
 
@@ -88,6 +92,58 @@ export default function App() {
 
     return (
       <Login />
+    );
+
+  }
+
+
+  // ==========================================================
+  // LOGIN SEM PERFIL (usuarios/{uid} ausente)
+  //
+  // Sem perfil não há permissões nem aparição em Usuários/transferência.
+  // Em vez de abrir um CRM "fantasma", mostra o UID para o admin
+  // completar o cadastro reaproveitando a MESMA conta.
+  // ==========================================================
+
+  if (!perfilUsuario) {
+
+    return (
+
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: "14px",
+          padding: "24px",
+          textAlign: "center",
+          background: "#071426",
+          color: "#ffffff",
+        }}
+      >
+
+        <h2>Perfil não encontrado</h2>
+
+        <p style={{ maxWidth: "460px" }}>
+          Seu login existe, mas o cadastro de perfil ainda não foi
+          concluído. Envie este código ao administrador:
+        </p>
+
+        <code style={{ userSelect: "all" }}>
+          {usuario?.uid}
+        </code>
+
+        <button
+          onClick={() => signOut(auth)}
+          style={{ padding: "10px 24px", cursor: "pointer" }}
+        >
+          Sair
+        </button>
+
+      </div>
+
     );
 
   }

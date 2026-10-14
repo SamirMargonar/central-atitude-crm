@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 
 import "../styles/leadDetails.css";
 
+import { formatarDataHora } from "../../utils/formatarData.js";
+
 import {
   collection,
   query,
@@ -94,27 +96,9 @@ function tituloEvento(evento) {
 }
 
 
+// Padrão brasileiro DD/MM/AAAA HH:mm (utilitário compartilhado).
 function formatarData(timestamp) {
-
-  if (!timestamp?.toDate) {
-
-    return "";
-
-  }
-
-  return timestamp
-    .toDate()
-    .toLocaleString(
-      "pt-BR",
-      {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
-
+  return formatarDataHora(timestamp, "");
 }
 
 

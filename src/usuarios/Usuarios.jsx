@@ -4,7 +4,6 @@ import {
   collection,
   onSnapshot,
   query,
-  orderBy,
 } from "firebase/firestore";
 
 import { db } from "../firebase/firebase";
@@ -80,13 +79,12 @@ export default function Usuarios() {
         "usuarios"
       );
 
+    // Sem orderBy("nome"): o Firestore EXCLUI da consulta qualquer
+    // documento sem o campo "nome" — o usuário sumia da lista.
+    // A ordenação é feita aqui, no cliente.
     const consulta =
       query(
-        referencia,
-        orderBy(
-          "nome",
-          "asc"
-        )
+        referencia
       );
 
     const unsubscribe =
@@ -106,6 +104,15 @@ export default function Usuarios() {
               })
             );
 
+
+          lista.sort(
+            (a, b) =>
+              String(a.nome || a.email || a.id)
+                .localeCompare(
+                  String(b.nome || b.email || b.id),
+                  "pt-BR"
+                )
+          );
 
           setUsuarios(lista);
 

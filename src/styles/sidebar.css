@@ -2,6 +2,7 @@
     width: 270px;
     min-width: 270px;
     height: 100vh;
+    height: 100dvh;
 
     background: #071a33;
 
@@ -58,6 +59,36 @@
 
     margin: 0;
     padding: 0;
+
+    /* rolagem vertical independente: o cabeçalho (logo/usuário) e o
+       botão Sair ficam fixos; só a lista de links rola */
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+
+    scrollbar-width: thin;
+    scrollbar-color: #2b4a75 transparent;
+}
+
+.sidebar nav::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar nav::-webkit-scrollbar-thumb {
+    background: #2b4a75;
+    border-radius: 3px;
+}
+
+/* o cabeçalho nunca encolhe */
+.sidebar .logo,
+.sidebar > div {
+    flex-shrink: 0;
+}
+
+.sidebar nav > * {
+    flex-shrink: 0;
 }
 
 
@@ -120,7 +151,8 @@
 
     min-height: 50px;
 
-    margin-top: auto;
+    margin-top: 12px;
+    flex-shrink: 0;
 
     border: none;
 

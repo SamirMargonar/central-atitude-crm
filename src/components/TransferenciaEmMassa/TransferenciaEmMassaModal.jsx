@@ -13,6 +13,11 @@ import { useAuth } from "../../auth/AuthContext";
 
 import { JORNADA } from "../../core/LeadFlow";
 
+import {
+  formatarDataHora,
+  formatarDataEHoraDaAgenda,
+} from "../../utils/formatarData";
+
 import { podeTransferirEmMassa } from "../../config/transferenciaEmMassa";
 
 import {
@@ -84,17 +89,7 @@ function nomeEtapa(etapa) {
 
 function formatarData(valor) {
 
-  const data = valor?.toDate?.();
-
-  return data
-    ? data.toLocaleString("pt-BR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
+  return formatarDataHora(valor, "—");
 
 }
 
@@ -744,7 +739,7 @@ export default function TransferenciaEmMassaModal({
             <li key={`${v.leadId}-${v.id}`}>
               <span className="tmeNome">Lead {v.leadId} · visita {v.id}</span>
               <span className="tmeMeta">
-                {v.data || "sem data"} {v.hora || ""} · {v.status || "—"}
+                {formatarDataEHoraDaAgenda(v.data, v.hora, " ", "sem data")} · {v.status || "—"}
               </span>
             </li>
           ))}

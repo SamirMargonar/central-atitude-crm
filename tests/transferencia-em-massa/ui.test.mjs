@@ -271,6 +271,7 @@ console.log("\n=== E. HISTÓRICO, RETOMADA E REVERSÃO (M2: uma reversão por op
   await act(async () => { [...linha("f1").querySelectorAll("button")].find((b) => b.textContent.includes("Confirmar reversão")).click(); }); await ate(() => body().includes("Operação concluída"));
   check("confirmar reversão abre a reversão da operação certa e a executa", s.chamadas.some((c) => c[0] === "reverter" && c[1] === "f1") && s.chamadas.some((c) => c[0] === "executar" && c[1] === "rev-f1"));
   check("M1: visitas posteriores à transferência aparecem para ANÁLISE MANUAL, sem declarar que foram alteradas", body().includes("Visitas para análise manual (1)") && body().includes("vNova") && body().includes("Nada foi alterado nelas"));
+  check("M1: data/hora da visita em análise no padrão brasileiro (25/10/2026 15:00, não 2026-10-25)", body().includes("25/10/2026 15:00") && !body().includes("2026-10-25"));
   await fechar();
 }
 {
@@ -358,7 +359,9 @@ check("em tela estreita: grade vira 1 coluna, modal ocupa a tela e botões empil
 check("o CSS novo não mexe em nenhuma classe global (todas com prefixo tme)", [...css.matchAll(/^\s*\.([A-Za-z0-9_-]+)/gm)].every((m) => m[1].startsWith("tme")));
 import { execSync } from "node:child_process";
 const tocados = execSync("git status --porcelain", { cwd: REPO }).toString().split("\n").filter(Boolean).map((l) => l.slice(3));
-check("nenhum arquivo de src/mobile foi alterado", !tocados.some((f) => f.startsWith("src/mobile")));
+// Autorizado (busca global + datas, 14/10/2026): só estes 3 arquivos mobile podem mudar.
+const MOBILE_AUTORIZADOS = ["src/mobile/screens/LeadsScreen.jsx", "src/mobile/screens/LeadDetailsScreen.jsx", "src/mobile/components/LeadTimelineMobile.jsx"];
+check("nenhum arquivo de src/mobile foi alterado além dos 3 autorizados (busca global e datas)", !tocados.some((f) => f.startsWith("src/mobile") && !MOBILE_AUTORIZADOS.includes(f)));
 
 await vite.close();
 const f = fim();

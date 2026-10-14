@@ -6,6 +6,8 @@ import {
   JORNADA,
 } from "../../core/LeadFlow.js";
 
+import { formatarDataHora } from "../../utils/formatarData.js";
+
 import LeadActionsMobile from "../components/LeadActionsMobile.jsx";
 import LeadTimelineMobile from "../components/LeadTimelineMobile.jsx";
 import WhatsAppModalMobile from "../components/WhatsAppModalMobile.jsx";
@@ -36,26 +38,7 @@ import WhatsAppModalMobile from "../components/WhatsAppModalMobile.jsx";
 // ==========================================================
 
 function formatarData(timestamp) {
-
-  if (!timestamp?.toDate) {
-
-    return "Não disponível";
-
-  }
-
-  return timestamp
-    .toDate()
-    .toLocaleString(
-      "pt-BR",
-      {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }
-    );
-
+  return formatarDataHora(timestamp, "Não disponível");
 }
 
 

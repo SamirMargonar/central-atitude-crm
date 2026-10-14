@@ -33,5 +33,6 @@ case "$SUITE" in
   servico) rodar servico.test.mjs ;;
   ui)      node ui.test.mjs ;;
   atendimento) rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs ;;
-  todas)   rodar rules.test.mjs; rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; rodar servico.test.mjs; node ui.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs ;;
+  busca)   node busca-datas.test.mjs; node busca-datas.ui.test.mjs; rodar busca.integracao.test.mjs ;;
+  todas)   rodar rules.test.mjs; rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; rodar servico.test.mjs; node ui.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs; node busca-datas.test.mjs; node busca-datas.ui.test.mjs; rodar busca.integracao.test.mjs ;;
 esac

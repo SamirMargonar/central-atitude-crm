@@ -9,6 +9,11 @@ import {
 
 import { db } from "../../firebase/firebase";
 
+import {
+  formatarData as formatarDataBR,
+  formatarDataHora,
+} from "../../utils/formatarData";
+
 import "./LeadDetailsModal.css";
 
 export default function LeadTimeline({ lead }) {
@@ -88,34 +93,9 @@ export default function LeadTimeline({ lead }) {
   }, [lead?.id]);
 
 
+  // Padrão brasileiro DD/MM/AAAA HH:mm (utilitário compartilhado).
   function formatarData(timestamp) {
-
-    if (!timestamp?.toDate) {
-
-      return "";
-
-    }
-
-
-    return timestamp
-      .toDate()
-      .toLocaleString(
-        "pt-BR",
-        {
-
-          day: "2-digit",
-
-          month: "2-digit",
-
-          year: "numeric",
-
-          hour: "2-digit",
-
-          minute: "2-digit",
-
-        }
-      );
-
+    return formatarDataHora(timestamp, "");
   }
 
 
@@ -330,7 +310,7 @@ export default function LeadTimeline({ lead }) {
                     Data:
                   </strong>{" "}
 
-                  {evento.dados.data}
+                  {formatarDataBR(evento.dados.data)}
 
                 </p>
 
@@ -401,11 +381,11 @@ export default function LeadTimeline({ lead }) {
                       Visita anterior:
                     </strong>{" "}
 
-                    {
+                    {formatarDataBR(
                       evento.dados
                         .visitaAnterior
                         .data
-                    }
+                    )}
 
                     {" às "}
 
@@ -425,11 +405,11 @@ export default function LeadTimeline({ lead }) {
                       Nova visita:
                     </strong>{" "}
 
-                    {
+                    {formatarDataBR(
                       evento.dados
                         .novaVisita
                         ?.data
-                    }
+                    )}
 
                     {" às "}
 

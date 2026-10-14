@@ -10,12 +10,14 @@ import {
 
 import {
   createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   updateProfile,
   getAuth,
 } from "firebase/auth";
 
 import {
   doc,
+  getDoc,
   setDoc,
   serverTimestamp,
 } from "firebase/firestore";
@@ -376,12 +378,67 @@ export default function UsuarioModal({
       // CRIA LOGIN
       // ======================================================
 
-      const resultado =
-        await createUserWithEmailAndPassword(
-          authSecundario,
-          email.trim(),
-          senha
-        );
+      // Conta já existente no Auth SEM perfil em "usuarios" (cadastro
+      // interrompido antes do setDoc): reaproveita a conta e o UID
+      // reais — nunca cria uma conta duplicada. Exige a senha atual
+      // da conta; se o perfil já existir, não sobrescreve nada.
+      let resultado;
+
+      try {
+
+        resultado =
+          await createUserWithEmailAndPassword(
+            authSecundario,
+            email.trim(),
+            senha
+          );
+
+      } catch (erroCriacao) {
+
+        if (
+          erroCriacao?.code !==
+          "auth/email-already-in-use"
+        ) {
+          throw erroCriacao;
+        }
+
+        try {
+
+          resultado =
+            await signInWithEmailAndPassword(
+              authSecundario,
+              email.trim(),
+              senha
+            );
+
+        } catch {
+
+          throw Object.assign(
+            new Error("conta-sem-senha-correta"),
+            { code: "app/conta-existente-senha" }
+          );
+
+        }
+
+        const perfilExistente =
+          await getDoc(
+            doc(
+              db,
+              "usuarios",
+              resultado.user.uid
+            )
+          );
+
+        if (perfilExistente.exists()) {
+
+          throw Object.assign(
+            new Error("perfil-ja-existe"),
+            { code: "app/perfil-ja-existe" }
+          );
+
+        }
+
+      }
 
 
       const novoUsuario =
@@ -486,6 +543,28 @@ export default function UsuarioModal({
 
         mensagem =
           "Este e-mail já está cadastrado no Firebase.";
+
+      }
+
+
+      else if (
+        error.code ===
+        "app/conta-existente-senha"
+      ) {
+
+        mensagem =
+          "Este e-mail já tem login no Firebase, mas sem perfil. Para completar o cadastro reaproveitando a conta existente, digite a senha ATUAL dessa conta.";
+
+      }
+
+
+      else if (
+        error.code ===
+        "app/perfil-ja-existe"
+      ) {
+
+        mensagem =
+          "Este e-mail já tem perfil cadastrado. Procure-o na lista de usuários e edite por lá.";
 
       }
 

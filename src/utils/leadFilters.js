@@ -3,6 +3,10 @@ import {
   nomeDaEtapa,
 } from "../core/LeadFlow";
 
+import {
+  leadCombinaComBusca,
+} from "./buscaLeads";
+
 
 export function filtrarLeads(
   leads,
@@ -18,40 +22,13 @@ export function filtrarLeads(
 
     if (filtros.pesquisa) {
 
-      const pesquisa =
-        filtros.pesquisa
-          .toLowerCase()
-          .trim();
-
-
-      const nome =
-        String(lead.nome || "")
-          .toLowerCase();
-
-
-      const telefone =
-        String(lead.telefone || "")
-          .replace(/\D/g, "");
-
-
-      const pesquisaTelefone =
-        pesquisa.replace(/\D/g, "");
-
-
-      const encontrouNome =
-        nome.includes(pesquisa);
-
-
-      const encontrouTelefone =
-        pesquisaTelefone &&
-        telefone.includes(
-          pesquisaTelefone
-        );
-
-
+      // Mesmo critério da busca global (sem acento/caixa, partes
+      // do nome, telefone com ou sem máscara).
       if (
-        !encontrouNome &&
-        !encontrouTelefone
+        !leadCombinaComBusca(
+          lead,
+          filtros.pesquisa
+        )
       ) {
 
         return false;

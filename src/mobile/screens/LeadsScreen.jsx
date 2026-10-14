@@ -1,8 +1,18 @@
 import { useState } from "react";
 
+import { doc, getDoc } from "firebase/firestore";
+
 import "../styles/leads.css";
 
 import useLeads from "../../hooks/useLeads.js";
+
+import useBuscaLeadsGlobal from "../../hooks/useBuscaLeadsGlobal.js";
+
+import { useAuth } from "../../auth/AuthContext.jsx";
+
+import { db } from "../../firebase/firebase.js";
+
+import ResultadosBuscaGlobal from "../../components/ResultadosBuscaGlobal.jsx";
 
 import {
   ETAPAS,
@@ -63,6 +73,61 @@ export default function LeadsScreen() {
 
   const [leadAberto, setLeadAberto] =
     useState(null);
+
+  // ==========================================================
+  // BUSCA EM LEADS DE OUTRAS RECEPCIONISTAS
+  //
+  // Mesmo cache em memória do Desktop (uma leitura por sessão).
+  // O lead de outra titular abre em "Modo consulta" (o Mobile não
+  // tem ações de atendimento compartilhado — isso é do Desktop).
+  // ==========================================================
+
+  const { perfilUsuario, isRecepcionista } = useAuth();
+
+  const buscaGlobal =
+    useBuscaLeadsGlobal({
+      termo: pesquisa,
+      uid:
+        perfilUsuario?.uid ||
+        perfilUsuario?.id,
+      ativo: !!isRecepcionista,
+    });
+
+  const resultadosDeOutras =
+    buscaGlobal.resultados.filter(
+      (resultado) =>
+        !leads.some(
+          (lead) =>
+            lead.id === resultado.id
+        )
+    );
+
+  async function abrirDeOutra(resultado) {
+
+    try {
+
+      const snap =
+        await getDoc(
+          doc(db, "leads", resultado.id)
+        );
+
+      if (snap.exists()) {
+        setLeadAberto({
+          id: snap.id,
+          ...snap.data(),
+        });
+      }
+
+    } catch (erro) {
+
+      console.error(
+        "Erro ao abrir o lead:",
+        erro
+      );
+
+    }
+
+  }
 
 
   // ==========================================================
@@ -130,7 +195,9 @@ export default function LeadsScreen() {
 
   const semResultadoBusca =
     !semLeads &&
-    leadsFiltrados.length === 0;
+    leadsFiltrados.length === 0 &&
+    resultadosDeOutras.length === 0 &&
+    !buscaGlobal.carregando;
 
 
   // ==========================================================
@@ -189,7 +256,20 @@ export default function LeadsScreen() {
       </div>
 
 
-      {semLeads && (
+      {isRecepcionista && (
+
+        <ResultadosBuscaGlobal
+          termo={pesquisa}
+          resultados={resultadosDeOutras}
+          carregando={buscaGlobal.carregando}
+          erro={buscaGlobal.erro}
+          onAbrir={abrirDeOutra}
+          onAtualizar={buscaGlobal.atualizar}
+        />
+
+      )}
+
+      {semLeads && !pesquisa.trim() && (
 
         <div className="mobileLeadsVazio">
           Nenhum lead disponível no momento.

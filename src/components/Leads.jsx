@@ -17,6 +17,15 @@ import {
   useAuth,
 } from "../auth/AuthContext";
 
+import useBuscaLeadsGlobal
+  from "../hooks/useBuscaLeadsGlobal";
+
+import useLeadAoVivo
+  from "../hooks/useLeadAoVivo";
+
+import ResultadosBuscaGlobal
+  from "./ResultadosBuscaGlobal";
+
 import LeadDetailsModal
   from "./LeadDetailsModal/LeadDetailsModal";
 
@@ -63,6 +72,7 @@ export default function Leads({
   const {
     isAdmin,
     isCoordenador,
+    isRecepcionista,
     perfilUsuario,
   } = useAuth();
 
@@ -340,6 +350,45 @@ export default function Leads({
       obterMesAtual(),
 
   });
+
+
+  // ==========================================================
+  // BUSCA EM LEADS DE OUTRAS RECEPCIONISTAS
+  //
+  // Só para recepcionista (admin/coordenador já têm todos os
+  // leads em `leads`). Abrir um resultado lê o lead completo ao
+  // vivo; nada muda na titularidade.
+  // ==========================================================
+
+  const buscaGlobal =
+    useBuscaLeadsGlobal({
+      termo:
+        filtros.pesquisa,
+      uid:
+        perfilUsuario?.uid ||
+        perfilUsuario?.id,
+      ativo:
+        !!isRecepcionista,
+    });
+
+  const resultadosDeOutras =
+    buscaGlobal.resultados.filter(
+      (resultado) =>
+        !leads.some(
+          (lead) =>
+            lead.id === resultado.id
+        )
+    );
+
+  const [
+    leadExternoId,
+    setLeadExternoId,
+  ] = useState(null);
+
+  const leadExterno =
+    useLeadAoVivo(
+      leadExternoId
+    );
 
 
   // ==========================================================
@@ -738,12 +787,17 @@ export default function Leads({
       <LeadDetailsModal
 
         lead={
-          leadAtualizado
+          leadAtualizado ||
+          leadExterno
         }
 
-        onClose={() =>
-          setLeadDetalhes(null)
-        }
+        onClose={() => {
+
+          setLeadDetalhes(null);
+
+          setLeadExternoId(null);
+
+        }}
 
       />
 
@@ -870,6 +924,38 @@ export default function Leads({
           }
 
         />
+
+
+        {/* ==================================================
+            BUSCA EM LEADS DE OUTRAS RECEPCIONISTAS
+        ================================================== */}
+
+        {isRecepcionista && (
+
+          <ResultadosBuscaGlobal
+            termo={
+              filtros.pesquisa
+            }
+            resultados={
+              resultadosDeOutras
+            }
+            carregando={
+              buscaGlobal.carregando
+            }
+            erro={
+              buscaGlobal.erro
+            }
+            onAbrir={(lead) =>
+              setLeadExternoId(
+                lead.id
+              )
+            }
+            onAtualizar={
+              buscaGlobal.atualizar
+            }
+          />
+
+        )}
 
 
         {/* ==================================================

@@ -21,6 +21,78 @@ export function filtrarMatriculados(
 
 
 // ==========================================================
+// TITULARIDADE x AUTORIA DA MATRÍCULA
+//
+// REGRA DE NEGÓCIO (definitiva): a matrícula conta para a
+// consultora TITULAR do lead (quem é a responsável pelo lead),
+// mesmo que outra recepcionista tenha realizado o atendimento e o
+// fechamento. A AUTORIA do fechamento é outra informação: fica em
+// matricula.registradoPorUid / registradoPorNome e no evento
+// MATRICULA do histórico.
+//
+// Matrículas antigas não têm registradoPor*: o `consultor` delas
+// era o nome de quem confirmou, que na prática era a titular.
+// ==========================================================
+
+export function consultoraTitularDaMatricula(
+  lead
+) {
+
+  return (
+    lead?.responsavel ||
+    lead?.consultora ||
+    lead?.matricula?.consultor ||
+    ""
+  );
+
+}
+
+
+// Nome de quem realizou o fechamento QUANDO for outra pessoa que
+// não a titular; vazio quando foi a própria titular (ou quando a
+// matrícula é antiga e não registra a autoria).
+export function fechamentoPorOutraPessoa(
+  lead
+) {
+
+  const matricula =
+    lead?.matricula || {};
+
+  const autorNome =
+    matricula.registradoPorNome || "";
+
+  if (!autorNome) {
+    return "";
+  }
+
+  if (
+    matricula.registradoPorUid &&
+    lead?.responsavelUid
+  ) {
+
+    return matricula.registradoPorUid !== lead.responsavelUid
+      ? autorNome
+      : "";
+
+  }
+
+  const normalizar = (texto) =>
+    String(texto || "")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim()
+      .replace(/\s+/g, " ")
+      .toLowerCase();
+
+  return normalizar(autorNome) !==
+    normalizar(consultoraTitularDaMatricula(lead))
+    ? autorNome
+    : "";
+
+}
+
+
+// ==========================================================
 // FORMATA DATA ISO (aaaa-mm-dd) PARA dd/mm/aaaa
 //
 // Usada para matricula.dataInicio e matricula.dataVencimento.
@@ -130,7 +202,7 @@ export function filtrarRelatorioMatriculas(
 
       if (
         consultor !== "Todos" &&
-        lead.matricula?.consultor !== consultor
+        consultoraTitularDaMatricula(lead) !== consultor
       ) {
 
         return false;

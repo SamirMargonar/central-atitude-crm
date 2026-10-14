@@ -12,6 +12,7 @@ import DetalhesVisita from "./DetalhesVisita";
 import {
   criarVisita,
   buscarVisitasPorPerfil,
+  buscarVisitasDosLeadsDaTitular,
 } from "./VisitaEngine";
 
 import {
@@ -249,8 +250,43 @@ export default function Calendario({
           });
 
 
+
+        // Recepcionista: soma as visitas dos leads de que ela é a
+        // titular (inclusive antigas, de carteira transferida). Só
+        // acrescenta o que ainda não veio; nada é alterado.
+        let visitasFinais = visitasFirebase;
+
+        if (
+          !isAdmin &&
+          String(perfilUsuario?.perfil || "")
+            .trim()
+            .toLowerCase() === "recepcionista"
+        ) {
+
+          const extras =
+            await buscarVisitasDosLeadsDaTitular({
+              uid:
+                usuario?.uid,
+            });
+
+          const jaTenho =
+            new Set(
+              visitasFirebase.map(
+                (v) => v.id
+              )
+            );
+
+          visitasFinais = [
+            ...visitasFirebase,
+            ...extras.filter(
+              (v) => !jaTenho.has(v.id)
+            ),
+          ];
+
+        }
+
         setVisitas(
-          visitasFirebase
+          visitasFinais
         );
 
       } catch (erro) {

@@ -29,8 +29,9 @@ rodar() {  # $1 = arquivo de teste
   npx --yes firebase-tools emulators:exec --only firestore --project demo-tme "node $1" 2>&1 | grep -E "^(OK|FALHA|TOTAL|===|ERRO|Error)" || true
 }
 case "$SUITE" in
-  rules)   rodar rules.test.mjs ;;
+  rules)   rodar rules.test.mjs; rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs ;;
   servico) rodar servico.test.mjs ;;
   ui)      node ui.test.mjs ;;
-  todas)   rodar rules.test.mjs; rodar servico.test.mjs; node ui.test.mjs ;;
+  atendimento) rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs ;;
+  todas)   rodar rules.test.mjs; rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; rodar servico.test.mjs; node ui.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs ;;
 esac

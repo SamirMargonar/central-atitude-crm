@@ -21,11 +21,15 @@ import MatriculaAction
 import EditarMatriculaAction
   from "./actions/EditarMatriculaAction";
 
+import NaoFechamentoAction
+  from "./actions/NaoFechamentoAction";
+
 
 export default function LeadActions({
   lead,
   setLead,
   podeAgir = true,
+  modoCompartilhado = false,
 }) {
 
   // ==========================================================
@@ -36,6 +40,95 @@ export default function LeadActions({
   // Em vez de mostrar um botão que hoje já falharia, mostramos
   // uma mensagem neutra.
   // ==========================================================
+
+  // ==========================================================
+  // ATENDIMENTO COMPARTILHADO
+  //
+  // Recepcionista ATIVA atendendo o lead de outra consultora
+  // (a propriedade NÃO muda). Só as operações explicitamente
+  // autorizadas nas Firestore Rules aparecem, por etapa:
+  //   VISITA      → reagendar visita / registrar comparecimento
+  //   NEGOCIAÇÃO  → confirmar matrícula (fluxo oficial) /
+  //                 registrar não fechamento
+  // Observações ficam em LeadNotes. As Rules são a autoridade;
+  // aqui só evitamos botões que seriam negados.
+  // ==========================================================
+
+  if (!podeAgir && modoCompartilhado) {
+
+    const etapaCompartilhada = Number(
+      lead?.etapa ?? ETAPAS.RECEBIDO
+    );
+
+    if (
+      lead?.status === "REATIVACAO" ||
+      (
+        etapaCompartilhada !== ETAPAS.VISITA &&
+        etapaCompartilhada !== ETAPAS.NEGOCIACAO
+      )
+    ) {
+
+      return (
+
+        <div className="leadActions">
+
+          <button
+            type="button"
+            className="btnAcaoPrincipal"
+            disabled
+          >
+            🤝 Atendimento compartilhado — nenhuma ação
+            disponível nesta etapa (use as observações)
+          </button>
+
+        </div>
+
+      );
+
+    }
+
+    return (
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          width: "100%",
+        }}
+      >
+
+        {etapaCompartilhada === ETAPAS.VISITA && (
+          <>
+            <ReagendarVisitaAction
+              lead={lead}
+              setLead={setLead}
+            />
+            <ComparecimentoAction
+              lead={lead}
+              setLead={setLead}
+            />
+          </>
+        )}
+
+        {etapaCompartilhada === ETAPAS.NEGOCIACAO && (
+          <>
+            <MatriculaAction
+              lead={lead}
+              setLead={setLead}
+            />
+            <NaoFechamentoAction
+              lead={lead}
+            />
+          </>
+        )}
+
+      </div>
+
+    );
+
+  }
+
 
   if (!podeAgir) {
 
@@ -220,10 +313,25 @@ export default function LeadActions({
 
     return (
 
-      <MatriculaAction
-        lead={lead}
-        setLead={setLead}
-      />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "10px",
+          width: "100%",
+        }}
+      >
+
+        <MatriculaAction
+          lead={lead}
+          setLead={setLead}
+        />
+
+        <NaoFechamentoAction
+          lead={lead}
+        />
+
+      </div>
 
     );
 

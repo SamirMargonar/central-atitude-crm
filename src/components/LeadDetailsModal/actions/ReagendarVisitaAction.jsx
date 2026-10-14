@@ -2,6 +2,8 @@ import { useState } from "react";
 
 import LeadActionModal from "../LeadActionModal";
 
+import { useAuth } from "../../../auth/AuthContext";
+
 import {
   atualizarLead,
   registrarEvento,
@@ -59,6 +61,27 @@ export default function ReagendarVisitaAction({
     lead?.responsavel ||
     lead?.consultora ||
     "";
+
+
+  // ============================================================
+  // AUTOR REAL DA AÇÃO
+  //
+  // Quem está logado — pode ser outra recepcionista atendendo o
+  // lead (atendimento compartilhado). Nunca usar o nome da titular
+  // como autor: ela continua sendo só o "consultor" da visita.
+  // ============================================================
+
+  const { usuario, perfilUsuario } = useAuth();
+
+  const nomeAutor =
+    perfilUsuario?.nome ||
+    usuario?.displayName ||
+    usuario?.email ||
+    "Usuário";
+
+  const atendimentoCompartilhado =
+    !!lead?.responsavelUid &&
+    lead.responsavelUid !== (usuario?.uid || "");
 
 
   function abrir() {
@@ -178,9 +201,9 @@ export default function ReagendarVisitaAction({
 
           hora,
 
-          consultora:
-            nomeResponsavel,
-
+          // `consultora` (nome) e `consultoraId` da visita NÃO são reescritos:
+          // a visita preserva quem a registrou (histórico); a titular atual
+          // continua no espelho `visita.consultor` do lead.
           observacao,
 
           comparecimento:
@@ -256,12 +279,18 @@ export default function ReagendarVisitaAction({
           "VISITA",
 
         usuario:
-          nomeResponsavel,
+          nomeAutor,
 
         descricao:
           "Visita reagendada.",
 
         dados: {
+
+          atendimentoCompartilhado,
+
+          titularNome:
+            nomeResponsavel,
+
 
           visitaAnterior:
             visitaAtual,

@@ -452,6 +452,147 @@ service cloud.firestore {
     }
 
     // ==========================================================
+    // ATENDIMENTO COMPARTILHADO
+    //
+    // Qualquer recepcionista com conta ATIVA pode atender o lead de outra
+    // consultora, mas SOMENTE por operações explícitas, cada uma com a lista
+    // fechada de campos que pode gravar. Atender NÃO transfere a carteira:
+    // responsavelUid / responsavel / consultora nunca mudam por aqui (quem
+    // troca dono continua sendo só ehAutorizadoATransferirCarteira()).
+    // Conta inativa (usuarios/{uid}.ativo == false) não executa nada daqui.
+    //
+    // AUTORIA: todo evento criado por este caminho precisa trazer o UID e o
+    // nome do PRÓPRIO chamador (nunca o nome da titular do lead) e o instante
+    // do servidor. O histórico é append-only: eventos nunca são editados nem
+    // excluídos (allow update/delete: false) e visitas já baixadas
+    // (COMPARECEU/NAO_COMPARECEU) nunca são regravadas por aqui.
+    //
+    // MÉTRICA: a matrícula conta para a TITULAR do lead (matricula.consultor == responsavel/consultora
+    // do lead, validado aqui); quem realizou o fechamento fica em registradoPorUid/Nome (== chamador).
+    // Operações (lead):  fechamento (etapa 4 -> 5, só o mapa 'matricula' novo),
+    //   reagendamento (espelho 'visita'), comparecimento (etapa 3 -> 4, pelo
+    //   botão do lead ou pela baixa da agenda) e não comparecimento.
+    // Operações (visita): registrar atendimento, dar baixa (comparecimento) e
+    //   reagendar. Observação e não fechamento são só EVENTOS.
+    // ==========================================================
+
+    function chamadorAtivo() {
+      return dadosDoChamador().get('ativo', true) != false;
+    }
+
+    function recepcionistaAtiva() {
+      return ehRecepcionista() && chamadorAtivo();
+    }
+
+    function etapaEh(dados, numero, texto) {
+      return ('etapa' in dados) && (dados.etapa == numero || dados.etapa == texto);
+    }
+
+    function visitaDoLead(leadId, visitaId) {
+      return get(/databases/$(database)/documents/visitas/$(visitaId)).data.leadId == leadId;
+    }
+
+    // A visita foi baixada (com este resultado) pelo PRÓPRIO chamador, nesta
+    // sequência do app (a visita é atualizada antes do lead).
+    function visitaBaixadaPorMim(leadId, visitaId, resultado) {
+      let v = get(/databases/$(database)/documents/visitas/$(visitaId)).data;
+      return v.leadId == leadId
+          && v.get('comparecimento', '') == resultado
+          && v.get('atendidoPor', '') == request.auth.uid;
+    }
+
+    function fechamentoCompartilhado(antes, depois, alterados) {
+      return alterados.hasOnly(['etapa', 'ultimoAtendimento', 'matricula', 'atualizadoEm'])
+          && etapaEh(antes, 4, '4')
+          && depois.etapa == 5
+          && !('matricula' in antes)
+          && ('matricula' in depois)
+          && depois.matricula is map
+          && depois.matricula.keys().hasOnly(['confirmada', 'data', 'hora', 'consultor', 'observacao', 'plano',
+                                              'dataInicio', 'dataVencimento', 'status',
+                                              'registradoPorUid', 'registradoPorNome', 'atendimentoCompartilhado'])
+          && depois.matricula.get('confirmada', false) == true
+          && depois.matricula.get('status', '') == 'ATIVA'
+          && depois.matricula.get('consultor', '') != ''
+          && depois.matricula.get('consultor', '') in [valorOuVazio(antes, 'responsavel'), valorOuVazio(antes, 'consultora')]
+          && depois.matricula.get('registradoPorUid', '') == request.auth.uid
+          && depois.matricula.get('registradoPorNome', '') == nomeDoChamador();
+    }
+
+    function reagendamentoCompartilhado(leadId, antes, depois, alterados) {
+      return alterados.hasOnly(['visita', 'ultimoAtendimento', 'atualizadoEm'])
+          && ('visita' in depois)
+          && depois.visita is map
+          && depois.visita.keys().hasOnly(['id', 'data', 'hora', 'consultor', 'observacao'])
+          && ('id' in depois.visita)
+          && (!('visita' in antes) || !('id' in antes.visita) || antes.visita.id == depois.visita.id)
+          && depois.visita.get('consultor', '') in [valorOuVazio(antes, 'responsavel'), valorOuVazio(antes, 'consultora')]
+          && visitaDoLead(leadId, depois.visita.id);
+    }
+
+    // Botão "Registrar Comparecimento" do lead (etapa 3 -> 4).
+    function comparecimentoDoLeadCompartilhado(antes, depois, alterados) {
+      return alterados.hasOnly(['etapa', 'ultimoAtendimento', 'atualizadoEm'])
+          && etapaEh(antes, 3, '3')
+          && depois.etapa == 4;
+    }
+
+    // Baixa COMPARECEU pela agenda: a visita já foi baixada por mim.
+    function comparecimentoDaVisitaCompartilhado(leadId, antes, depois, alterados) {
+      return alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'ultimaVisitaId', 'atualizadoEm'])
+          && etapaEh(antes, 3, '3')
+          && depois.etapa == 4
+          && depois.get('alertaNaoCompareceu', null) == false
+          && ('ultimaVisitaId' in depois)
+          && visitaBaixadaPorMim(leadId, depois.ultimaVisitaId, 'COMPARECEU');
+    }
+
+    // Baixa NAO_COMPARECEU pela agenda.
+    function naoComparecimentoDaVisitaCompartilhado(leadId, antes, depois, alterados) {
+      return alterados.hasOnly(['etapa', 'ultimoAtendimento', 'alertaNaoCompareceu', 'alertaNaoCompareceuEm',
+                                'alertaNaoCompareceuVisitaId', 'pendenciaComercial', 'atualizadoEm'])
+          && etapaEh(antes, 3, '3')
+          && depois.etapa == 3
+          && depois.get('alertaNaoCompareceu', null) == true
+          && depois.get('pendenciaComercial', '') == 'NOVO_CONTATO_NAO_COMPARECIMENTO'
+          && ('alertaNaoCompareceuVisitaId' in depois)
+          && visitaBaixadaPorMim(leadId, depois.alertaNaoCompareceuVisitaId, 'NAO_COMPARECEU');
+    }
+
+    function podeAtenderLeadAlheio(leadId, antes, depois) {
+      let alterados = depois.diff(antes).affectedKeys();
+      return recepcionistaAtiva()
+          && !propriedadeMudou(antes, depois)
+          && ('atualizadoEm' in depois)
+          && depois.atualizadoEm == request.time
+          && (fechamentoCompartilhado(antes, depois, alterados)
+              || reagendamentoCompartilhado(leadId, antes, depois, alterados)
+              || comparecimentoDoLeadCompartilhado(antes, depois, alterados)
+              || comparecimentoDaVisitaCompartilhado(leadId, antes, depois, alterados)
+              || naoComparecimentoDaVisitaCompartilhado(leadId, antes, depois, alterados));
+    }
+
+    // Lead na fila de Recebidos (sem dono, etapa 0, não assumido): decisão antiga e mantida —
+    // ninguém cria evento nele antes de assumir. Versão tolerante a campos ausentes.
+    function leadEmFila(dados) {
+      return dados.get('etapa', -1) == 0
+          && dados.get('assumido', true) == false
+          && leadSemResponsavel(dados);
+    }
+
+    // Evento do atendimento compartilhado: autor real (UID + nome) e instante do servidor.
+    function eventoCompartilhadoValido(leadId, ev) {
+      return recepcionistaAtiva()
+          && !leadEmFila(get(/databases/$(database)/documents/leads/$(leadId)).data)
+          && ev.get('tipo', '') in ['OBSERVACAO', 'MATRICULA', 'JORNADA', 'VISITA', 'PENDENCIA', 'NAO_FECHAMENTO']
+          && ev.keys().hasOnly(['leadId', 'tipo', 'usuario', 'usuarioUid', 'descricao', 'dados', 'criadoEm'])
+          && ev.get('leadId', '') == leadId
+          && ev.get('usuarioUid', '') == request.auth.uid
+          && ev.get('usuario', '') == nomeDoChamador()
+          && ev.get('criadoEm', null) == request.time;
+    }
+
+    // ==========================================================
     // LEADS/{LEADID}
     // ==========================================================
 
@@ -468,7 +609,8 @@ service cloud.firestore {
 
       allow update: if podeEditarLead(leadId, resource.data, request.resource.data)
                     || podeAtualizarLeadViaComparecimento(leadId, resource.data, request.resource.data)
-                    || podeReagendarViaTurno(leadId, resource.data, request.resource.data);
+                    || podeReagendarViaTurno(leadId, resource.data, request.resource.data)
+                    || podeAtenderLeadAlheio(leadId, resource.data, request.resource.data);
 
       // Exclusão permanente — restrita às duas identidades autorizadas
       // (mesma política da troca de dono). Antes bastava ser
@@ -503,7 +645,7 @@ service cloud.firestore {
         ) || (
           ehRecepcionista() &&
           eventoDeComparecimentoValido(leadId, request.resource.data)
-        );
+        ) || eventoCompartilhadoValido(leadId, request.resource.data);
 
         allow update: if false;
 
@@ -545,9 +687,71 @@ service cloud.firestore {
           && dadosVisita.consultoraId == request.auth.uid;
     }
 
+    // A visita pertence a um lead de que o chamador é titular (dono por UID ou por nome).
+    // É o que permite à NOVA responsável de uma carteira transferida consultar as visitas
+    // antigas do lead sem que o consultoraId delas (histórico) seja alterado.
+    function visitaDeLeadDoChamador(dadosVisita) {
+      return ('leadId' in dadosVisita)
+          && souDonoDoLead(get(/databases/$(database)/documents/leads/$(dadosVisita.leadId)).data);
+    }
+
     function podeVerVisita(dadosVisita) {
       return ehAdminOuCoordenador()
-          || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(dadosVisita) || ehDonaDaVisita(dadosVisita)));
+          || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(dadosVisita) || ehDonaDaVisita(dadosVisita)))
+          || (recepcionistaAtiva() && visitaDeLeadDoChamador(dadosVisita));
+    }
+
+    // ATENDIMENTO COMPARTILHADO — visitas. Três operações, cada uma com lista fechada de campos.
+    // Nunca altera consultoraId, leadId nem a marca da transferência; nunca regrava uma visita já baixada.
+    function visitaSemBaixa(antes) {
+      return antes.get('comparecimento', '') == '';
+    }
+
+    function registroDeAtendimentoDaVisita(antes, depois, alterados) {
+      return alterados.hasOnly(['atendidoPor', 'atendidoPorNome', 'atendidoEm', 'observacao'])
+          && visitaSemBaixa(antes)
+          && antes.get('atendidoPor', '') in ['', request.auth.uid]
+          && depois.get('atendidoPor', '') == request.auth.uid
+          && depois.get('atendidoPorNome', '') == nomeDoChamador()
+          && depois.get('atendidoEm', null) == request.time;
+    }
+
+    // O app (atualizarVisita) sempre regrava atualizadoEm com o instante do servidor: aceito, e só assim.
+    function atualizadoEmDoServidor(alterados, depois) {
+      return !('atualizadoEm' in alterados) || depois.atualizadoEm == request.time;
+    }
+
+    function baixaDaVisita(antes, depois, alterados) {
+      return alterados.hasOnly(['comparecimento', 'status', 'pendenciaResolvida', 'atualizadoEm'])
+          && atualizadoEmDoServidor(alterados, depois)
+          && visitaSemBaixa(antes)
+          && antes.get('atendidoPor', '') == request.auth.uid
+          && depois.get('comparecimento', '') in ['COMPARECEU', 'NAO_COMPARECEU']
+          && depois.get('status', '') == 'CONFIRMADA'
+          && (depois.comparecimento == 'COMPARECEU'
+              ? !('pendenciaResolvida' in alterados)
+              : depois.get('pendenciaResolvida', true) == false);
+    }
+
+    function reagendamentoDaVisita(antes, depois, alterados) {
+      return alterados.hasOnly(['data', 'hora', 'observacao', 'comparecimento', 'pendenciaResolvida', 'status', 'atualizadoEm'])
+          && atualizadoEmDoServidor(alterados, depois)
+          && antes.get('comparecimento', '') != 'COMPARECEU'
+          && depois.get('comparecimento', 'x') == ''
+          && depois.get('status', '') == 'AGENDADA'
+          && depois.get('pendenciaResolvida', false) == true
+          && depois.get('data', 0) is string
+          && depois.get('hora', 0) is string;
+    }
+
+    function podeTratarVisitaCompartilhada(antes, depois) {
+      let alterados = camposAlterados(antes, depois);
+      return recepcionistaAtiva()
+          && ('leadId' in antes)
+          && autoriaValida(antes, depois)
+          && (registroDeAtendimentoDaVisita(antes, depois, alterados)
+              || baixaDaVisita(antes, depois, alterados)
+              || reagendamentoDaVisita(antes, depois, alterados));
     }
 
     // ----------------------------------------------------------
@@ -629,7 +833,8 @@ service cloud.firestore {
                          || (ehRecepcionista() && (visitaDentroDoTurnoDoChamador(resource.data) || ehDonaDaVisita(resource.data))))
                         && autoriaValida(resource.data, request.resource.data)
                         && !('consultoraId' in camposAlterados(resource.data, request.resource.data))
-                        && !('ultimaTransferenciaEmMassaId' in camposAlterados(resource.data, request.resource.data)));
+                        && !('ultimaTransferenciaEmMassaId' in camposAlterados(resource.data, request.resource.data)))
+                    || podeTratarVisitaCompartilhada(resource.data, request.resource.data);
 
       allow delete: if false;
 

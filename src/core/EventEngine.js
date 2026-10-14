@@ -10,7 +10,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 
-import { db } from "../firebase/firebase";
+import { db, auth } from "../firebase/firebase";
 
 /**
  * Atualiza os dados de um Lead
@@ -60,6 +60,9 @@ export async function registrarEvento({
     "eventos"
   );
 
+  // AUTORIA: além do nome (`usuario`), todo evento grava o UID REAL de quem
+  // executou a ação (auth.currentUser) — nunca o da titular do lead. As
+  // Firestore Rules exigem isso no atendimento compartilhado.
   const evento = {
 
     leadId,
@@ -67,6 +70,8 @@ export async function registrarEvento({
     tipo,
 
     usuario,
+
+    usuarioUid: auth?.currentUser?.uid || "",
 
     descricao,
 

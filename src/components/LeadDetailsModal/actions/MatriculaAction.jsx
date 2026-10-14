@@ -41,6 +41,22 @@ export default function MatriculaAction({
     usuario?.email ||
     "Usuário";
 
+  // ==========================================================
+  // TITULAR x AUTOR
+  //
+  // REGRA DE NEGÓCIO: a matrícula conta para a consultora TITULAR
+  // do lead (campo `matricula.consultor`, usado pelo Relatório de
+  // Matrículas), mesmo quando outra pessoa atende e fecha o plano.
+  // Quem REALMENTE confirmou fica em registradoPorUid/Nome e no
+  // evento MATRICULA (`usuario` + `usuarioUid`). A titularidade do
+  // lead nunca muda por causa do fechamento.
+  // ==========================================================
+
+  const titularNome =
+    lead?.responsavel ||
+    lead?.consultora ||
+    nomeResponsavel;
+
   const [aberto, setAberto] = useState(false);
 
 
@@ -359,7 +375,7 @@ export default function MatriculaAction({
           horaMatricula,
 
         consultor:
-          nomeResponsavel,
+          titularNome,
 
         observacao,
 
@@ -375,6 +391,24 @@ export default function MatriculaAction({
 
         status:
           "ATIVA",
+
+        // ========================================
+        // AUTORIA (atendimento compartilhado)
+        //
+        // `consultor` já é quem confirmou; estes campos tornam isso
+        // verificável pelas Rules e separam o AUTOR da titular da
+        // carteira (que não muda). Os indicadores (etapa 5) não mudam.
+        // ========================================
+
+        registradoPorUid:
+          usuario?.uid || "",
+
+        registradoPorNome:
+          nomeResponsavel,
+
+        atendimentoCompartilhado:
+          !!lead?.responsavelUid &&
+          lead.responsavelUid !== (usuario?.uid || ""),
 
       };
 
@@ -449,7 +483,7 @@ export default function MatriculaAction({
             horaMatricula,
 
           consultor:
-            nomeResponsavel,
+            titularNome,
 
           observacao,
 
@@ -458,6 +492,20 @@ export default function MatriculaAction({
           dataInicio,
 
           dataVencimento,
+
+          registradoPorUid:
+            usuario?.uid || "",
+
+          registradoPorNome:
+            nomeResponsavel,
+
+          atendimentoCompartilhado:
+            dadosMatricula.atendimentoCompartilhado,
+
+          titularUid:
+            lead?.responsavelUid || "",
+
+          titularNome,
 
         },
 

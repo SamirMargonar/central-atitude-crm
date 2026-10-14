@@ -129,6 +129,88 @@ export async function atualizarVisita(
 
 
 // ==========================================================
+// VISITAS DOS LEADS DA TITULAR (carteira transferida)
+//
+// A nova responsável por um lead precisa consultar e tratar as
+// visitas desse lead, inclusive as ANTIGAS sem baixa, mesmo quando
+// o consultoraId delas (histórico) continua sendo o da antiga dona
+// e o horário não cai no turno dela. As Rules liberam a visita pela
+// relação com o lead (souDonoDoLead); aqui só buscamos. Nada é
+// alterado nas visitas. Falha de leitura NÃO derruba a agenda.
+// ==========================================================
+
+export async function buscarVisitasDosLeadsDaTitular({
+  uid,
+}) {
+
+  if (!uid) {
+    return [];
+  }
+
+  try {
+
+    const leads =
+      await getDocs(
+        query(
+          collection(db, "leads"),
+          where(
+            "responsavelUid",
+            "==",
+            uid
+          )
+        )
+      );
+
+    const ids =
+      leads.docs.map(
+        (documento) => documento.id
+      );
+
+    const visitas = [];
+
+    for (let i = 0; i < ids.length; i += 10) {
+
+      const bloco =
+        await getDocs(
+          query(
+            collection(db, "visitas"),
+            where(
+              "leadId",
+              "in",
+              ids.slice(i, i + 10)
+            )
+          )
+        );
+
+      bloco.docs.forEach(
+        (documento) => {
+          visitas.push({
+            id:
+              documento.id,
+            ...documento.data(),
+          });
+        }
+      );
+
+    }
+
+    return visitas;
+
+  } catch (erro) {
+
+    console.warn(
+      "Não foi possível carregar as visitas dos leads da titular:",
+      erro
+    );
+
+    return [];
+
+  }
+
+}
+
+
+// ==========================================================
 // BUSCAR TODAS AS VISITAS
 // ==========================================================
 

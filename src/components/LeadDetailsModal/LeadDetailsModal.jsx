@@ -71,6 +71,17 @@ export default function LeadDetailsModal({
     souDonoDoLead;
 
 
+  // ATENDIMENTO COMPARTILHADO — recepcionista com conta ativa atendendo
+  // o lead de OUTRA consultora. A propriedade não muda: só as operações
+  // autorizadas nas Rules (observação, reagendar, comparecimento,
+  // fechamento/não fechamento) ficam disponíveis. As Rules são a
+  // autoridade; isto só decide o que mostrar.
+  const modoCompartilhado =
+    !podeAgir &&
+    perfilUsuario?.perfil === "recepcionista" &&
+    perfilUsuario?.ativo !== false;
+
+
   // Trocar o responsável (transferência individual ou em massa) e
   // EXCLUIR lead são restritos a duas identidades fixas — aplicado
   // pelas Rules (excluir era o contorno "apagar e recriar"); aqui só
@@ -89,12 +100,25 @@ export default function LeadDetailsModal({
 
       <div className="leadModal">
 
-        {!podeAgir && (
+        {!podeAgir && !modoCompartilhado && (
 
           <div className="leadModoConsulta">
             🔍 Modo consulta — você está vendo este lead, mas
             ele é de outro responsável. Ações de edição estão
             desabilitadas.
+          </div>
+
+        )}
+
+        {modoCompartilhado && (
+
+          <div className="leadModoConsulta">
+            🤝 Atendimento compartilhado — este lead pertence a{" "}
+            {leadLocal?.responsavel || leadLocal?.consultora || "outra consultora"}.
+            Você pode registrar observações, reagendar a visita,
+            registrar comparecimento e fechamento; a propriedade
+            do lead não muda e cada ação fica registrada com o seu
+            nome.
           </div>
 
         )}
@@ -122,6 +146,7 @@ export default function LeadDetailsModal({
           lead={leadLocal}
           setLead={setLeadLocal}
           podeAgir={podeAgir}
+          modoCompartilhado={modoCompartilhado}
         />
 
         {podeAgir && (
@@ -136,7 +161,7 @@ export default function LeadDetailsModal({
         <LeadNotes
           lead={leadLocal}
           setLead={setLeadLocal}
-          podeAgir={podeAgir}
+          podeAgir={podeAgir || modoCompartilhado}
         />
 
         <LeadTimeline

@@ -5,6 +5,8 @@ import "../styles/relatorioMatriculas.css";
 import {
   filtrarMatriculados,
   filtrarRelatorioMatriculas,
+  consultoraTitularDaMatricula,
+  fechamentoPorOutraPessoa,
   formatarDataMatricula,
   nomePlanoMatricula,
 } from "../utils/matriculasFilters";
@@ -70,7 +72,7 @@ export default function RelatorioMatriculas({
           matriculados
             .map(
               (lead) =>
-                lead.matricula?.consultor
+                consultoraTitularDaMatricula(lead)
             )
             .filter(Boolean)
         );
@@ -270,10 +272,19 @@ export default function RelatorioMatriculas({
                     <div>
                       <span>👤 Consultor</span>
                       <strong>
-                        {matricula.consultor ||
+                        {consultoraTitularDaMatricula(lead) ||
                           "Não informado"}
                       </strong>
                     </div>
+
+                    {fechamentoPorOutraPessoa(lead) && (
+                      <div>
+                        <span>✍️ Fechada por</span>
+                        <strong>
+                          {fechamentoPorOutraPessoa(lead)}
+                        </strong>
+                      </div>
+                    )}
 
                     <div>
                       <span>📅 Matrícula</span>

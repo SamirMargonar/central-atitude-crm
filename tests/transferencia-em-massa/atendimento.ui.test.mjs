@@ -20,7 +20,7 @@ const h = React.createElement;
 const mk = mkdtempSync(path.join(tmpdir(), "tme-ui-at-"));
 symlinkSync(REPO + "/node_modules", mk + "/node_modules");
 const nomesF = ["Timestamp", "addDoc", "arrayUnion", "collection", "deleteDoc", "deleteField", "doc", "getDoc", "getDocs", "getFirestore", "onSnapshot", "orderBy", "limit", "query", "serverTimestamp", "setDoc", "updateDoc", "where", "writeBatch", "runTransaction"];
-writeFileSync(`${mk}/firestore.js`, nomesF.map((n) => `export const ${n} = (...a) => ({ __stub: "${n}", a });`).join("\n") + "\n");
+writeFileSync(`${mk}/firestore.js`, nomesF.map((n) => `export const ${n} = (...a) => { (globalThis.__fsCalls ||= []).push("${n}"); return { __stub: "${n}", a }; };`).join("\n") + "\n");
 writeFileSync(`${mk}/auth.js`, `export const signOut = async () => {}; export const getAuth = () => ({}); export const onAuthStateChanged = () => () => {};\n`);
 writeFileSync(`${mk}/firebase.js`, `export const db = {}; export const auth = {};\n`);
 writeFileSync(`${mk}/auth-context.jsx`, `export const useAuth = () => globalThis.__auth;\n`);
@@ -100,6 +100,93 @@ const LEAD_ANA = { id: "L", nome: "x", etapa: 4, responsavelUid: "ana", responsa
   como("coord-qualquer", "coordenador", "Coord");
   f = await montar(detalhes(LEAD_ANA));
   check("coordenador/admin (não autorizado a transferir): continua podendo agir; sem Transferir nem Excluir", props("LeadActions").podeAgir === true && !tem("LeadTransfer") && !tem("ExcluirLeadAction"));
+  await f();
+}
+
+console.log("\n=== C. Lead DISPONÍVEL NA FILA (etapa 0, não assumido, sem responsável) — o modal não o trata como de outra consultora");
+{
+  const FILA = { id: "F", nome: "x", telefone: "000", etapa: 0, assumido: false, responsavelUid: "", responsavel: "", consultora: "" };
+  const MSG_FILA = "Este lead está disponível na fila. Para iniciar o atendimento, utilize o botão Assumir Lead no cartão.";
+  const semMensagemDeOutra = () => !body().includes("pertence a") && !body().includes("outra consultora") && !body().includes("Atendimento compartilhado") && !body().includes("Modo consulta —");
+  const WRITES = ["updateDoc", "setDoc", "addDoc", "deleteDoc", "writeBatch", "runTransaction", "arrayUnion", "deleteField"];
+
+  // A. recepcionista ATIVA abre lead da fila
+  como("isa", "recepcionista", "Isabelle");
+  globalThis.__fsCalls = []; let leadObj = JSON.stringify(FILA); let f = await montar(detalhes(FILA));
+  check("A. fila + recepcionista ativa: mensagem clara de 'disponível na fila' (usar Assumir Lead no cartão)", body().includes(MSG_FILA), body().slice(0, 200));
+  check("A. ...sem afirmar que pertence a outra consultora e sem banner de atendimento compartilhado / modo consulta", semMensagemDeOutra());
+  check("A. ...LeadActions: podeAgir=false e modoCompartilhado=false (nenhuma ação de lead alheio)", props("LeadActions").podeAgir === false && props("LeadActions").modoCompartilhado === false);
+  check("A. ...LeadNotes não grava (não é lead dela nem compartilhado) e Header/Owner/Journey em consulta", props("LeadNotes").podeAgir === false && props("LeadHeader").podeAgir === false && props("LeadJourney").podeAgir === false);
+  check("A. ...sem Transferir, Excluir nem Reativar; o modal não oferece 'assumir' (continua só no cartão)", !tem("LeadTransfer") && !tem("ExcluirLeadAction") && !tem("ReativarLeadAction") && !body().includes("🤝 Assumir"));
+  check("A. abrir o modal NÃO grava: nenhuma escrita no Firestore e o lead (titularidade, assumido, etapa) fica idêntico", globalThis.__fsCalls.filter((c) => WRITES.includes(c)).length === 0 && JSON.stringify(FILA) === leadObj && FILA.assumido === false && FILA.responsavelUid === "" && FILA.etapa === 0);
+  await f();
+
+  // A'. recepcionista INATIVA também não vê a mensagem enganosa
+  como("inat", "recepcionista", "Inativa", { ativo: false });
+  f = await montar(detalhes(FILA));
+  check("A'. fila + recepcionista INATIVA: mesma mensagem de fila, sem 'modo consulta' de outro responsável", body().includes(MSG_FILA) && semMensagemDeOutra() && props("LeadActions").modoCompartilhado === false);
+  await f();
+
+  // B. lead assumido pela própria recepcionista (etapa 0 continua em Recebidos)
+  como("isa", "recepcionista", "Isabelle");
+  const MEU = { id: "M", nome: "x", etapa: 0, assumido: true, responsavelUid: "isa", responsavel: "Isabelle", consultora: "Isabelle" };
+  f = await montar(detalhes(MEU));
+  check("B. assumido por ela: modo normal (podeAgir) — nem fila, nem compartilhado, nem consulta", props("LeadActions").podeAgir === true && props("LeadActions").modoCompartilhado === false && !body().includes("disponível na fila") && semMensagemDeOutra());
+  check("B. ...Header/Notes/Journey liberados para ela", props("LeadHeader").podeAgir === true && props("LeadNotes").podeAgir === true && props("LeadJourney").podeAgir === true);
+  await f();
+  const MEU_NOME = { id: "M2", nome: "x", etapa: 0, assumido: true, responsavelUid: "", responsavel: "Isabelle", consultora: "Isabelle" };
+  f = await montar(detalhes(MEU_NOME));
+  check("B'. dona só pelo nome (como as Rules aceitam): modo normal", props("LeadActions").podeAgir === true && !body().includes("disponível na fila"));
+  await f();
+
+  // C. lead de OUTRA recepcionista continua em atendimento compartilhado
+  const DE_OUTRA = { id: "O", nome: "x", etapa: 0, assumido: true, responsavelUid: "ana", responsavel: "Ana Lara", consultora: "Ana Lara" };
+  f = await montar(detalhes(DE_OUTRA));
+  check("C. lead de outra recepcionista (etapa 0 assumido): atendimento compartilhado com o nome da titular, sem mensagem de fila", body().includes("Atendimento compartilhado") && body().includes("Ana Lara") && !body().includes("disponível na fila") && props("LeadActions").modoCompartilhado === true && props("LeadActions").podeAgir === false);
+  await f();
+  const DE_OUTRA_PARCIAL = { id: "O2", nome: "x", etapa: 0, assumido: false, responsavelUid: "ana", responsavel: "", consultora: "" };
+  f = await montar(detalhes(DE_OUTRA_PARCIAL));
+  check("C'. etapa 0 com responsavelUid de outra pessoa NÃO é 'da fila' (basta um campo de dono): segue compartilhado", props("LeadActions").modoCompartilhado === true && !body().includes("disponível na fila"));
+  await f();
+  const ETAPA3_SEM_DONO = { id: "E3", nome: "x", etapa: 3, assumido: false, responsavelUid: "", responsavel: "", consultora: "" };
+  f = await montar(detalhes(ETAPA3_SEM_DONO));
+  check("C''. fila só vale para etapa 0 (etapa 3 sem dono não recebe a mensagem de fila)", !body().includes("disponível na fila"));
+  await f();
+
+  // D. administrador e coordenador abrindo o lead da fila: nada muda
+  for (const perfil of ["admin", "coordenador"]) {
+    como(perfil + "-x", perfil, "Gestor");
+    globalThis.__fsCalls = []; f = await montar(detalhes(FILA));
+    check(`D. ${perfil}: continua podendo agir (ações normais), sem mensagem de fila nem de compartilhado`, props("LeadActions").podeAgir === true && props("LeadActions").modoCompartilhado === false && !body().includes("disponível na fila") && semMensagemDeOutra());
+    check(`D. ${perfil}: Header/Notes/Journey e Reativar preservados; abrir não grava`, props("LeadHeader").podeAgir === true && props("LeadNotes").podeAgir === true && tem("ReativarLeadAction") && globalThis.__fsCalls.filter((c) => WRITES.includes(c)).length === 0);
+    await f();
+  }
+
+  // E. garantia estática: o modal não tem nenhum caminho de escrita nem importa o Firestore
+  const { readFileSync } = await import("node:fs");
+  const fonte = readFileSync(`${REPO}/src/components/LeadDetailsModal/LeadDetailsModal.jsx`, "utf8");
+  check("E. LeadDetailsModal.jsx não importa o Firestore nem contém escrita (updateDoc/setDoc/addDoc/deleteDoc/assumir)", !/firebase\/firestore/.test(fonte) && !/\b(updateDoc|setDoc|addDoc|deleteDoc|writeBatch|runTransaction|assumirLead|assumirLeadMobile)\b/.test(fonte));
+}
+
+console.log("\n=== D. Cartão e quadro: o fluxo de assumir continua como era (lead assumido permanece em Recebidos)");
+{
+  const { default: LeadCard } = await vite.ssrLoadModule("/src/components/Lead/LeadCard.jsx");
+  const { default: LeadBoard } = await vite.ssrLoadModule("/src/components/Lead/LeadBoard.jsx");
+  como("isa", "recepcionista", "Isabelle");
+  const FILA = { id: "F", nome: "Cliente Fila", telefone: "000", etapa: 0, assumido: false, responsavelUid: "", responsavel: "", consultora: "", origem: "x" };
+  const ASS = { ...FILA, id: "A", nome: "Cliente Assumido", assumido: true, responsavelUid: "isa", responsavel: "Isabelle", consultora: "Isabelle" };
+  let assumidos = [];
+  let f = await montar(h(LeadCard, { lead: FILA, onAssumir: (id) => assumidos.push(id), onVerHistorico: () => {} }));
+  const botoes = () => [...document.querySelectorAll("button")].map((b) => b.textContent.trim());
+  check("cartão da fila: mostra 'Assumir Lead'", botoes().some((t) => t.includes("Assumir Lead")));
+  await act(async () => { [...document.querySelectorAll("button")].find((b) => b.textContent.includes("Assumir Lead")).click(); }); await wait();
+  check("clicar em 'Assumir Lead' chama onAssumir com o id do lead (fluxo do cartão intacto)", assumidos.join() === "F");
+  await f();
+  f = await montar(h(LeadCard, { lead: ASS, onAssumir: (id) => assumidos.push(id), onVerHistorico: () => {} }));
+  check("cartão do lead assumido: 'Registrar Primeiro Contato' e SEM 'Assumir Lead'", botoes().some((t) => t.includes("Registrar Primeiro Contato")) && !botoes().some((t) => t.includes("Assumir Lead")));
+  await f();
+  f = await montar(h(LeadBoard, { leads: [FILA, ASS], onAssumir: () => {}, onVerHistorico: () => {} }));
+  check("quadro: lead assumido com etapa 0 PERMANECE em Recebidos (comportamento preservado)", /Recebidos\s*\(2\)/.test(body()), body().slice(0, 120));
   await f();
 }
 

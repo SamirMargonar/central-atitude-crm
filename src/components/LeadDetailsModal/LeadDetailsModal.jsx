@@ -71,13 +71,28 @@ export default function LeadDetailsModal({
     souDonoDoLead;
 
 
+  // LEAD DISPONÍVEL NA FILA — etapa 0, ainda não assumido e sem
+  // nenhum responsável (mesmo critério de leadNaFilaRecebidos nas
+  // Rules). Ele NÃO pertence a outra consultora: ninguém o assumiu.
+  // Quem não é dono nem gestor só o vê; assumir continua sendo feito
+  // pelo botão "Assumir Lead" do cartão (abrir este modal nunca
+  // assume nem grava nada).
+  const leadDisponivelNaFila =
+    Number(leadLocal?.etapa ?? 0) === 0 &&
+    !leadLocal?.assumido &&
+    !leadLocal?.responsavelUid &&
+    !leadLocal?.responsavel &&
+    !leadLocal?.consultora;
+
   // ATENDIMENTO COMPARTILHADO — recepcionista com conta ativa atendendo
   // o lead de OUTRA consultora. A propriedade não muda: só as operações
   // autorizadas nas Rules (observação, reagendar, comparecimento,
   // fechamento/não fechamento) ficam disponíveis. As Rules são a
-  // autoridade; isto só decide o que mostrar.
+  // autoridade; isto só decide o que mostrar. Lead da fila não é lead
+  // de outra consultora.
   const modoCompartilhado =
     !podeAgir &&
+    !leadDisponivelNaFila &&
     perfilUsuario?.perfil === "recepcionista" &&
     perfilUsuario?.ativo !== false;
 
@@ -100,7 +115,16 @@ export default function LeadDetailsModal({
 
       <div className="leadModal">
 
-        {!podeAgir && !modoCompartilhado && (
+        {!podeAgir && leadDisponivelNaFila && (
+
+          <div className="leadModoConsulta">
+            📥 Este lead está disponível na fila. Para iniciar o
+            atendimento, utilize o botão Assumir Lead no cartão.
+          </div>
+
+        )}
+
+        {!podeAgir && !modoCompartilhado && !leadDisponivelNaFila && (
 
           <div className="leadModoConsulta">
             🔍 Modo consulta — você está vendo este lead, mas

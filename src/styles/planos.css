@@ -27,14 +27,15 @@
 
 .planoCard { background: #fff; border: 1px solid #d5deea; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 4px rgba(7, 26, 51, .08); }
 .planoCard header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.planoCard small { color: #6c63ff; font-weight: 600; }
+.planoCard small { color: #5b52e8; font-weight: 600; }
 .planoCard dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
 .planoCard dl div { display: flex; flex-direction: column; }
-.planoCard dt { font-size: 12px; color: #6b7a90; }
+.planoCard dt { font-size: 12px; color: #566579; }
 .planoCard dd { margin: 0; font-weight: 600; color: #071a33; font-size: 14px; }
 .planoCard footer { display: flex; gap: 8px; margin-top: auto; }
 .planoTexto { margin: 0; font-size: 13px; color: #44546a; }
-.planoInativo { opacity: .65; }
+/* desativado: fundo cinza-claro (em vez de opacidade, que apagava o texto) */
+.planoInativo { background: #e9edf3; border-color: #cbd5e1; }
 
 .planoBadge { font-size: 12px; padding: 3px 9px; border-radius: 999px; font-weight: 600; }
 .planoBadge.on { background: #dcfce7; color: #166534; }
@@ -56,3 +57,41 @@
 .planosPagina .leadActionBody textarea { min-height: 72px; height: 72px; }
 .planosPagina .planosCheck { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
 .planosPagina .planosCheck input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; flex: none; padding: 0; margin: 0; }
+
+
+/* ==========================================================
+   CORES DOS TEXTOS — contrato explícito
+   ----------------------------------------------------------
+   O CRM define cores GLOBAIS claras em dashboard.css para fundo
+   escuro: `.conteudo { color: #e7edf5 }` e `.conteudo h1/h2/h3/p`
+   (clarinhas). Elementos sem cor própria dentro dos cartões brancos
+   (como o <strong> do título) herdavam esse tom e ficavam quase
+   invisíveis, e `.conteudo p` vencia a cor de `.planoTexto`. Por
+   isso o cartão passa a declarar a própria cor e cada texto usa um
+   seletor mais específico que o da herança global.
+   ========================================================== */
+
+.planosPagina .planoCard { color: #172B4D; }
+
+.planosPagina .planoCard header strong { color: #172B4D; }
+
+.planosPagina .planoCard dd { color: #172B4D; }
+
+.planosPagina .planoCard .planoTexto { color: #3b4a61; }
+
+/* cabeçalho da página (fundo escuro): garante o tom claro mesmo se a
+   regra global mudar */
+.planosPagina .planosCabecalho h1 { color: #ffffff; }
+.planosPagina .planosCabecalho p { color: #9ca3af; }
+.planosPagina .planosAviso { color: #9ca3af; }
+
+/* textos dentro do modal branco */
+.planosPagina .planosCategorias li span { color: #172B4D; }
+
+/* botões do cartão desativado: fundo branco para não se confundirem com o cinza do cartão */
+.planosPagina .planoInativo .btnCancelar { background: #ffffff; border: 1px solid #cbd5e1; color: #172B4D; }
+
+/* botão "Salvar/Adicionar" dos modais desta tela: roxo um pouco mais fundo (#5b52e8, já usado no CRM)
+   para o texto branco atingir contraste mínimo de 4,5:1 */
+.planosPagina .leadActionButtons .btnSalvar { background: #5b52e8; }
+.planosPagina .leadActionButtons .btnSalvar:hover { background: #4f46d6; }

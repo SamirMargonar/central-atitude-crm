@@ -25,6 +25,9 @@ import Relatorios
 import Usuarios
   from "./usuarios/Usuarios";
 
+import GerenciamentoPlanos
+  from "./planos/GerenciamentoPlanos";
+
 import useLeads from "./hooks/useLeads";
 
 import Login from "./auth/Login";
@@ -321,6 +324,18 @@ function CRM({
         {pagina === "usuarios" && permissoes.acessarUsuarios && (
 
           <Usuarios />
+
+        )}
+
+
+        {/* ==================================================
+            GERENCIAMENTO DE PLANOS
+            SOMENTE ADMIN
+        ================================================== */}
+
+        {pagina === "planos" && perfilUsuario?.perfil === "admin" && (
+
+          <GerenciamentoPlanos />
 
         )}
 

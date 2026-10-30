@@ -1,0 +1,74 @@
+.btnWhatsAppCliente {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 28px;
+    height: 28px;
+    margin-left: 8px;
+    padding: 0;
+
+    border: none;
+    border-radius: 50%;
+    background: #25d366;
+    color: #ffffff;
+
+    vertical-align: middle;
+    cursor: pointer;
+    text-decoration: none;
+    transition: transform .15s ease, background .15s ease;
+}
+
+.btnWhatsAppCliente:hover {
+    background: #1fb858;
+    transform: scale(1.08);
+}
+
+.btnWhatsAppClienteOff,
+.btnWhatsAppClienteOff:hover {
+    background: #cbd5e1;
+    color: #64748b;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.whatsAppClienteIndisponivel {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.whatsAppClienteIndisponivel small {
+    flex-basis: 100%;
+    margin-top: 4px;
+    color: #92400e;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+
+/* número + botão juntos: se a coluna for estreita, o conjunto desce
+   inteiro para a linha de baixo (o botão nunca fica solto) */
+.detalhesTelefoneNumero {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+}
+
+.detalhesTelefoneNumero .btnWhatsAppCliente {
+    width: 24px;
+    height: 24px;
+    margin-left: 0;
+}
+
+.detalhesTelefoneNumero .btnWhatsAppCliente svg {
+    width: 14px;
+    height: 14px;
+}
+
+/* aviso curto quando o botão está indisponível (texto completo no tooltip) */
+.detalhesTelefoneNumero .whatsAppClienteIndisponivel small {
+    font-size: 11px;
+    line-height: 1.3;
+}

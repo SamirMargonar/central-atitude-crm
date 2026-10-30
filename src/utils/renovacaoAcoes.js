@@ -9,6 +9,15 @@
 // ==========================================================
 
 
+import {
+  MESES_POR_CODIGO_LEGADO,
+  aplicarSnapshotNaMatricula,
+  calcularVencimentoPorMeses,
+  duracaoEmMeses,
+  nomeDaMatricula,
+} from "./planos.js";
+
+
 // ==========================================================
 // VENCIMENTO DA RENOVAÇÃO
 //
@@ -22,70 +31,18 @@ export function calcularVencimentoRenovacao(
   plano
 ) {
 
-  if (!dataInicio) {
-    return "";
-  }
+  // `plano` pode ser o CÓDIGO legado (string: MENSAL, TRIMESTRAL,
+  // SEMESTRAL, ANUAL — comportamento de sempre) ou o objeto do plano
+  // escolhido no catálogo (usa a duração em meses dele).
+  const meses =
+    typeof plano === "string"
+      ? MESES_POR_CODIGO_LEGADO[plano] ?? null
+      : duracaoEmMeses(plano);
 
-  const inicio =
-    new Date(`${dataInicio}T12:00:00`);
-
-  if (
-    Number.isNaN(inicio.getTime())
-  ) {
-
-    return "";
-
-  }
-
-  const vencimento =
-    new Date(inicio);
-
-  if (plano === "MENSAL") {
-
-    vencimento.setMonth(
-      vencimento.getMonth() + 1
-    );
-
-  }
-
-  if (plano === "TRIMESTRAL") {
-
-    vencimento.setMonth(
-      vencimento.getMonth() + 3
-    );
-
-  }
-
-  if (plano === "SEMESTRAL") {
-
-    vencimento.setMonth(
-      vencimento.getMonth() + 6
-    );
-
-  }
-
-  if (plano === "ANUAL") {
-
-    vencimento.setFullYear(
-      vencimento.getFullYear() + 1
-    );
-
-  }
-
-  const ano =
-    vencimento.getFullYear();
-
-  const mes =
-    String(
-      vencimento.getMonth() + 1
-    ).padStart(2, "0");
-
-  const dia =
-    String(
-      vencimento.getDate()
-    ).padStart(2, "0");
-
-  return `${ano}-${mes}-${dia}`;
+  return calcularVencimentoPorMeses(
+    dataInicio,
+    meses
+  );
 
 }
 
@@ -100,19 +57,25 @@ export function calcularVencimentoRenovacao(
 
 export function construirMatriculaRenovada(
   matriculaAtual,
-  { plano, dataInicio, dataVencimento }
+  { plano, dataInicio, dataVencimento, snapshot = null }
 ) {
 
+  // Com `snapshot` (plano do catálogo): a renovação é um NOVO contrato,
+  // então os campos de instantâneo do plano anterior são substituídos
+  // pelos do plano escolhido (sem misturar valor de um com nome de
+  // outro). Sem `snapshot`: comportamento legado (só o código).
+  const base =
+    snapshot
+      ? aplicarSnapshotNaMatricula(
+          matriculaAtual,
+          snapshot
+        )
+      : { ...matriculaAtual, plano };
+
   return {
-
-    ...matriculaAtual,
-
-    plano,
-
+    ...base,
     dataInicio,
-
     dataVencimento,
-
   };
 
 }
@@ -148,29 +111,11 @@ export function construirMatriculaComRecusa(
 
 
 // ==========================================================
-// NOME DO PLANO (mesma tabela já usada em Renovacoes.jsx)
+// NOME DO PLANO — do instantâneo da matrícula (ou códigos legados)
 // ==========================================================
 
-const NOMES_PLANO = {
-
-  MENSAL: "Plano Mensal",
-
-  TRIMESTRAL: "Plano Trimestral",
-
-  SEMESTRAL: "Plano Semestral",
-
-  ANUAL: "Plano Anual",
-
-};
-
-function nomePlano(plano) {
-
-  return (
-    NOMES_PLANO[plano] ||
-    plano ||
-    "Plano não informado"
-  );
-
+function nomePlano(matricula) {
+  return nomeDaMatricula(matricula);
 }
 
 
@@ -213,7 +158,7 @@ export function construirMensagemContato(
 
   const plano =
     nomePlano(
-      cliente?.matricula?.plano
+      cliente?.matricula
     );
 
   const vencimento =
@@ -237,4 +182,4 @@ export function construirMensagemContato(
 
 export {
   construirLinkWhatsApp,
-} from "./whatsapp";
+} from "./whatsapp.js";

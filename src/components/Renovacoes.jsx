@@ -4,6 +4,8 @@ import "./Renovacoes.css";
 
 import RenovacaoAcoes from "./RenovacaoAcoes";
 
+import { nomeDaMatricula } from "../utils/planos";
+
 
 export default function Renovacoes({
   leads = [],
@@ -138,34 +140,15 @@ export default function Renovacoes({
 
 
   // ==========================================================
-  // NOME DO PLANO
+  // NOME DO PLANO — do instantâneo da matrícula (ou códigos legados)
   // ==========================================================
 
   function nomePlano(
-    plano
+    matricula
   ) {
 
-    const nomes = {
-
-      MENSAL:
-        "Plano Mensal",
-
-      TRIMESTRAL:
-        "Plano Trimestral",
-
-      SEMESTRAL:
-        "Plano Semestral",
-
-      ANUAL:
-        "Plano Anual",
-
-    };
-
-
-    return (
-      nomes[plano] ||
-      plano ||
-      "Plano não informado"
+    return nomeDaMatricula(
+      matricula
     );
 
   }
@@ -644,7 +627,6 @@ export default function Renovacoes({
                     <strong>
                       {nomePlano(
                         cliente.matricula
-                          ?.plano
                       )}
                     </strong>
 

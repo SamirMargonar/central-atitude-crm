@@ -130,10 +130,32 @@ export default function LeadTimeline({ lead }) {
         }
 
 
-        if (
+        const descricaoMinuscula =
           evento.descricao
-            ?.toLowerCase()
-            .includes("compareceu")
+            ?.toLowerCase() || "";
+
+        // "não compareceu" contém "compareceu": checar primeiro.
+        if (
+          descricaoMinuscula.includes("não compareceu") ||
+          descricaoMinuscula.includes("nao compareceu")
+        ) {
+
+          return "🚫 Não Compareceu";
+
+        }
+
+
+        if (
+          descricaoMinuscula.includes("reagendad")
+        ) {
+
+          return "🔄 Visita Reagendada";
+
+        }
+
+
+        if (
+          descricaoMinuscula.includes("compareceu")
         ) {
 
           return "🏋 Cliente Compareceu";
@@ -206,6 +228,46 @@ export default function LeadTimeline({ lead }) {
         return "🔄 Transferência";
 
 
+      case "VISITA_CONFIRMACAO":
+
+        return "✅ Visita Confirmada";
+
+
+      case "VISITA_OBSERVACAO":
+
+        return "📝 Observação da Visita";
+
+
+      case "PENDENCIA":
+
+        return "⚠️ Pendência";
+
+
+      case "CADASTRO_GERENCIAL":
+
+        return "🆕 Cadastro do Lead";
+
+
+      case "RECUPERACAO":
+
+        return "♻️ Recuperação";
+
+
+      case "SEM_RESPOSTA":
+
+        return "❌ Sem Resposta";
+
+
+      case "RESPOSTA":
+
+        return "💬 Resposta";
+
+
+      case "REATIVACAO":
+
+        return "🔄 Reativação";
+
+
       default:
 
         return "📌 Evento";
@@ -239,6 +301,29 @@ export default function LeadTimeline({ lead }) {
     "Responsável não informado";
 
 
+  // ==========================================================
+  // CADASTRO DO LEAD (entrada de leitura, NÃO é evento gravado)
+  //
+  // O cadastro comum de lead não gera evento na timeline (só o
+  // cadastro gerencial gera CADASTRO_GERENCIAL). Para a trajetória
+  // completa do cliente, mostramos a data de criação do próprio lead.
+  // Some quando já existe o evento de cadastro, para não duplicar.
+  // ==========================================================
+
+  const cadastroSintetico =
+    lead?.createdAt &&
+    !historico.some(
+      (evento) =>
+        evento.tipo === "CADASTRO_GERENCIAL"
+    )
+      ? {
+          data: lead.createdAt,
+          origem: lead.origem || "",
+          autor: lead.cadastradoPor || "",
+        }
+      : null;
+
+
   return (
 
     <section className="leadTimeline">
@@ -248,7 +333,7 @@ export default function LeadTimeline({ lead }) {
       </h3>
 
 
-      {historico.length === 0 ? (
+      {historico.length === 0 && !cadastroSintetico ? (
 
         <p className="timelineEmpty">
 
@@ -258,7 +343,9 @@ export default function LeadTimeline({ lead }) {
 
       ) : (
 
-        historico.map(
+        <>
+
+        {historico.map(
           (evento) => (
 
             <div
@@ -461,12 +548,27 @@ export default function LeadTimeline({ lead }) {
 
 
               {/* =================================
-                  RESPONSÁVEL COMERCIAL
+                  AUTOR DA AÇÃO E TITULAR DO LEAD
+                  (duas informações distintas)
               ================================= */}
 
-              <small>
+              <small className="timelineAutoria">
 
-                👤 {nomeResponsavel}
+                {evento.usuario && (
+
+                  <span>
+
+                    ✍️ Registrado por: {evento.usuario}
+
+                  </span>
+
+                )}
+
+                <span>
+
+                  👤 Titular: {nomeResponsavel}
+
+                </span>
 
               </small>
 
@@ -474,7 +576,70 @@ export default function LeadTimeline({ lead }) {
             </div>
 
           )
-        )
+        )}
+
+        {cadastroSintetico && (
+
+          <div
+            key="cadastro-do-lead"
+            className="timelineItem"
+          >
+
+            <div
+              className="timelineHeader"
+            >
+
+              <strong>
+
+                🆕 Cadastro do Lead
+
+              </strong>
+
+              <span>
+
+                {formatarData(
+                  cadastroSintetico.data
+                )}
+
+              </span>
+
+            </div>
+
+            <p>
+
+              Lead cadastrado
+              {cadastroSintetico.origem
+                ? ` (origem: ${cadastroSintetico.origem})`
+                : ""}
+              .
+
+            </p>
+
+            <small className="timelineAutoria">
+
+              {cadastroSintetico.autor && (
+
+                <span>
+
+                  ✍️ Registrado por: {cadastroSintetico.autor}
+
+                </span>
+
+              )}
+
+              <span>
+
+                👤 Titular: {nomeResponsavel}
+
+              </span>
+
+            </small>
+
+          </div>
+
+        )}
+
+        </>
 
       )}
 

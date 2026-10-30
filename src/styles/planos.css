@@ -1,0 +1,58 @@
+/* O fundo do CRM é escuro (.layout): títulos claros e cartões brancos,
+   como na tela de Usuários. */
+.planosPagina { padding: 0; max-width: 1200px; }
+
+.planosCabecalho { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
+.planosCabecalho { margin-bottom: 24px; }
+.planosCabecalho h1 { margin: 0; font-size: 32px; color: #ffffff; }
+.planosCabecalho p { margin: 8px 0 0; color: #9ca3af; max-width: 620px; }
+.planosAcoes { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* botão principal no mesmo estilo do "Novo usuário"; secundário escuro */
+.planosAcoes .btnSalvar { background: linear-gradient(135deg, #22c55e, #16a34a); border: none; border-radius: 12px; padding: 13px 20px; font-size: 15px; font-weight: 700; color: #ffffff; }
+.planosAcoes .btnSalvar:hover { filter: brightness(1.08); }
+.planosAcoes .btnCancelar { background: rgba(255, 255, 255, .08); border: 1px solid rgba(255, 255, 255, .18); border-radius: 12px; padding: 13px 20px; font-size: 15px; font-weight: 600; color: #ffffff; }
+.planosAcoes .btnCancelar:hover { background: rgba(255, 255, 255, .14); }
+
+.planosMensagem, .planosErro, .planosCargaInicial { margin: 14px 0; padding: 12px 14px; border-radius: 10px; font-size: 14px; }
+.planosMensagem { background: #ecfdf5; border: 1px solid #bbf7d0; color: #166534; }
+.planosErro { background: #fff5f5; border: 1px solid #ffd0d0; color: #b42318; }
+.planosCargaInicial { background: #fff7d6; border: 1px solid #f0c36a; color: #7a5600; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.planosAviso { color: #9ca3af; }
+
+.planosFiltros { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; margin: 16px 0; color: #e5e7eb; font-size: 14px; }
+.planosFiltros select { padding: 8px 10px; border-radius: 8px; border: 1px solid #c8d2e0; }
+
+.planosLista { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 14px; }
+
+.planoCard { background: #fff; border: 1px solid #d5deea; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; gap: 8px; box-shadow: 0 1px 4px rgba(7, 26, 51, .08); }
+.planoCard header { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.planoCard small { color: #6c63ff; font-weight: 600; }
+.planoCard dl { margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+.planoCard dl div { display: flex; flex-direction: column; }
+.planoCard dt { font-size: 12px; color: #6b7a90; }
+.planoCard dd { margin: 0; font-weight: 600; color: #071a33; font-size: 14px; }
+.planoCard footer { display: flex; gap: 8px; margin-top: auto; }
+.planoTexto { margin: 0; font-size: 13px; color: #44546a; }
+.planoInativo { opacity: .65; }
+
+.planoBadge { font-size: 12px; padding: 3px 9px; border-radius: 999px; font-weight: 600; }
+.planoBadge.on { background: #dcfce7; color: #166534; }
+.planoBadge.off { background: #e5e7eb; color: #4b5563; }
+.planoBadge.fora { background: #fef3c7; color: #92400e; }
+
+.planosDuasColunas { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.planosDuasColunas > div { display: flex; flex-direction: column; gap: 12px; }
+.planosCheck { display: block; margin: 12px 0; }
+.planosCategorias { list-style: none; margin: 0 0 12px; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.planosCategorias li { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #eef0f2; }
+
+@media (max-width: 700px) {
+    .planosPagina { padding: 16px; }
+    .planosDuasColunas { grid-template-columns: 1fr; }
+}
+
+/* Formulário dentro do modal padrão (LeadActionModal) */
+.planosPagina .leadActionBody textarea { min-height: 72px; height: 72px; }
+.planosPagina .planosCheck { display: flex; align-items: center; gap: 10px; margin: 8px 0 4px; }
+.planosPagina .planosCheck input[type="checkbox"] { width: 18px; height: 18px; min-height: 0; flex: none; padding: 0; margin: 0; }

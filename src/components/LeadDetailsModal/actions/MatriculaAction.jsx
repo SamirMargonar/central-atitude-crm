@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import LeadActionModal from "../LeadActionModal";
 
@@ -16,6 +16,16 @@ import {
 import {
   useAuth,
 } from "../../../auth/AuthContext";
+
+import usePlanos from "../../../hooks/usePlanos";
+
+import SeletorPlano from "../../SeletorPlano";
+
+import {
+  calcularVencimentoPorMeses,
+  duracaoEmMeses,
+  montarSnapshotPlano,
+} from "../../../utils/planos";
 
 export default function MatriculaAction({
   lead,
@@ -92,6 +102,29 @@ export default function MatriculaAction({
 
   const [plano, setPlano] = useState("MENSAL");
 
+  // Catálogo dinâmico de planos (ativos, na janela da oferta). Sem
+  // catálogo no banco, cai nos 4 planos legados.
+  const catalogoPlanos = usePlanos({ ativo: modalAberto });
+
+  const planoEscolhido =
+    catalogoPlanos.lista.find((item) => item.id === plano) ||
+    null;
+
+  // Garante que o plano selecionado exista na lista carregada (ex.:
+  // MENSAL desativado no catálogo): escolhe o primeiro disponível.
+  useEffect(() => {
+
+    if (
+      catalogoPlanos.lista.length > 0 &&
+      !catalogoPlanos.lista.some((item) => item.id === plano)
+    ) {
+
+      setPlano(catalogoPlanos.lista[0].id);
+
+    }
+
+  }, [catalogoPlanos.lista, plano]);
+
   const [dataInicio, setDataInicio] = useState(() => {
 
     const agora = new Date();
@@ -116,116 +149,21 @@ export default function MatriculaAction({
 
   // ==========================================================
   // CALCULA DATA DE VENCIMENTO
+  //
+  // Pela DURAÇÃO (em meses) do plano escolhido — a mesma aritmética
+  // de datas de antes (MENSAL=1, TRIMESTRAL=3, SEMESTRAL=6,
+  // ANUAL=12), agora vinda do catálogo de planos.
   // ==========================================================
 
   function calcularVencimento(
     data,
-    planoSelecionado
+    planoEscolhido
   ) {
 
-    if (!data) {
-      return "";
-    }
-
-    const inicio =
-      new Date(
-        `${data}T12:00:00`
-      );
-
-    if (
-      Number.isNaN(
-        inicio.getTime()
-      )
-    ) {
-
-      return "";
-
-    }
-
-
-    const vencimento =
-      new Date(inicio);
-
-
-    // ========================================================
-    // PLANO MENSAL
-    // ========================================================
-
-    if (
-      planoSelecionado ===
-      "MENSAL"
-    ) {
-
-      vencimento.setMonth(
-        vencimento.getMonth() + 1
-      );
-
-    }
-
-
-    // ========================================================
-    // PLANO TRIMESTRAL
-    // ========================================================
-
-    if (
-      planoSelecionado ===
-      "TRIMESTRAL"
-    ) {
-
-      vencimento.setMonth(
-        vencimento.getMonth() + 3
-      );
-
-    }
-
-
-    // ========================================================
-    // PLANO SEMESTRAL
-    // ========================================================
-
-    if (
-      planoSelecionado ===
-      "SEMESTRAL"
-    ) {
-
-      vencimento.setMonth(
-        vencimento.getMonth() + 6
-      );
-
-    }
-
-
-    // ========================================================
-    // PLANO ANUAL
-    // ========================================================
-
-    if (
-      planoSelecionado ===
-      "ANUAL"
-    ) {
-
-      vencimento.setFullYear(
-        vencimento.getFullYear() + 1
-      );
-
-    }
-
-
-    const ano =
-      vencimento.getFullYear();
-
-    const mes =
-      String(
-        vencimento.getMonth() + 1
-      ).padStart(2, "0");
-
-    const dia =
-      String(
-        vencimento.getDate()
-      ).padStart(2, "0");
-
-
-    return `${ano}-${mes}-${dia}`;
+    return calcularVencimentoPorMeses(
+      data,
+      duracaoEmMeses(planoEscolhido)
+    );
 
   }
 
@@ -284,7 +222,7 @@ export default function MatriculaAction({
     }
 
 
-    if (!plano) {
+    if (!plano || !planoEscolhido) {
 
       alert(
         "Selecione o plano do cliente."
@@ -355,13 +293,18 @@ export default function MatriculaAction({
       const dataVencimento =
         calcularVencimento(
           dataInicio,
-          plano
+          planoEscolhido
         );
-
 
       // ==========================================
       // DADOS DA MATRÍCULA
       // ==========================================
+
+      const snapshotPlano =
+        montarSnapshotPlano(
+          planoEscolhido,
+          catalogoPlanos.categorias
+        );
 
       const dadosMatricula = {
 
@@ -383,7 +326,10 @@ export default function MatriculaAction({
         // DADOS COMERCIAIS
         // ========================================
 
-        plano,
+        // Instantâneo do plano no momento da contratação (plano, planoId,
+        // planoNome, categoria, valor, taxa, duração e condições): editar ou
+        // desativar o plano depois NÃO altera esta matrícula.
+        ...snapshotPlano,
 
         dataInicio,
 
@@ -487,7 +433,7 @@ export default function MatriculaAction({
 
           observacao,
 
-          plano,
+          ...snapshotPlano,
 
           dataInicio,
 
@@ -587,7 +533,7 @@ export default function MatriculaAction({
   const dataVencimentoPreview =
     calcularVencimento(
       dataInicio,
-      plano
+      planoEscolhido
     );
 
 
@@ -651,32 +597,14 @@ export default function MatriculaAction({
           🎓 Plano contratado
         </label>
 
-        <select
+        <SeletorPlano
           value={plano}
-          onChange={(e) =>
-            setPlano(
-              e.target.value
-            )
-          }
-        >
-
-          <option value="MENSAL">
-            Mensal
-          </option>
-
-          <option value="TRIMESTRAL">
-            Trimestral
-          </option>
-
-          <option value="SEMESTRAL">
-            Semestral
-          </option>
-
-          <option value="ANUAL">
-            Anual
-          </option>
-
-        </select>
+          onChange={setPlano}
+          lista={catalogoPlanos.lista}
+          categorias={catalogoPlanos.categorias}
+          fallback={catalogoPlanos.fallback}
+          carregando={catalogoPlanos.carregando}
+        />
 
 
         {/* ======================================

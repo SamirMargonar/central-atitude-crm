@@ -323,6 +323,34 @@ export default function Sidebar({
 
 
         {/* ==================================================
+            GERENCIAMENTO DE PLANOS
+            SOMENTE ADMIN (as Firestore Rules também exigem admin)
+        ================================================== */}
+
+        {isAdmin && (
+
+          <button
+
+            className={
+              pagina === "planos"
+                ? "menuAtivo"
+                : ""
+            }
+
+            onClick={() =>
+              mudarPagina("planos")
+            }
+
+          >
+
+            🎓 Gerenciamento de Planos
+
+          </button>
+
+        )}
+
+
+        {/* ==================================================
             CONFIGURAÇÕES
             SOMENTE ADMIN
         ================================================== */}

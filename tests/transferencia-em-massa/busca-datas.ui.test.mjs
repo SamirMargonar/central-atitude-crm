@@ -235,5 +235,60 @@ console.log("\n=== I. Falha na atualização: o painel mantém o cache anterior 
   await f();
 }
 
+console.log("\n=== J. Timeline do lead (também usada na Agenda): títulos, autor da ação x titular, cadastro sem duplicar");
+{
+  const { default: LeadTimeline } = await vite.ssrLoadModule("/src/components/LeadDetailsModal/LeadTimeline.jsx");
+  const ts = (iso) => ({ toDate: () => new Date(iso) });
+  const ev = (tipo, descricao, usuario, extra = {}) => ({ tipo, descricao, usuario, criadoEm: "2026-10-14T18:00:00Z", dados: {}, ...extra });
+  const LEAD = { id: "L", nome: "Maria", consultora: "Laís", origem: "Instagram", cadastradoPor: "Samir", createdAt: ts("2026-10-01T13:00:00Z") };
+
+  globalThis.__eventos = [
+    ev("WHATSAPP", "Primeiro contato", "Isabelle"),
+    ev("VISITA_CONFIRMACAO", "Isabelle confirmou a visita de Maria.", "Isabelle"),
+    ev("VISITA", "Isabelle registrou que o cliente compareceu à visita.", "Isabelle"),
+    ev("VISITA", "Isabelle registrou que o cliente não compareceu à visita.", "Isabelle"),
+    ev("VISITA", "Visita reagendada.", "Laís"),
+    ev("VISITA_OBSERVACAO", "Isabelle adicionou uma observação à visita.", "Isabelle"),
+    ev("PENDENCIA", "Lead precisa de novo contato.", "Isabelle"),
+    ev("MATRICULA", "Matrícula confirmada.", "Isabelle"),
+    ev("RECUPERACAO", "entrou na recuperação", "Isabelle"),
+    ev("SEM_RESPOSTA", "sem resposta", "Isabelle"),
+    ev("REATIVACAO", "reativado", "Laís"),
+    ev("TIPO_NOVO_DESCONHECIDO", "algo", "Laís"),
+    ev("OBSERVACAO", "nota antiga sem autor", ""),
+  ];
+  let f = await montar(h(LeadTimeline, { lead: LEAD }));
+  const t = body();
+  check("títulos dos tipos que antes viravam 'Evento'", t.includes("✅ Visita Confirmada") && t.includes("📝 Observação da Visita") && t.includes("⚠️ Pendência") && t.includes("♻️ Recuperação") && t.includes("❌ Sem Resposta") && t.includes("🔄 Reativação"));
+  check("tipo realmente desconhecido continua como '📌 Evento'", t.includes("📌 Evento"));
+  check("'não compareceu' NÃO é mais rotulado como 'Cliente Compareceu'", t.includes("🚫 Não Compareceu") && (t.match(/🏋 Cliente Compareceu/g) || []).length === 1);
+  check("reagendamento registrado só pela descrição também é identificado", t.includes("🔄 Visita Reagendada"));
+  check("cada ação mostra QUEM executou (Registrado por) e a TITULAR do lead", t.includes("✍️ Registrado por: Isabelle") && t.includes("👤 Titular: Laís"));
+  check("evento antigo sem autor mostra só a titular (sem 'Registrado por:' vazio)", !/Registrado por:\s*👤/.test(t) && !t.includes("Registrado por: ✍️"));
+  check("entrada 'Cadastro do Lead' (leitura) com data de criação e quem cadastrou, sem duplicar", (t.match(/🆕 Cadastro do Lead/g) || []).length === 1 && t.includes("01/10/2026 10:00") && t.includes("origem: Instagram") && t.includes("Registrado por: Samir"));
+  await f();
+
+  // evento gravado pelo reagendamento feito na AGENDA (mesmo formato do cadastro do lead)
+  globalThis.__eventos = [ev("VISITA", "Isabelle reagendou a visita de Maria: de 14/10/2026 às 15:00 para 20/10/2026 às 16:30.", "Isabelle", { dados: { origem: "AGENDA", visitaId: "V1", visitaAnterior: { data: "2026-10-14", hora: "15:00", consultor: "Laís" }, novaVisita: { data: "2026-10-20", hora: "16:30", consultor: "Laís" }, atendimentoCompartilhado: true, titularNome: "Laís" } })];
+  f = await montar(h(LeadTimeline, { lead: LEAD }));
+  const tr = body();
+  check("reagendamento pela Agenda aparece como '🔄 Visita Reagendada' com visita anterior, nova visita (DD/MM/AAAA às HH:mm), autor e titular", tr.includes("🔄 Visita Reagendada") && tr.includes("Visita anterior: 14/10/2026 às 15:00") && tr.includes("Nova visita: 20/10/2026 às 16:30") && tr.includes("Registrado por: Isabelle") && tr.includes("Titular: Laís"), tr.slice(0, 400));
+  check("...com a data/hora do próprio reagendamento no cabeçalho do evento (14/10/2026 15:00 no carimbo)", tr.includes("14/10/2026 15:00") && !/\d{4}-\d{2}-\d{2}/.test(tr));
+  await f();
+
+  globalThis.__eventos = [ev("CADASTRO_GERENCIAL", "Lead cadastrado pela gestão.", "Samir")];
+  f = await montar(h(LeadTimeline, { lead: LEAD }));
+  check("com evento CADASTRO_GERENCIAL, a entrada de leitura NÃO aparece (sem duplicidade)", (body().match(/🆕 Cadastro do Lead/g) || []).length === 1 && !body().includes("origem: Instagram"));
+  await f();
+
+  globalThis.__eventos = [];
+  f = await montar(h(LeadTimeline, { lead: LEAD }));
+  check("lead sem eventos mas com data de criação: mostra o cadastro e não 'Nenhum evento'", body().includes("🆕 Cadastro do Lead") && !body().includes("Nenhum evento registrado"));
+  await f();
+  f = await montar(h(LeadTimeline, { lead: { id: "L" } }));
+  check("lead sem eventos e sem data de criação: 'Nenhum evento registrado.' como antes", body().includes("Nenhum evento registrado."));
+  await f();
+}
+
 await vite.close();
 process.exit(fim() ? 1 : 0);

@@ -2,6 +2,8 @@ import { useMemo, useState } from "react";
 
 import "../styles/relatorioMatriculas.css";
 
+import { nomeDaMatricula } from "../utils/planos";
+
 import {
   filtrarMatriculados,
   filtrarRelatorioMatriculas,
@@ -61,6 +63,27 @@ export default function RelatorioMatriculas({
         "Todos",
         ...unicos,
       ];
+
+    }, [matriculados]);
+
+  // Rótulo de cada plano do filtro: o nome gravado na própria
+  // matrícula (planos dinâmicos) ou o nome legado do código.
+  const nomesPlano =
+    useMemo(() => {
+
+      const mapa = {};
+
+      matriculados.forEach((lead) => {
+
+        const id = lead.matricula?.plano;
+
+        if (id && !mapa[id]) {
+          mapa[id] = nomeDaMatricula(lead.matricula);
+        }
+
+      });
+
+      return mapa;
 
     }, [matriculados]);
 
@@ -175,7 +198,7 @@ export default function RelatorioMatriculas({
 
                 {item === "Todos"
                   ? "Todos os planos"
-                  : nomePlanoMatricula(item)}
+                  : nomesPlano[item] || nomePlanoMatricula(item)}
 
               </option>
 
@@ -263,9 +286,7 @@ export default function RelatorioMatriculas({
                     <div>
                       <span>🎓 Plano</span>
                       <strong>
-                        {nomePlanoMatricula(
-                          matricula.plano
-                        )}
+                        {nomeDaMatricula(matricula)}
                       </strong>
                     </div>
 

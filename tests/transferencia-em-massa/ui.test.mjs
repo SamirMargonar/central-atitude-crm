@@ -326,6 +326,17 @@ for (const [rotulo, uid, perfil, esperado] of [
   check("Sidebar: coordenador autorizado também mantém Consultar Lead e Cadastro Gerencial", body().includes("Consultar Lead") && body().includes("Cadastro Gerencial de Leads"));
   await f2();
 }
+// GERENCIAMENTO DE PLANOS: botão do menu só para ADMIN (qualquer admin; as Rules também exigem admin)
+for (const [rotulo, uid, perfil, esperado] of [
+  ["Samir (admin)", ADM, "admin", true], ["outro administrador", "uid-admin-qualquer", "admin", true],
+  ["Naykison (coordenador)", NAY, "coordenador", false], ["outro coordenador", "uid-coord-qualquer", "coordenador", false],
+  ["recepcionista", "uid-recep", "recepcionista", false],
+]) {
+  como(uid, perfil, rotulo);
+  const fechar = await montar(sidebar());
+  check(`Sidebar — ${rotulo}: 'Gerenciamento de Planos' ${esperado ? "VISÍVEL" : "ausente"}`, body().includes("Gerenciamento de Planos") === esperado);
+  await fechar();
+}
 const detalhes = () => h(DetalhesModal, { lead: { id: "L1", nome: "x", responsavelUid: "isa", consultora: "Isadora" }, onClose: () => {} });
 for (const [rotulo, uid, perfil, esperado] of [
   ["Samir", ADM, "admin", true], ["Naykison", NAY, "coordenador", true],

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import LeadActionModal from "./LeadDetailsModal/LeadActionModal";
 import WhatsAppLivreModal from "./WhatsAppLivreModal";
@@ -18,6 +18,17 @@ import {
   construirMatriculaComRecusa,
   construirMensagemContato,
 } from "../utils/renovacaoAcoes";
+
+import usePlanos from "../hooks/usePlanos";
+
+import SeletorPlano from "./SeletorPlano";
+
+import {
+  duracaoEmMeses,
+  extrairSnapshot,
+  montarSnapshotPlano,
+  nomeDaMatricula,
+} from "../utils/planos";
 
 
 export default function RenovacaoAcoes({
@@ -62,7 +73,9 @@ export default function RenovacaoAcoes({
 
   const [plano, setPlano] =
     useState(
-      cliente?.matricula?.plano || "MENSAL"
+      cliente?.matricula?.planoId ||
+      cliente?.matricula?.plano ||
+      "MENSAL"
     );
 
   const [dataInicio, setDataInicio] =
@@ -72,6 +85,65 @@ export default function RenovacaoAcoes({
 
   const [motivo, setMotivo] =
     useState("");
+
+  // ==========================================================
+  // CATÁLOGO DE PLANOS — a renovação é um NOVO contrato: usa a lista
+  // dinâmica de planos ativos. O plano do contrato atual continua
+  // disponível mesmo desativado (com os valores do contrato), e sem
+  // catálogo no banco valem os 4 planos legados.
+  // ==========================================================
+
+  const matriculaDoCliente =
+    cliente?.matricula || {};
+
+  const idPlanoAtual =
+    matriculaDoCliente.planoId ||
+    matriculaDoCliente.plano ||
+    "";
+
+  const planoDoContrato =
+    idPlanoAtual
+      ? {
+          id: idPlanoAtual,
+          nome: nomeDaMatricula(matriculaDoCliente),
+          categoriaId:
+            matriculaDoCliente.planoCategoriaId ||
+            "convencionais",
+          duracaoMeses:
+            duracaoEmMeses(matriculaDoCliente),
+          valorCentavos:
+            matriculaDoCliente.valorCentavos,
+          taxaAdesaoCentavos:
+            matriculaDoCliente.taxaAdesaoCentavos,
+          condicoes:
+            matriculaDoCliente.condicoes || "",
+        }
+      : null;
+
+  const catalogoPlanos = usePlanos({
+    ativo: modalRenovar,
+    manter: planoDoContrato,
+  });
+
+  const planoEscolhido =
+    catalogoPlanos.lista.find(
+      (item) => item.id === plano
+    ) || null;
+
+  useEffect(() => {
+
+    if (
+      catalogoPlanos.lista.length > 0 &&
+      !catalogoPlanos.lista.some(
+        (item) => item.id === plano
+      )
+    ) {
+
+      setPlano(catalogoPlanos.lista[0].id);
+
+    }
+
+  }, [catalogoPlanos.lista, plano]);
 
 
   // ==========================================================
@@ -157,7 +229,7 @@ export default function RenovacaoAcoes({
       return;
     }
 
-    if (!plano || !dataInicio) {
+    if (!plano || !planoEscolhido || !dataInicio) {
 
       alert(
         "Selecione o plano e a data de início."
@@ -174,13 +246,32 @@ export default function RenovacaoAcoes({
       const dataVencimento =
         calcularVencimentoRenovacao(
           dataInicio,
-          plano
+          planoEscolhido
+        );
+
+      if (!dataVencimento) {
+        alert(
+          "Não foi possível calcular o vencimento: o plano não tem duração definida."
+        );
+        return;
+      }
+
+      // Instantâneo do plano ESCOLHIDO (novo contrato).
+      const snapshotNovo =
+        montarSnapshotPlano(
+          planoEscolhido,
+          catalogoPlanos.categorias
         );
 
       const matriculaAtualizada =
         construirMatriculaRenovada(
           cliente.matricula || {},
-          { plano, dataInicio, dataVencimento }
+          {
+            plano,
+            dataInicio,
+            dataVencimento,
+            snapshot: snapshotNovo,
+          }
         );
 
       const agora =
@@ -212,8 +303,10 @@ export default function RenovacaoAcoes({
 
           planoAnterior:
             cliente.matricula?.plano,
-
           planoNovo: plano,
+          snapshotAnterior:
+            extrairSnapshot(cliente.matricula || {}),
+          snapshotNovo,
 
           dataVencimentoAnterior:
             cliente.matricula?.dataVencimento,
@@ -490,17 +583,14 @@ export default function RenovacaoAcoes({
           🎓 Novo plano
         </label>
 
-        <select
+        <SeletorPlano
           value={plano}
-          onChange={(e) =>
-            setPlano(e.target.value)
-          }
-        >
-          <option value="MENSAL">Mensal</option>
-          <option value="TRIMESTRAL">Trimestral</option>
-          <option value="SEMESTRAL">Semestral</option>
-          <option value="ANUAL">Anual</option>
-        </select>
+          onChange={setPlano}
+          lista={catalogoPlanos.lista}
+          categorias={catalogoPlanos.categorias}
+          fallback={catalogoPlanos.fallback}
+          carregando={catalogoPlanos.carregando}
+        />
 
         <label>
           📅 Data de início do novo ciclo

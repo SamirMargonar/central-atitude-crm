@@ -1436,3 +1436,14 @@
     cursor:not-allowed;
 
 }
+
+/* Autor da ação + titular do lead (Timeline) */
+.timelineItem .timelineAutoria {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+}
+
+.timelineItem .timelineAutoria span {
+    white-space: nowrap;
+}

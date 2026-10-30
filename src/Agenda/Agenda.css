@@ -1413,3 +1413,52 @@
     cursor: pointer;
 
 }
+
+/* =========================
+   ABA HISTÓRICO (detalhes da visita)
+========================= */
+
+.detalhesHistorico {
+    padding-top: 10px;
+    padding-bottom: 10px;
+}
+
+.abaHistorico {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 7px 14px;
+
+    border: 1px solid #d8d5ff;
+    border-radius: 999px;
+    background: #f7f6ff;
+
+    color: #3b3487;
+    font-size: 14px;
+    font-weight: 600;
+
+    cursor: pointer;
+    transition: background .15s ease;
+}
+
+.abaHistorico:hover {
+    background: #eceaff;
+}
+
+.abaHistoricoAtiva {
+    background: #6c63ff;
+    border-color: #6c63ff;
+    color: #ffffff;
+}
+
+.abaHistoricoAtiva:hover {
+    background: #5b52e8;
+}
+
+.detalhesHistoricoCorpo {
+    margin-top: 12px;
+    max-height: 360px;
+    overflow-y: auto;
+    padding-right: 4px;
+}

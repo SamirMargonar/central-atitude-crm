@@ -501,6 +501,33 @@ service cloud.firestore {
           && v.get('atendidoPor', '') == request.auth.uid;
     }
 
+    // INSTANTÂNEO DO PLANO dentro de lead.matricula (copiado na contratação;
+    // ver src/utils/planos.js). Todos os campos são opcionais (matrículas
+    // sem catálogo continuam só com `plano`), mas, quando existem, têm tipo
+    // e limite conferidos — o fechamento por recepcionista em lead alheio
+    // não pode gravar lixo nem textos gigantes no lead.
+    function centavosValidos(m, campo) {
+      return !(campo in m)
+          || (m[campo] is int && m[campo] >= 0 && m[campo] <= 100000000);
+    }
+
+    function textoOpcionalAte(m, campo, max) {
+      return !(campo in m) || (m[campo] is string && m[campo].size() <= max);
+    }
+
+    function instantaneoDePlanoValido(m) {
+      return textoOpcionalAte(m, 'plano', 60)
+          && textoOpcionalAte(m, 'planoNome', 80)
+          && textoOpcionalAte(m, 'planoCategoria', 60)
+          && textoOpcionalAte(m, 'planoCategoriaId', 60)
+          && textoOpcionalAte(m, 'condicoes', 1000)
+          && (!('planoId' in m) || (m.planoId is string && m.get('plano', '') == m.planoId))
+          && (!('duracaoMeses' in m)
+              || (m.duracaoMeses is int && m.duracaoMeses >= 1 && m.duracaoMeses <= 120))
+          && centavosValidos(m, 'valorCentavos')
+          && centavosValidos(m, 'taxaAdesaoCentavos');
+    }
+
     function fechamentoCompartilhado(antes, depois, alterados) {
       return alterados.hasOnly(['etapa', 'ultimoAtendimento', 'matricula', 'atualizadoEm'])
           && etapaEh(antes, 4, '4')
@@ -510,7 +537,10 @@ service cloud.firestore {
           && depois.matricula is map
           && depois.matricula.keys().hasOnly(['confirmada', 'data', 'hora', 'consultor', 'observacao', 'plano',
                                               'dataInicio', 'dataVencimento', 'status',
-                                              'registradoPorUid', 'registradoPorNome', 'atendimentoCompartilhado'])
+                                              'registradoPorUid', 'registradoPorNome', 'atendimentoCompartilhado',
+                                              'planoId', 'planoNome', 'planoCategoriaId', 'planoCategoria',
+                                              'duracaoMeses', 'condicoes', 'valorCentavos', 'taxaAdesaoCentavos'])
+          && instantaneoDePlanoValido(depois.matricula)
           && depois.matricula.get('confirmada', false) == true
           && depois.matricula.get('status', '') == 'ATIVA'
           && depois.matricula.get('consultor', '') != ''
@@ -966,6 +996,107 @@ service cloud.firestore {
           && (!('pulados' in dados) || dados.pulados.size() == p)
           && (dados.status != 'concluida'
               || (c == dados.totalPrevisto && f == 0 && p == 0));
+    }
+
+    // ==========================================================
+    // CATÁLOGO DE PLANOS (planos/{id}) E CATEGORIAS (categoriasPlano/{id})
+    //
+    // Leitura: qualquer perfil logado (o formulário de matrícula lista os
+    // planos ativos). ESCRITA: SOMENTE ADMINISTRADOR (perfil lido de
+    // usuarios/{uid} no servidor — nunca da tela). Nada é excluído: plano e
+    // categoria só são ativados/desativados, para o histórico ficar intacto
+    // (as matrículas já contratadas guardam o próprio instantâneo do plano
+    // em lead.matricula e não dependem destes documentos).
+    // ==========================================================
+
+    function lerCatalogoDePlanos() {
+      return estaLogado() && perfilDoChamador() in ['admin', 'coordenador', 'recepcionista'];
+    }
+
+    function inteiroOuNulo(v, max) {
+      return v == null || (v is int && v >= 0 && v <= max);
+    }
+
+    function dataIsoOuNula(v) {
+      return v == null || (v is string && v.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$'));
+    }
+
+    function planoValido(d) {
+      return d.keys().hasOnly(['nome', 'categoriaId', 'duracaoMeses', 'valorCentavos', 'taxaAdesaoCentavos',
+                               'descricao', 'condicoes', 'ofertaInicio', 'ofertaFim', 'ativo', 'ordem', 'legado',
+                               'criadoEm', 'criadoPorUid', 'criadoPorNome',
+                               'atualizadoEm', 'atualizadoPorUid', 'atualizadoPorNome'])
+          && d.keys().hasAll(['nome', 'categoriaId', 'duracaoMeses', 'ativo',
+                              'criadoEm', 'criadoPorUid', 'atualizadoEm', 'atualizadoPorUid'])
+          && d.nome is string && d.nome.size() > 0 && d.nome.size() <= 80
+          && d.categoriaId is string && d.categoriaId.size() > 0 && d.categoriaId.size() <= 60
+          && d.duracaoMeses is int && d.duracaoMeses >= 1 && d.duracaoMeses <= 120
+          && d.ativo is bool
+          && inteiroOuNulo(d.get('valorCentavos', null), 100000000)
+          && inteiroOuNulo(d.get('taxaAdesaoCentavos', null), 100000000)
+          && d.get('descricao', '') is string && d.get('descricao', '').size() <= 500
+          && d.get('condicoes', '') is string && d.get('condicoes', '').size() <= 1000
+          && dataIsoOuNula(d.get('ofertaInicio', null))
+          && dataIsoOuNula(d.get('ofertaFim', null))
+          && d.get('ordem', 0) is int
+          && d.get('legado', false) is bool
+          && d.criadoPorUid is string && d.atualizadoPorUid is string;
+    }
+
+    match /planos/{planoId} {
+
+      allow read: if lerCatalogoDePlanos();
+
+      allow create: if ehAdmin()
+                    && planoValido(request.resource.data)
+                    && request.resource.data.criadoEm == request.time
+                    && request.resource.data.atualizadoEm == request.time
+                    && request.resource.data.criadoPorUid == request.auth.uid
+                    && request.resource.data.atualizadoPorUid == request.auth.uid;
+
+      allow update: if ehAdmin()
+                    && planoValido(request.resource.data)
+                    && request.resource.data.criadoEm == resource.data.criadoEm
+                    && request.resource.data.criadoPorUid == resource.data.criadoPorUid
+                    && request.resource.data.atualizadoEm == request.time
+                    && request.resource.data.atualizadoPorUid == request.auth.uid;
+
+      allow delete: if false;
+
+    }
+
+    function categoriaValida(d) {
+      return d.keys().hasOnly(['nome', 'ativo', 'ordem',
+                               'criadoEm', 'criadoPorUid', 'criadoPorNome',
+                               'atualizadoEm', 'atualizadoPorUid', 'atualizadoPorNome'])
+          && d.keys().hasAll(['nome', 'ativo', 'ordem',
+                              'criadoEm', 'criadoPorUid', 'atualizadoEm', 'atualizadoPorUid'])
+          && d.nome is string && d.nome.size() > 0 && d.nome.size() <= 60
+          && d.ativo is bool
+          && d.ordem is int
+          && d.criadoPorUid is string && d.atualizadoPorUid is string;
+    }
+
+    match /categoriasPlano/{categoriaId} {
+
+      allow read: if lerCatalogoDePlanos();
+
+      allow create: if ehAdmin()
+                    && categoriaValida(request.resource.data)
+                    && request.resource.data.criadoEm == request.time
+                    && request.resource.data.atualizadoEm == request.time
+                    && request.resource.data.criadoPorUid == request.auth.uid
+                    && request.resource.data.atualizadoPorUid == request.auth.uid;
+
+      allow update: if ehAdmin()
+                    && categoriaValida(request.resource.data)
+                    && request.resource.data.criadoEm == resource.data.criadoEm
+                    && request.resource.data.criadoPorUid == resource.data.criadoPorUid
+                    && request.resource.data.atualizadoEm == request.time
+                    && request.resource.data.atualizadoPorUid == request.auth.uid;
+
+      allow delete: if false;
+
     }
 
     match /transferenciasEmMassa/{opId} {

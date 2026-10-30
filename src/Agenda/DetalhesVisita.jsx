@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import "./Agenda.css";
 
@@ -26,6 +26,13 @@ import {
 } from "../auth/AuthContext";
 
 import ConfirmarVisitaWhatsAppModal from "./ConfirmarVisitaWhatsAppModal";
+
+
+import LeadTimeline from "../components/LeadDetailsModal/LeadTimeline";
+
+import BotaoWhatsAppCliente from "../components/BotaoWhatsAppCliente";
+
+import { reagendamentoAgenda } from "./reagendamentoAgendaReal";
 
 
 export default function DetalhesVisita({
@@ -60,6 +67,17 @@ export default function DetalhesVisita({
 
   const [modoObservacao, setModoObservacao] =
     useState(false);
+
+
+  // Aba "Histórico": mostra a Timeline do LEAD (a mesma do cadastro
+  // do lead), incluindo visitas anteriores — não só a visita atual.
+  const [historicoAberto, setHistoricoAberto] =
+    useState(false);
+
+  // Trava contra duplo clique em "Reagendar": o estado `salvando` só
+  // muda no próximo render, então duas chamadas seguidas ainda
+  // passariam — e gravariam dois eventos iguais na Timeline.
+  const reagendandoRef = useRef(false);
 
   const [data, setData] =
     useState("");
@@ -138,6 +156,14 @@ export default function DetalhesVisita({
     setModoObservacao(false);
 
   }, [visita]);
+
+  // O histórico recolhe só quando muda de VISITA (não a cada
+  // atualização da mesma visita).
+  useEffect(() => {
+
+    setHistoricoAberto(false);
+
+  }, [visita?.id]);
 
 
   // ==========================================================
@@ -866,10 +892,14 @@ export default function DetalhesVisita({
 
 
   // ==========================================================
-  // REAGENDAR
+  // REAGENDAR (visita + espelho do lead + Timeline, num lote atômico)
   // ==========================================================
 
   async function reagendarVisita() {
+
+    if (reagendandoRef.current) {
+      return;
+    }
 
     if (!data || !hora) {
 
@@ -881,6 +911,8 @@ export default function DetalhesVisita({
 
     }
 
+
+    reagendandoRef.current = true;
 
     try {
 
@@ -899,29 +931,33 @@ export default function DetalhesVisita({
       // visitaConfirmada abaixo e Calendario.jsx) — o valor
       // antigo de confirmadoPor* fica só como histórico, sem
       // efeito visual.
-      const visitaAtualizada =
-        await atualizarVisita(
-          visita.id,
-          {
+      // (O payload da visita, com essa restrição, vive agora em
+      // reagendamentoAgenda.js — nunca inclui confirmadoPor*.)
+      // Visita + espelho do lead + evento da Timeline gravados juntos,
+      // num único lote atômico (ver reagendamentoAgenda.js): ou os três,
+      // ou nenhum. Se as Rules negarem o lote, volta ao comportamento de
+      // sempre (só a visita) e o resultado vem marcado como parcial.
+      const resultado =
+        await reagendamentoAgenda.reagendar({
 
+          visita,
+
+          lead,
+
+          nova: {
             data,
-
             hora,
-
-            // O dono do lead continua o mesmo.
-            consultora:
-              visita.consultora || "",
-
             observacao,
+          },
 
-            comparecimento:
-              "",
+          autor: {
+            uid:
+              usuarioAtual.uid,
+            nome:
+              usuarioAtual.nome,
+          },
 
-            status:
-              "AGENDADA",
-
-          }
-        );
+        });
 
 
       if (onAtualizar) {
@@ -930,7 +966,7 @@ export default function DetalhesVisita({
 
           ...visita,
 
-          ...visitaAtualizada,
+          ...resultado.visita,
 
           data,
 
@@ -939,12 +975,23 @@ export default function DetalhesVisita({
           observacao,
 
           comparecimento:
+
             "",
 
           status:
+
             "AGENDADA",
 
         });
+
+      }
+
+
+      if (resultado.parcial) {
+
+        alert(
+          "A visita foi reagendada, mas o cadastro do lead e/ou o histórico do cliente não puderam ser atualizados. Avise o suporte."
+        );
 
       }
 
@@ -967,6 +1014,8 @@ export default function DetalhesVisita({
       );
 
     } finally {
+
+      reagendandoRef.current = false;
 
       setSalvando(false);
 
@@ -1227,7 +1276,12 @@ export default function DetalhesVisita({
 
           <p>
             📱 <strong>Telefone:</strong>{" "}
-            {telefone}
+            <span className="detalhesTelefoneNumero">
+              {telefone}
+              <BotaoWhatsAppCliente
+                telefone={lead?.telefone}
+              />
+            </span>
           </p>
 
           <p>
@@ -1422,6 +1476,52 @@ export default function DetalhesVisita({
                   : "💾 Salvar observação"}
 
               </button>
+
+            </div>
+
+          )}
+
+        </div>
+
+      )}
+
+
+      {/* =====================================================
+          HISTÓRICO DO CLIENTE
+          (reaproveita a Timeline do lead — não cria outro histórico)
+      ===================================================== */}
+
+      {(visita.leadId || lead?.id) && (
+
+        <div className="detalhesVisitaSecao detalhesHistorico">
+
+          <button
+            type="button"
+            className={
+              historicoAberto
+                ? "abaHistorico abaHistoricoAtiva"
+                : "abaHistorico"
+            }
+            aria-expanded={historicoAberto}
+            onClick={() =>
+              setHistoricoAberto(
+                (aberto) => !aberto
+              )
+            }
+          >
+            📜 Histórico
+          </button>
+
+          {historicoAberto && (
+
+            <div className="detalhesHistoricoCorpo">
+
+              <LeadTimeline
+                lead={
+                  lead ||
+                  { id: visita.leadId }
+                }
+              />
 
             </div>
 

@@ -11,6 +11,19 @@ import {
   useAuth,
 } from "../../../auth/AuthContext";
 
+import usePlanos from "../../../hooks/usePlanos";
+
+import SeletorPlano from "../../SeletorPlano";
+
+import {
+  aplicarSnapshotNaMatricula,
+  calcularVencimentoPorMeses,
+  duracaoEmMeses,
+  extrairSnapshot,
+  montarSnapshotPlano,
+  nomeDaMatricula,
+} from "../../../utils/planos";
+
 
 // ==========================================================
 // EDITAR MATRÍCULA
@@ -53,105 +66,75 @@ export default function EditarMatriculaAction({
 
 
   // ==========================================================
-  // CALCULA DATA DE VENCIMENTO
+  // PLANO ATUAL DO CONTRATO (a partir do instantâneo gravado)
   //
-  // Mesma lógica de MatriculaAction.jsx (não alterado, não
-  // importado — duplicado aqui, mesmo padrão já usado no
-  // projeto para pequenas funções de data/plano).
+  // Os valores/nome/duração do contrato vêm de lead.matricula (o que
+  // foi contratado na época), NUNCA do catálogo atual. Matrículas
+  // antigas (só `plano: "MENSAL"`) são lidas pelos códigos legados.
   // ==========================================================
 
+  const matriculaAtual =
+    lead?.matricula || {};
+
+  const idPlanoAtual =
+    matriculaAtual.planoId ||
+    matriculaAtual.plano ||
+    "";
+
+  const planoDoContrato =
+    idPlanoAtual
+      ? {
+          id: idPlanoAtual,
+          nome: nomeDaMatricula(matriculaAtual),
+          categoriaId:
+            matriculaAtual.planoCategoriaId ||
+            "convencionais",
+          duracaoMeses:
+            duracaoEmMeses(matriculaAtual),
+          valorCentavos:
+            matriculaAtual.valorCentavos,
+          taxaAdesaoCentavos:
+            matriculaAtual.taxaAdesaoCentavos,
+          condicoes:
+            matriculaAtual.condicoes || "",
+        }
+      : null;
+
+  const catalogoPlanos = usePlanos({
+    ativo: aberto,
+    manter: planoDoContrato,
+  });
+
+  // Na lista, o plano atual aparece com os valores do CONTRATO.
+  const listaPlanos =
+    planoDoContrato
+      ? catalogoPlanos.lista.map(
+          (item) =>
+            item.id === idPlanoAtual
+              ? { ...item, ...planoDoContrato }
+              : item
+        )
+      : catalogoPlanos.lista;
+
+  const planoEscolhido =
+    listaPlanos.find(
+      (item) => item.id === plano
+    ) || null;
+
+  const mantendoPlanoDoContrato =
+    !!plano && plano === idPlanoAtual;
+
+  // Vencimento: plano mantido => duração do CONTRATO; plano trocado =>
+  // duração do plano escolhido.
   function calcularVencimento(
     data,
-    planoSelecionado
+    escolhido
   ) {
 
-    if (!data) {
-      return "";
-    }
-
-    const inicio =
-      new Date(
-        `${data}T12:00:00`
-      );
-
-    if (
-      Number.isNaN(
-        inicio.getTime()
-      )
-    ) {
-
-      return "";
-
-    }
-
-
-    const vencimento =
-      new Date(inicio);
-
-
-    if (
-      planoSelecionado ===
-      "MENSAL"
-    ) {
-
-      vencimento.setMonth(
-        vencimento.getMonth() + 1
-      );
-
-    }
-
-
-    if (
-      planoSelecionado ===
-      "TRIMESTRAL"
-    ) {
-
-      vencimento.setMonth(
-        vencimento.getMonth() + 3
-      );
-
-    }
-
-
-    if (
-      planoSelecionado ===
-      "SEMESTRAL"
-    ) {
-
-      vencimento.setMonth(
-        vencimento.getMonth() + 6
-      );
-
-    }
-
-
-    if (
-      planoSelecionado ===
-      "ANUAL"
-    ) {
-
-      vencimento.setFullYear(
-        vencimento.getFullYear() + 1
-      );
-
-    }
-
-
-    const ano =
-      vencimento.getFullYear();
-
-    const mes =
-      String(
-        vencimento.getMonth() + 1
-      ).padStart(2, "0");
-
-    const dia =
-      String(
-        vencimento.getDate()
-      ).padStart(2, "0");
-
-
-    return `${ano}-${mes}-${dia}`;
+    return calcularVencimentoPorMeses(
+      data,
+      duracaoEmMeses(escolhido)
+    );
 
   }
 
@@ -191,6 +174,7 @@ export default function EditarMatriculaAction({
   function abrir() {
 
     setPlano(
+      lead?.matricula?.planoId ||
       lead?.matricula?.plano ||
       "MENSAL"
     );
@@ -216,14 +200,11 @@ export default function EditarMatriculaAction({
 
   async function salvarEdicao() {
 
-    if (!plano) {
-
+    if (!plano || !planoEscolhido) {
       alert(
         "Selecione o plano do cliente."
       );
-
       return;
-
     }
 
 
@@ -246,28 +227,47 @@ export default function EditarMatriculaAction({
       const dataVencimento =
         calcularVencimento(
           dataInicio,
-          plano
+          planoEscolhido
         );
 
+      if (!dataVencimento) {
+        alert(
+          "Não foi possível calcular o vencimento: o plano não tem duração definida."
+        );
+        return;
+      }
 
       // ========================================================
-      // PRESERVA confirmada/data/hora/consultor/status — só
-      // troca plano/dataInicio/dataVencimento/observacao.
+      // PRESERVA confirmada/data/hora/consultor/status. Plano
+      // MANTIDO => o instantâneo do contrato fica como está (nenhum
+      // valor do catálogo atual é copiado). Plano TROCADO => novo
+      // instantâneo do plano escolhido.
       // ========================================================
+      const snapshotNovo =
+        mantendoPlanoDoContrato
+          ? extrairSnapshot(matriculaAnterior)
+          : montarSnapshotPlano(
+              planoEscolhido,
+              catalogoPlanos.categorias
+            );
 
-      const matriculaAtualizada = {
-
-        ...matriculaAnterior,
-
-        plano,
-
-        dataInicio,
-
-        dataVencimento,
-
-        observacao,
-
-      };
+      const matriculaAtualizada =
+        mantendoPlanoDoContrato
+          ? {
+              ...matriculaAnterior,
+              dataInicio,
+              dataVencimento,
+              observacao,
+            }
+          : {
+              ...aplicarSnapshotNaMatricula(
+                matriculaAnterior,
+                snapshotNovo
+              ),
+              dataInicio,
+              dataVencimento,
+              observacao,
+            };
 
 
       await atualizarLead(
@@ -317,9 +317,12 @@ export default function EditarMatriculaAction({
 
           planoAnterior:
             matriculaAnterior.plano,
-
           planoNovo:
-            plano,
+            matriculaAtualizada.plano,
+          snapshotAnterior:
+            extrairSnapshot(matriculaAnterior),
+          snapshotNovo:
+            extrairSnapshot(matriculaAtualizada),
 
           dataInicioAnterior:
             matriculaAnterior.dataInicio,
@@ -369,7 +372,7 @@ export default function EditarMatriculaAction({
   const dataVencimentoPreview =
     calcularVencimento(
       dataInicio,
-      plano
+      planoEscolhido
     );
 
 
@@ -412,32 +415,14 @@ export default function EditarMatriculaAction({
           🎓 Plano contratado
         </label>
 
-        <select
+        <SeletorPlano
           value={plano}
-          onChange={(e) =>
-            setPlano(
-              e.target.value
-            )
-          }
-        >
-
-          <option value="MENSAL">
-            Mensal
-          </option>
-
-          <option value="TRIMESTRAL">
-            Trimestral
-          </option>
-
-          <option value="SEMESTRAL">
-            Semestral
-          </option>
-
-          <option value="ANUAL">
-            Anual
-          </option>
-
-        </select>
+          onChange={setPlano}
+          lista={listaPlanos}
+          categorias={catalogoPlanos.categorias}
+          fallback={catalogoPlanos.fallback}
+          carregando={catalogoPlanos.carregando}
+        />
 
 
         {/* ======================================

@@ -189,6 +189,7 @@ function CRM({
 
   const {
     leads,
+    chegadas,
   } = useLeads();
 
 
@@ -529,6 +530,8 @@ function CRM({
       <NotificationCenter
 
         leads={leads}
+
+        chegadas={chegadas}
 
         setPagina={setPagina}
 

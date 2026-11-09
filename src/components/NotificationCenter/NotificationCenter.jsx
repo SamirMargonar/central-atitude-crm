@@ -28,6 +28,11 @@ import {
   useAuth,
 } from "../../auth/AuthContext";
 
+import {
+  aplicarChegadas,
+  podarAlarme,
+} from "../../utils/alertaNovoLead";
+
 import "./NotificationCenter.css";
 
 
@@ -118,11 +123,20 @@ function salvarVisitasDispensadas(uid, idsDispensados) {
 
 export default function NotificationCenter({
   leads = [],
+  chegadas = [],
   setPagina,
 }) {
 
   const audio =
     useRef(null);
+
+
+  // O alarme deveria estar tocando AGORA? (atualizado pelo bloco
+  // "ALERTA SONORO"). Se o navegador bloqueou o play() por falta de
+  // gesto, o primeiro gesto da usuária libera o áudio E já deixa o
+  // alarme tocando, em vez de desligá-lo (ver desbloqueio abaixo).
+  const alarmeDeveTocar =
+    useRef(false);
 
 
   // ==========================================================
@@ -214,9 +228,15 @@ export default function NotificationCenter({
         promessa
           .then(() => {
 
-            elemento.pause();
+            // Se um alerta real estava pendente (foi bloqueado antes
+            // do gesto), deixa tocando; senão destrava em silêncio.
+            if (!alarmeDeveTocar.current) {
 
-            elemento.currentTime = 0;
+              elemento.pause();
+
+              elemento.currentTime = 0;
+
+            }
 
             desbloqueado = true;
 
@@ -342,6 +362,149 @@ export default function NotificationCenter({
 
   const ehRecepcionista =
     permissoes.alertaSonoroNovoLead;
+
+
+  // ==========================================================
+  // ALARME DE NOVO LEAD — POR EVENTO (chegada nesta sessão)
+  // ==========================================================
+  //
+  // Antes o som era derivado do ESTADO (existir lead pendente na
+  // fila), então ao abrir/atualizar o CRM os leads antigos tocavam
+  // de novo. Agora só entram no alarme os leads que CHEGARAM
+  // (useLeads → `chegadas`: depois da carga inicial, uma vez cada,
+  // com `seq`). Cada chegada é processada uma única vez (marca-d'água
+  // `ultimoSeqChegada`). O lead sai do alarme — e não volta — quando
+  // é assumido por qualquer usuária (sincronizado em tempo real),
+  // sai da fila, é aberto ("Ver Lead") ou o aviso é fechado (X).
+  //
+  // `ultimoSeqChegada` começa no maior seq já existente na
+  // montagem: se o componente remontar, nada é "reprocessado".
+  // ==========================================================
+
+  const [
+    idsAlarmeLeads,
+    setIdsAlarmeLeads,
+  ] = useState(
+    () => new Set()
+  );
+
+  const ultimoSeqChegada =
+    useRef(
+      chegadas.reduce(
+        (maior, chegada) =>
+          Math.max(
+            maior,
+            chegada.seq
+          ),
+        0
+      )
+    );
+
+  // Leads cujo aviso foi aberto/fechado nesta sessão: não voltam
+  // nem como aviso visual nem como som.
+  const idsLeadsDispensados =
+    useRef(new Set());
+
+
+  useEffect(() => {
+
+    const {
+      ids: novosIds,
+      ultimoSeq,
+    } = aplicarChegadas({
+
+      chegadas,
+
+      ultimoSeq:
+        ultimoSeqChegada.current,
+
+      idsAtuais:
+        new Set(),
+
+      perfilUsuario,
+
+      podeOuvir:
+        ehRecepcionista,
+
+      dispensados:
+        idsLeadsDispensados.current,
+
+    });
+
+    ultimoSeqChegada.current =
+      ultimoSeq;
+
+    if (novosIds.size > 0) {
+
+      setIdsAlarmeLeads(
+        (anteriores) =>
+          new Set([
+            ...anteriores,
+            ...novosIds,
+          ])
+      );
+
+    }
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chegadas]);
+
+
+  // Poda: assumido / mudou de etapa / sumiu => sai do alarme.
+  useEffect(() => {
+
+    if (idsAlarmeLeads.size === 0) {
+
+      return;
+
+    }
+
+    const restantes =
+      podarAlarme({
+        ids: idsAlarmeLeads,
+        leads,
+        perfilUsuario,
+      });
+
+    if (restantes.size !== idsAlarmeLeads.size) {
+
+      setIdsAlarmeLeads(restantes);
+
+    }
+
+  }, [
+    leads,
+    idsAlarmeLeads,
+    perfilUsuario,
+  ]);
+
+
+  function silenciarAlarmeDoLead(leadId) {
+
+    idsLeadsDispensados.current.add(
+      leadId
+    );
+
+    setIdsAlarmeLeads(
+      (anteriores) => {
+
+        if (!anteriores.has(leadId)) {
+
+          return anteriores;
+
+        }
+
+        const proximos =
+          new Set(anteriores);
+
+        proximos.delete(leadId);
+
+        return proximos;
+
+      }
+    );
+
+  }
 
 
   // ==========================================================
@@ -518,7 +681,11 @@ export default function NotificationCenter({
             etapa ===
               ETAPAS.RECEBIDO &&
 
-            !lead.assumido
+            !lead.assumido &&
+
+            !idsLeadsDispensados.current.has(
+              lead.id
+            )
 
           );
 
@@ -1057,101 +1224,7 @@ export default function NotificationCenter({
 
     const deveTocarNovoLead =
       ehRecepcionista &&
-      notificacoesLeads.some(
-        (notificacao) => {
-
-          const lead =
-            leads.find(
-              (item) =>
-                item.id ===
-                notificacao.leadId
-            );
-
-
-          if (!lead) {
-
-            return false;
-
-          }
-
-
-          // --------------------------------------------------
-          // Se a própria recepcionista cadastrou o Lead,
-          // não toca para ela.
-          // --------------------------------------------------
-
-          const uidUsuario =
-            String(
-              perfilUsuario?.uid ||
-              perfilUsuario?.id ||
-              ""
-            )
-              .trim();
-
-
-          const uidCadastro =
-            String(
-              lead.cadastradoPorUid ||
-              ""
-            )
-              .trim();
-
-
-          if (
-            uidUsuario &&
-            uidCadastro &&
-            uidUsuario ===
-            uidCadastro
-          ) {
-
-            return false;
-
-          }
-
-
-          // --------------------------------------------------
-          // Compatibilidade por nome
-          // --------------------------------------------------
-
-          const nomeUsuario =
-            String(
-              perfilUsuario?.nome ||
-              ""
-            )
-              .trim()
-              .toLowerCase();
-
-
-          const nomeCadastro =
-            String(
-              lead.cadastradoPor ||
-              ""
-            )
-              .trim()
-              .toLowerCase();
-
-
-          if (
-            nomeUsuario &&
-            nomeCadastro &&
-            nomeUsuario ===
-            nomeCadastro
-          ) {
-
-            return false;
-
-          }
-
-
-          // --------------------------------------------------
-          // É um Lead cadastrado por alguém que não é
-          // essa recepcionista.
-          // --------------------------------------------------
-
-          return true;
-
-        }
-      );
+      idsAlarmeLeads.size > 0;
 
 
     // ========================================================
@@ -1177,6 +1250,10 @@ export default function NotificationCenter({
     // TOCAR
     // ========================================================
 
+    alarmeDeveTocar.current =
+      deveTocar;
+
+
     if (
       deveTocar &&
       audio.current
@@ -1186,18 +1263,34 @@ export default function NotificationCenter({
         true;
 
 
-      audio.current
-        .play()
-        .catch(
-          (erro) => {
+      // Já tocando: não reinicia nem empilha outro play().
+      if (audio.current.paused) {
 
-            console.warn(
-              "O navegador bloqueou o áudio automático:",
-              erro
-            );
+        const promessa =
+          audio.current.play();
 
-          }
-        );
+        if (
+          promessa &&
+          typeof promessa.catch ===
+            "function"
+        ) {
+
+          promessa.catch(
+            (erro) => {
+
+              // Bloqueio de autoplay: o primeiro gesto da usuária
+              // (ver desbloqueio) libera e já toca o alarme.
+              console.warn(
+                "O navegador bloqueou o áudio automático:",
+                erro
+              );
+
+            }
+          );
+
+        }
+
+      }
 
     }
 
@@ -1219,11 +1312,9 @@ export default function NotificationCenter({
     }
 
   }, [
-    notificacoesLeads,
+    idsAlarmeLeads,
     notificacoesVisitas,
-    leads,
     ehRecepcionista,
-    perfilUsuario,
   ]);
 
 
@@ -1258,6 +1349,10 @@ export default function NotificationCenter({
 
     }
 
+
+    silenciarAlarmeDoLead(
+      leadId
+    );
 
     setNotificacoesLeads(
       (anteriores) =>
@@ -1304,6 +1399,10 @@ export default function NotificationCenter({
       notificacao.tipo ===
       "NOVO_LEAD"
     ) {
+
+      silenciarAlarmeDoLead(
+        notificacao.leadId
+      );
 
       setNotificacoesLeads(
         (anteriores) =>

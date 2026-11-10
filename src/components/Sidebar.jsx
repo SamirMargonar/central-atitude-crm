@@ -23,6 +23,7 @@ import ConsultaLeadModal from "./ConsultaLeadModal";
 import LeadModal from "./LeadModal";
 
 import TransferenciaEmMassaModal from "./TransferenciaEmMassa/TransferenciaEmMassaModal";
+import TelefonesLeadsModal from "./TelefonesLeads/TelefonesLeadsModal";
 
 import { podeTransferirEmMassa } from "../config/transferenciaEmMassa";
 
@@ -75,6 +76,21 @@ export default function Sidebar({
   const [
     transferenciaEmMassaAberta,
     setTransferenciaEmMassaAberta,
+  ] = useState(false);
+
+
+  // ==========================================================
+  // TELEFONES DOS LEADS (indexação dos leads antigos) — admin e
+  // coordenador. Quem pode de verdade é decidido pelas Rules.
+  // ==========================================================
+
+  const podeTelefonesLeads =
+    perfilUsuario?.perfil === "admin" ||
+    perfilUsuario?.perfil === "coordenador";
+
+  const [
+    telefonesLeadsAberto,
+    setTelefonesLeadsAberto,
   ] = useState(false);
 
 
@@ -449,6 +465,24 @@ export default function Sidebar({
 
         )}
 
+        {podeTelefonesLeads && (
+
+          <button
+
+            type="button"
+
+            onClick={() =>
+              setTelefonesLeadsAberto(true)
+            }
+
+          >
+
+            📞 Telefones dos Leads
+
+          </button>
+
+        )}
+
       </nav>
 
 
@@ -496,6 +530,24 @@ export default function Sidebar({
             }
 
             modoGerencial
+
+          />,
+
+          document.body
+
+        )}
+
+
+      {podeTelefonesLeads &&
+        createPortal(
+
+          <TelefonesLeadsModal
+
+            aberto={telefonesLeadsAberto}
+
+            fechar={() =>
+              setTelefonesLeadsAberto(false)
+            }
 
           />,
 

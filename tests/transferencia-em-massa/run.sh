@@ -4,7 +4,7 @@
 # numa pasta temporária fora do repositório.
 #
 # Pré-requisitos: Node 20+, Java (Emulator) e acesso à rede para o npm/npx.
-# Uso:  tests/transferencia-em-massa/run.sh [rules|servico|ui|atendimento|busca|planos|temporeal|todas]
+# Uso:  tests/transferencia-em-massa/run.sh [rules|servico|ui|atendimento|busca|planos|temporeal|telefone|todas]
 set -euo pipefail
 AQUI="$(cd "$(dirname "$0")" && pwd)"
 export REPO="$(cd "$AQUI/../.." && pwd)"
@@ -35,6 +35,7 @@ case "$SUITE" in
   atendimento) rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs ;;
   busca)   node busca-datas.test.mjs; node busca-datas.ui.test.mjs; rodar busca.integracao.test.mjs ;;
   temporeal) node assinatura-resiliente.test.mjs; node alerta-novo-lead.test.mjs; node leads-tempo-real.ui.test.mjs; rodar leads-tempo-real.integracao.test.mjs ;;
+  telefone) node telefone-lead.test.mjs; rodar telefone-unico.rules.test.mjs; node telefone-unico.ui.test.mjs ;;
   planos)  node planos.test.mjs; node planos.ui.test.mjs; rodar planos.rules.test.mjs; rodar reagendamento.integracao.test.mjs ;;
-  todas)   rodar rules.test.mjs; rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; rodar servico.test.mjs; node ui.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs; node busca-datas.test.mjs; node busca-datas.ui.test.mjs; rodar busca.integracao.test.mjs; node planos.test.mjs; node planos.ui.test.mjs; rodar planos.rules.test.mjs; rodar reagendamento.integracao.test.mjs; node assinatura-resiliente.test.mjs; node alerta-novo-lead.test.mjs; node leads-tempo-real.ui.test.mjs; rodar leads-tempo-real.integracao.test.mjs ;;
+  todas)   rodar rules.test.mjs; rodar atendimento.rules.test.mjs; rodar atendimento.integracao.test.mjs; rodar servico.test.mjs; node ui.test.mjs; node atendimento.ui.test.mjs; node matriculas.titularidade.test.mjs; node busca-datas.test.mjs; node busca-datas.ui.test.mjs; rodar busca.integracao.test.mjs; node planos.test.mjs; node planos.ui.test.mjs; rodar planos.rules.test.mjs; rodar reagendamento.integracao.test.mjs; node assinatura-resiliente.test.mjs; node alerta-novo-lead.test.mjs; node leads-tempo-real.ui.test.mjs; rodar leads-tempo-real.integracao.test.mjs; node telefone-lead.test.mjs; rodar telefone-unico.rules.test.mjs; node telefone-unico.ui.test.mjs ;;
 esac

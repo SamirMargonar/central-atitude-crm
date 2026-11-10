@@ -2,12 +2,7 @@ import {
   useState,
 } from "react";
 
-import {
-  collection,
-  addDoc,
-  getDocs,
-  serverTimestamp,
-} from "firebase/firestore";
+import * as firestore from "firebase/firestore";
 
 import {
   db,
@@ -21,78 +16,38 @@ import {
   registrarEvento,
 } from "../core/EventEngine";
 
+import {
+  criarServicoTelefones,
+} from "../services/telefonesLeads";
+
+import {
+  MENSAGEM_TELEFONE_DUPLICADO,
+  MENSAGEM_TELEFONE_INVALIDO,
+  telefoneValido,
+} from "../utils/telefoneLead";
+
 import LeadDetailsModal from "./LeadDetailsModal/LeadDetailsModal";
 
 import "../styles/leadModal.css";
 
 
+const {
+  serverTimestamp,
+} = firestore;
+
+
 // ==========================================================
-// TELEFONE — CHAVE DE COMPARAÇÃO (só usada no modo gerencial)
-//
-// Ignora formatação (espaços, hífen, parênteses, "+"), zeros à
-// esquerda e o código do país (55). Com DDD, compara DDD + os
-// 8 últimos dígitos, para que "41 99618-3695" e "41 9618-3695"
-// (sem o 9 extra) sejam reconhecidos como o mesmo número.
+// TELEFONE ÚNICO — não pode existir dois leads com o mesmo
+// telefone. O lead e o índice do telefone são gravados no MESMO
+// lote atômico e as Firestore Rules recusam o lote se o número
+// já pertence a outro lead (ver services/telefonesLeads.js).
 // ==========================================================
 
-function chaveTelefone(valor) {
-
-  let digitos =
-    String(valor || "")
-      .replace(/\D/g, "")
-      .replace(/^0+/, "");
-
-  if (
-    digitos.startsWith("55") &&
-    digitos.length >= 12
-  ) {
-
-    digitos =
-      digitos.slice(2);
-
-  }
-
-  return digitos.length >= 10
-    ? digitos.slice(0, 2) +
-      digitos.slice(-8)
-    : digitos;
-
-}
-
-
-async function buscarLeadsComMesmoTelefone(
-  telefone
-) {
-
-  const chave =
-    chaveTelefone(telefone);
-
-  if (!chave) {
-    return [];
-  }
-
-  const snapshot =
-    await getDocs(
-      collection(
-        db,
-        "leads"
-      )
-    );
-
-  return snapshot.docs
-    .map((documento) => ({
-      id:
-        documento.id,
-      ...documento.data(),
-    }))
-    .filter(
-      (lead) =>
-        chaveTelefone(
-          lead.telefone
-        ) === chave
-    );
-
-}
+const servicoTelefones =
+  criarServicoTelefones({
+    db,
+    fs: firestore,
+  });
 
 
 export default function LeadModal({
@@ -177,9 +132,10 @@ export default function LeadModal({
   // CADASTRO GERENCIAL — só usado quando modoGerencial === true
   // ==========================================================
 
+  // Duplicidade/telefone inválido: { tipo, mensagem, existente }
   const [
-    duplicados,
-    setDuplicados,
+    erroTelefone,
+    setErroTelefone,
   ] = useState(null);
 
   const [
@@ -240,6 +196,50 @@ export default function LeadModal({
 
     setOrigem("");
 
+    setErroTelefone(null);
+
+  }
+
+
+  // ==========================================================
+  // ERRO DE TELEFONE (duplicado / inválido) — bloqueia o
+  // salvamento e mostra a mensagem. Devolve true se tratou.
+  // ==========================================================
+
+  function tratarErroDeTelefone(erro) {
+
+    if (erro?.codigo === "TELEFONE_DUPLICADO") {
+
+      setErroTelefone({
+        tipo:
+          "duplicado",
+        mensagem:
+          MENSAGEM_TELEFONE_DUPLICADO,
+        existente:
+          erro.lead || null,
+      });
+
+      return true;
+
+    }
+
+    if (erro?.codigo === "TELEFONE_INVALIDO") {
+
+      setErroTelefone({
+        tipo:
+          "invalido",
+        mensagem:
+          MENSAGEM_TELEFONE_INVALIDO,
+        existente:
+          null,
+      });
+
+      return true;
+
+    }
+
+    return false;
+
   }
 
 
@@ -254,9 +254,7 @@ export default function LeadModal({
   // depois. A validação dos campos já foi feita por salvarLead().
   // ==========================================================
 
-  async function salvarLeadGerencial(
-    ignorarDuplicidade
-  ) {
+  async function salvarLeadGerencial() {
 
     if (
       !perfilPodeCadastroGerencial ||
@@ -276,72 +274,16 @@ export default function LeadModal({
 
       setSalvando(true);
 
-
-      // ----------------------------------------------------
-      // TELEFONE JÁ CADASTRADO? (só avisa — nunca altera,
-      // mescla ou exclui o lead existente)
-      // ----------------------------------------------------
-
-      if (!ignorarDuplicidade) {
-
-        let encontrados = [];
-
-        try {
-
-          encontrados =
-            await buscarLeadsComMesmoTelefone(
-              telefone
-            );
-
-        } catch (erroBusca) {
-
-          console.error(
-            "Erro ao verificar telefone duplicado:",
-            erroBusca
-          );
-
-          const continuar =
-            window.confirm(
-              "Não foi possível verificar se este telefone já está cadastrado. Deseja cadastrar mesmo assim?"
-            );
-
-          if (!continuar) {
-            return;
-          }
-
-        }
-
-        if (encontrados.length > 0) {
-
-          setDuplicados({
-            telefone:
-              telefone.trim(),
-            lista:
-              encontrados,
-          });
-
-          return;
-
-        }
-
-      }
-
-
-      const duplicidadeIgnorada =
-        ignorarDuplicidade &&
-        !!duplicados?.lista?.length;
+      setErroTelefone(null);
 
 
       // ----------------------------------------------------
-      // CRIA O LEAD
+      // CRIA O LEAD (+ índice único do telefone, no mesmo lote
+      // atômico). Telefone de outro lead => nada é gravado.
       // ----------------------------------------------------
 
       const leadRef =
-        await addDoc(
-          collection(
-            db,
-            "leads"
-          ),
+        await servicoTelefones.criarLead(
           {
 
             nome:
@@ -393,6 +335,10 @@ export default function LeadModal({
             createdAt:
               serverTimestamp(),
 
+          },
+          {
+            uid:
+              uidReal,
           }
         );
 
@@ -425,7 +371,6 @@ export default function LeadModal({
               true,
             perfilCadastro:
               perfil,
-            duplicidadeIgnorada,
           },
 
         });
@@ -451,11 +396,17 @@ export default function LeadModal({
 
       limparFormulario();
 
-      setDuplicados(null);
+      setErroTelefone(null);
 
       fechar();
 
     } catch (erro) {
+
+      if (tratarErroDeTelefone(erro)) {
+
+        return;
+
+      }
 
       console.error(
         "Erro ao cadastrar Lead gerencial:",
@@ -507,6 +458,22 @@ export default function LeadModal({
     }
 
 
+    if (!telefoneValido(telefone)) {
+
+      setErroTelefone({
+        tipo:
+          "invalido",
+        mensagem:
+          MENSAGEM_TELEFONE_INVALIDO,
+        existente:
+          null,
+      });
+
+      return;
+
+    }
+
+
     if (!idade) {
 
       alert(
@@ -536,7 +503,7 @@ export default function LeadModal({
 
     if (modoGerencial) {
 
-      await salvarLeadGerencial(false);
+      await salvarLeadGerencial();
 
       return;
 
@@ -546,6 +513,8 @@ export default function LeadModal({
     try {
 
       setSalvando(true);
+
+      setErroTelefone(null);
 
 
       // ======================================================
@@ -659,15 +628,12 @@ export default function LeadModal({
       // ======================================================
 
       const leadRef =
-        await addDoc(
-
-          collection(
-            db,
-            "leads"
-          ),
-
-          dadosLead
-
+        await servicoTelefones.criarLead(
+          dadosLead,
+          {
+            uid:
+              uidReal,
+          }
         );
 
 
@@ -706,6 +672,12 @@ export default function LeadModal({
 
 
     } catch (erro) {
+
+      if (tratarErroDeTelefone(erro)) {
+
+        return;
+
+      }
 
       console.error(
         "Erro ao cadastrar Lead:",
@@ -824,11 +796,12 @@ export default function LeadModal({
             <input
               type="tel"
               value={telefone}
-              onChange={(e) =>
+              onChange={(e) => {
                 setTelefone(
                   e.target.value
-                )
-              }
+                );
+                setErroTelefone(null);
+              }}
               placeholder="(41) 99999-9999"
             />
 
@@ -1086,26 +1059,28 @@ export default function LeadModal({
 
 
           {/* =================================================
-              POSSÍVEL TELEFONE DUPLICADO (modo gerencial)
-              Só avisa. Nada é excluído, mesclado ou alterado.
+              TELEFONE DUPLICADO / INVÁLIDO (todos os cadastros)
+              O salvamento é BLOQUEADO — não existe "cadastrar
+              mesmo assim". Nada é alterado, mesclado ou excluído
+              no lead que já tem o número.
           ================================================= */}
 
-          {modoGerencial &&
-            duplicados?.telefone === telefone.trim() &&
-            duplicados.lista.length > 0 && (
+          {erroTelefone && (
 
             <div
+              role="alert"
+              className="avisoTelefone"
               style={{
                 padding:
                   "12px 14px",
                 borderRadius:
                   "10px",
                 background:
-                  "#fffbeb",
+                  "#fef2f2",
                 border:
-                  "1px solid #fde68a",
+                  "1px solid #fecaca",
                 color:
-                  "#92400e",
+                  "#991b1b",
                 fontSize:
                   "13px",
                 fontWeight:
@@ -1120,65 +1095,50 @@ export default function LeadModal({
             >
 
               <span>
-                ⚠️ Este telefone já está cadastrado.
-                Consulte o cadastro existente antes de
-                continuar:
+                {erroTelefone.mensagem}
               </span>
 
-              {duplicados.lista.map(
-                (existente) => (
+              {erroTelefone.existente && (
 
-                  <div
-                    key={existente.id}
-                    style={{
-                      display:
-                        "flex",
-                      justifyContent:
-                        "space-between",
-                      alignItems:
-                        "center",
-                      gap:
-                        "10px",
-                    }}
-                  >
+                <div
+                  style={{
+                    display:
+                      "flex",
+                    justifyContent:
+                      "space-between",
+                    alignItems:
+                      "center",
+                    gap:
+                      "10px",
+                  }}
+                >
 
-                    <span>
-                      {existente.nome || "Sem nome"}
-                      {" — "}
-                      {existente.responsavel ||
-                        existente.consultora ||
-                        "Sem responsável"}
-                    </span>
+                  <span>
+                    {erroTelefone.existente.nome || "Sem nome"}
+                    {" — "}
+                    {erroTelefone.existente.responsavel ||
+                      erroTelefone.existente.consultora ||
+                      "Sem responsável"}
+                  </span>
+
+                  {modoGerencial && (
 
                     <button
                       type="button"
                       onClick={() =>
                         setLeadConsultado(
-                          existente
+                          erroTelefone.existente
                         )
                       }
                     >
                       Consultar cadastro
                     </button>
 
-                  </div>
+                  )}
 
-                )
+                </div>
+
               )}
-
-              <div>
-
-                <button
-                  type="button"
-                  disabled={salvando}
-                  onClick={() =>
-                    salvarLeadGerencial(true)
-                  }
-                >
-                  Cadastrar mesmo assim
-                </button>
-
-              </div>
 
             </div>
 

@@ -8,6 +8,26 @@ import {
   useAuth,
 } from "../../../auth/AuthContext";
 
+import * as firestore from "firebase/firestore";
+
+import {
+  db,
+} from "../../../firebase/firebase";
+
+import {
+  criarServicoTelefones,
+} from "../../../services/telefonesLeads";
+
+
+// Ao excluir o lead, o telefone dele volta a ficar livre (índice único
+// do telefone removido). É melhor-esforço: se falhar, o índice vira
+// "órfão" e o próximo cadastro desse número o assume sozinho.
+const servicoTelefones =
+  criarServicoTelefones({
+    db,
+    fs: firestore,
+  });
+
 
 export default function ExcluirLeadAction({
   lead,
@@ -48,6 +68,11 @@ export default function ExcluirLeadAction({
       setExcluindo(true);
 
       await excluirLead(lead.id);
+
+      await servicoTelefones.liberarTelefone(
+        lead.id,
+        lead.telefone
+      );
 
       alert(
         "Lead excluído com sucesso."

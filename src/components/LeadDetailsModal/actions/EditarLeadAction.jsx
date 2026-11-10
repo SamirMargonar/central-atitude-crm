@@ -2,13 +2,34 @@ import { useState } from "react";
 
 import LeadActionModal from "../LeadActionModal";
 
+import * as firestore from "firebase/firestore";
+
 import {
-  atualizarLead,
-} from "../../../core/EventEngine";
+  db,
+} from "../../../firebase/firebase";
 
 import {
   useAuth,
 } from "../../../auth/AuthContext";
+
+import {
+  criarServicoTelefones,
+} from "../../../services/telefonesLeads";
+
+import {
+  MENSAGEM_TELEFONE_DUPLICADO,
+  MENSAGEM_TELEFONE_INVALIDO,
+} from "../../../utils/telefoneLead";
+
+
+// Telefone único: ao trocar o telefone, o lead e o índice do telefone
+// são gravados no MESMO lote atômico; telefone de outro lead => nada
+// é salvo (ver services/telefonesLeads.js e firestore.rules).
+const servicoTelefones =
+  criarServicoTelefones({
+    db,
+    fs: firestore,
+  });
 
 
 export default function EditarLeadAction({
@@ -18,7 +39,13 @@ export default function EditarLeadAction({
 
   const {
     permissoes,
+    usuario,
   } = useAuth();
+
+
+  // { mensagem } quando o telefone é duplicado/inválido
+  const [erroTelefone, setErroTelefone] =
+    useState(null);
 
 
   const [aberto, setAberto] =
@@ -59,6 +86,8 @@ export default function EditarLeadAction({
 
     setOrigem(lead?.origem || "");
 
+    setErroTelefone(null);
+
     setAberto(true);
 
   }
@@ -67,9 +96,11 @@ export default function EditarLeadAction({
   // ==========================================================
   // SALVAR
   //
-  // updateDoc() no documento existente (via atualizarLead()),
-  // somente nos 5 campos abaixo + atualizadoEm (injetado
-  // automaticamente pelo próprio atualizarLead()). Nunca cria
+  // updateDoc() no documento existente (via servicoTelefones.editarLead()),
+  // somente nos 5 campos abaixo + atualizadoEm. Se o telefone mudou
+  // para OUTRO número, o índice único do telefone é movido no mesmo
+  // lote; se for o MESMO número (igual ou só formatado diferente), é
+  // uma atualização comum, nunca bloqueada. Nunca cria
   // um novo Lead, nunca toca em etapa, responsavelUid,
   // responsavel, consultora, assumido ou eventos/Timeline —
   // nenhum desses campos é enviado, então nenhum deles é
@@ -113,9 +144,16 @@ export default function EditarLeadAction({
       };
 
 
-      await atualizarLead(
+      setErroTelefone(null);
+
+
+      await servicoTelefones.editarLead(
         lead.id,
-        dadosAtualizados
+        dadosAtualizados,
+        {
+          uid:
+            usuario?.uid || "",
+        }
       );
 
 
@@ -136,6 +174,28 @@ export default function EditarLeadAction({
 
 
     } catch (erro) {
+
+      if (erro?.codigo === "TELEFONE_DUPLICADO") {
+
+        setErroTelefone({
+          mensagem:
+            MENSAGEM_TELEFONE_DUPLICADO,
+        });
+
+        return;
+
+      }
+
+      if (erro?.codigo === "TELEFONE_INVALIDO") {
+
+        setErroTelefone({
+          mensagem:
+            MENSAGEM_TELEFONE_INVALIDO,
+        });
+
+        return;
+
+      }
 
       console.error(
         "Erro ao editar Lead:",
@@ -224,14 +284,44 @@ export default function EditarLeadAction({
             <input
               type="tel"
               value={telefone}
-              onChange={(e) =>
+              onChange={(e) => {
                 setTelefone(
                   e.target.value
-                )
-              }
+                );
+                setErroTelefone(null);
+              }}
               placeholder="(41) 99999-9999"
               disabled={salvando}
             />
+
+            {erroTelefone && (
+
+              <div
+                role="alert"
+                className="avisoTelefone"
+                style={{
+                  marginTop:
+                    "8px",
+                  padding:
+                    "10px 12px",
+                  borderRadius:
+                    "10px",
+                  background:
+                    "#fef2f2",
+                  border:
+                    "1px solid #fecaca",
+                  color:
+                    "#991b1b",
+                  fontSize:
+                    "13px",
+                  fontWeight:
+                    "600",
+                }}
+              >
+                {erroTelefone.mensagem}
+              </div>
+
+            )}
 
           </div>
 

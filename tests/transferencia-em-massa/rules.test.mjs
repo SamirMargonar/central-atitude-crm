@@ -15,6 +15,11 @@ const { t, par, check, fim } = criarRelatorio();
 const as = (uid) => env.authenticatedContext(uid).firestore();
 const raw = async (fn) => { let out; await env.withSecurityRulesDisabled(async (c) => { out = await fn(c.firestore()); }); return out; };
 const NOVO = (id, nome) => ({ responsavelUid: id, responsavel: nome, consultora: nome });
+// Telefone único: todo lead novo nasce junto com o índice do telefone (lote atômico). Cada id recebe um telefone distinto.
+const _tel = new Map();
+const telDe = (id) => { if (!_tel.has(id)) _tel.set(id, "(41) 9" + String(70000000 + _tel.size)); return _tel.get(id); };
+const chaveDe = (id) => "41" + telDe(id).replace(/\D/g, "").slice(-8);
+const criarLeadComIndice = (uid, id, dados) => { const db = as(uid); const b = writeBatch(db); b.set(doc(db, "leads", id), { telefone: telDe(id), ...dados }); b.set(doc(db, "telefonesLeads", chaveDe(id)), { leadId: id, criadoEm: serverTimestamp(), criadoPorUid: uid }); return b.commit(); };
 const LARI = NOVO("lari", "Larissa"), ISA = NOVO("isa", "Isadora");
 
 async function seed() {
@@ -252,13 +257,13 @@ await raw((db) => updateDoc(doc(db, "leads", "FILA"), { ...NOVO("", ""), assumid
 await t("recepcionista assume lead da fila", "ALLOW", () => upd("lari", "FILA", { ...LARI, assumido: true }));
 await t("dona (inativa) edita campo comum do próprio lead", "ALLOW", () => upd("isa", "A1", { ultimoAtendimento: "y" }));
 await t("outro coordenador cria evento na timeline", "ALLOW", () => addDoc(collection(as("coord-outro"), "leads", "A1", "eventos"), { leadId: "A1", tipo: "OBSERVACAO", usuario: "x", descricao: "x", dados: {}, criadoEm: serverTimestamp() }));
-await t("outro coordenador faz cadastro gerencial (create de lead)", "ALLOW", () => setDoc(doc(as("coord-outro"), "leads", "novo"), { nome: "N", etapa: 0, assumido: true, ...NOVO("coord-outro", "Outro Coord"), cadastroGerencial: true }));
+await t("outro coordenador faz cadastro gerencial (create de lead)", "ALLOW", () => criarLeadComIndice("coord-outro", "novo", { nome: "N", etapa: 0, assumido: true, ...NOVO("coord-outro", "Outro Coord"), cadastroGerencial: true }));
 await t("evento da timeline segue imutável (autorizado não edita)", "DENY", async () => { const r = await addDoc(collection(as(NAY), "leads", "A1", "eventos"), { leadId: "A1", tipo: "OBSERVACAO", usuario: "x", descricao: "x", dados: {}, criadoEm: serverTimestamp() }); await updateDoc(r, { descricao: "alterada" }); });
 
 console.log("\n=== G. A1 — CONTORNO POR EXCLUSÃO E RECRIAÇÃO (chamadas diretas ao Firestore)");
 await seed();
-const base = { nome: "Cliente", telefone: "4199", etapa: 0, idade: 30, status: "Novo Lead", createdAt: serverTimestamp() };
-const criar = (uid, id, dono) => setDoc(doc(as(uid), "leads", id), { ...base, assumido: !!dono?.responsavelUid, responsavelUid: "", responsavel: "", consultora: "", ...(dono || {}) });
+const base = { nome: "Cliente", etapa: 0, idade: 30, status: "Novo Lead", createdAt: serverTimestamp() };
+const criar = (uid, id, dono) => criarLeadComIndice(uid, id, { ...base, assumido: !!dono?.responsavelUid, responsavelUid: "", responsavel: "", consultora: "", ...(dono || {}) });
 const existe = async (id) => (await raw((d) => getDoc(doc(d, "leads", id)))).exists();
 for (const [nome, uid] of [["outro coordenador", "coord-outro"], ["outro administrador", "admin-extra"], ["recepcionista dona", "isa"], ["recepcionista qualquer", "lari"]]) {
   await t(`${nome}: NÃO exclui lead`, "DENY", () => deleteDoc(doc(as(uid), "leads", "A1")));
@@ -266,10 +271,10 @@ for (const [nome, uid] of [["outro coordenador", "coord-outro"], ["outro adminis
 check("A1 continua existindo com a Isadora após as tentativas de exclusão", (await existe("A1")) && (await raw((d) => getDoc(doc(d, "leads", "A1")))).data().responsavelUid === "isa");
 await t("contorno completo: excluir A1 e recriar com outro dono — já a EXCLUSÃO é negada", "DENY", async () => {
   await deleteDoc(doc(as("coord-outro"), "leads", "A1"));
-  await setDoc(doc(as("coord-outro"), "leads", "A1"), { ...base, assumido: true, ...NOVO("outra", "Outra") });
+  await criarLeadComIndice("coord-outro", "A1", { ...base, assumido: true, ...NOVO("outra", "Outra") });
 });
 check("…e o lead segue com a Isadora", (await raw((d) => getDoc(doc(d, "leads", "A1")))).data().responsavelUid === "isa");
-await t("recriar por cima de lead existente é um UPDATE de dono (negado)", "DENY", () => setDoc(doc(as("coord-outro"), "leads", "A1"), { ...base, assumido: true, ...NOVO("outra", "Outra") }));
+await t("recriar por cima de lead existente é um UPDATE de dono (negado)", "DENY", () => criarLeadComIndice("coord-outro", "A1", { ...base, assumido: true, ...NOVO("outra", "Outra") }));
 await t("Samir (autorizado) exclui lead", "ALLOW", () => deleteDoc(doc(as(ADM), "leads", "A2")));
 await t("Naykison (autorizado) exclui lead", "ALLOW", () => deleteDoc(doc(as(NAY), "leads", "A3")));
 console.log("--- criação de lead: propriedade inicial");
@@ -358,8 +363,8 @@ console.log("\n=== I. M2 — REVERSÃO PROTEGIDA PELAS RULES (cada cláusula iso
 
 console.log("\n=== J. PROPRIEDADE INICIAL (create) — cada cláusula isolada");
 {
-  const base = { nome: "Cliente", telefone: "4199", etapa: 0, idade: 30, status: "Novo Lead", createdAt: serverTimestamp() };
-  const criar = (uid, id, dono) => setDoc(doc(as(uid), "leads", id), { ...base, assumido: !!dono?.responsavelUid, responsavelUid: "", responsavel: "", consultora: "", ...(dono || {}) });
+  const base = { nome: "Cliente", etapa: 0, idade: 30, status: "Novo Lead", createdAt: serverTimestamp() };
+  const criar = (uid, id, dono) => criarLeadComIndice(uid, id, { ...base, assumido: !!dono?.responsavelUid, responsavelUid: "", responsavel: "", consultora: "", ...(dono || {}) });
   const prep = async () => { await seed(); };
   for (const [quem, uid, nome] of [["coordenador não autorizado", "coord-outro", "Outro Coord"], ["outro administrador", "admin-extra", "Admin Extra"], ["recepcionista", "lari", "Larissa"]]) {
     const proprio = { responsavelUid: uid, responsavel: nome, consultora: nome };

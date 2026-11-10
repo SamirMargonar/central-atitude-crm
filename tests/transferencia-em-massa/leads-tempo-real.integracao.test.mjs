@@ -14,7 +14,11 @@ const { aplicarChegadas, podarAlarme } = await import(`${REPO}/src/utils/alertaN
 
 const env = await initializeTestEnvironment({ projectId: "demo-tme-leads-rt", firestore: { rules: readFileSync(`${REPO}/firestore.rules`, "utf8"), host: "127.0.0.1", port: PORTA } });
 const { t, check, fim } = criarRelatorio();
-const { doc, setDoc, updateDoc, collection, query, where, serverTimestamp, getCountFromServer } = fs;
+const { doc, setDoc, updateDoc, collection, query, where, serverTimestamp, getCountFromServer, writeBatch } = fs;
+// Telefone único: todo lead novo nasce junto com o índice do telefone (lote atômico). Cada id recebe um telefone distinto.
+const _tel = new Map();
+const telDe = (id) => { if (!_tel.has(id)) _tel.set(id, "(41) 9" + String(70000000 + _tel.size)); return _tel.get(id); };
+const criarLead = (db, uid, id, dados) => { const b = writeBatch(db); b.set(doc(db, "leads", id), { telefone: telDe(id), ...dados }); b.set(doc(db, "telefonesLeads", "41" + telDe(id).replace(/\D/g, "").slice(-8)), { leadId: id, criadoEm: serverTimestamp(), criadoPorUid: uid }); return b.commit(); };
 const as = (uid) => env.authenticatedContext(uid).firestore();
 const raw = async (fn) => { let out; await env.withSecurityRulesDisabled(async (c) => { out = await fn(c.firestore()); }); return out; };
 const esperar = async (cond, ms = 6000) => { const fim = Date.now() + ms; while (Date.now() < fim) { if (cond()) return true; await new Promise((r) => setTimeout(r, 25)); } return cond(); };
@@ -86,7 +90,7 @@ await seed();
 
   // o admin cadastra (fila, sem responsável) — sem recarregar nada
   const admDb = as(ADM);
-  await setDoc(doc(admDb, "leads", "novo1"), { nome: "Novo 1", etapa: 0, assumido: false, responsavelUid: "", cadastradoPor: "Samir", cadastradoPorUid: ADM, createdAt: serverTimestamp() });
+  await criarLead(admDb, ADM, "novo1", { nome: "Novo 1", etapa: 0, assumido: false, responsavelUid: "", cadastradoPor: "Samir", cadastradoPorUid: ADM, createdAt: serverTimestamp() });
   check("o lead novo chega para a Ana e para a Isa AUTOMATICAMENTE", await esperar(() => ids(ana.estado).includes("novo1") && ids(isa.estado).includes("novo1")));
   check("as duas recebem exatamente uma chegada e o alarme fica armado nas duas", ana.estado.chegadas.length === 1 && isa.estado.chegadas.length === 1 && ana.estado.alarme.has("novo1") && isa.estado.alarme.has("novo1"));
 
@@ -97,11 +101,11 @@ await seed();
   check("a Ana NÃO recebeu uma segunda chegada ao passar o lead da fila para 'próprios'", ana.estado.chegadas.length === 1);
 
   // dois leads em sequência rápida: sem perda e sem duplicata
-  await Promise.all(["rap1", "rap2", "rap3"].map((id) => setDoc(doc(admDb, "leads", id), { nome: id, etapa: 0, assumido: false, responsavelUid: "", cadastradoPor: "Samir", cadastradoPorUid: ADM })));
+  await Promise.all(["rap1", "rap2", "rap3"].map((id) => criarLead(admDb, ADM, id, { nome: id, etapa: 0, assumido: false, responsavelUid: "", cadastradoPor: "Samir", cadastradoPorUid: ADM })));
   check("3 leads em rajada: as duas recebem os 3, sem duplicar", await esperar(() => ["rap1", "rap2", "rap3"].every((i) => ids(ana.estado).includes(i) && ids(isa.estado).includes(i))) && ana.estado.chegadas.length === 4 && new Set(ana.estado.leads.map((l) => l.id)).size === ana.estado.leads.length);
 
   // lead criado pela própria Ana (já assumido por ela): aparece, mas não vira alarme para ela
-  await t("Ana cadastra um lead próprio", "ALLOW", () => setDoc(doc(ana.db, "leads", "meu1"), { nome: "Meu 1", etapa: 0, assumido: true, responsavelUid: "ana", responsavel: "Ana Lara", consultora: "Ana Lara", cadastradoPor: "Ana Lara", cadastradoPorUid: "ana" }));
+  await t("Ana cadastra um lead próprio", "ALLOW", () => criarLead(ana.db, "ana", "meu1", { nome: "Meu 1", etapa: 0, assumido: true, responsavelUid: "ana", responsavel: "Ana Lara", consultora: "Ana Lara", cadastradoPor: "Ana Lara", cadastradoPorUid: "ana" }));
   check("o lead dela aparece para ela e NÃO entra no alarme; a Isa nem o vê (não é da fila dela)", await esperar(() => ids(ana.estado).includes("meu1")) && !ana.estado.alarme.has("meu1") && !ids(isa.estado).includes("meu1"));
   ana.fechar(); isa.fechar();
 }
@@ -121,7 +125,7 @@ console.log("\n=== D. Reconexão real: derrubar a escuta e confirmar que o lead 
   await esperar(() => ana.estado.snapshots >= 2);
   // rede do Firestore desligada e religada (equivale a queda de conexão do navegador)
   await fs.disableNetwork(ana.db);
-  await setDoc(doc(as(ADM), "leads", "durante"), { nome: "Durante a queda", etapa: 0, assumido: false, responsavelUid: "", cadastradoPor: "Samir", cadastradoPorUid: ADM });
+  await criarLead(as(ADM), ADM, "durante", { nome: "Durante a queda", etapa: 0, assumido: false, responsavelUid: "", cadastradoPor: "Samir", cadastradoPorUid: ADM });
   await pausa(300);
   check("com a rede cortada o lead ainda não chegou", !ids(ana.estado).includes("durante"));
   await fs.enableNetwork(ana.db);

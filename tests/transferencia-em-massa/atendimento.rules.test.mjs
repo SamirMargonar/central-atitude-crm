@@ -4,7 +4,7 @@ import { initializeTestEnvironment } from "@firebase/rules-unit-testing";
 import { readFileSync } from "node:fs";
 import {
   doc, setDoc, updateDoc, getDoc, getDocs, collection, query, where,
-  serverTimestamp, addDoc, deleteDoc,
+  serverTimestamp, addDoc, deleteDoc, writeBatch,
 } from "firebase/firestore";
 import { REPO, ADM, NAY, PORTA, criarRelatorio } from "./helpers.mjs";
 
@@ -187,7 +187,7 @@ for (const [nome, d] of [["responsavelUid", { responsavelUid: "isa" }], ["respon
   await t(`Isabelle NÃO altera ${nome} do lead da Ana`, "DENY", () => updLead("isa", "LN", d));
 }
 await t("Isabelle NÃO altera campo do lead por updateDoc com chave aninhada (visita.consultor)", "DENY", () => updateDoc(doc(as("isa"), "leads", "LV"), { "visita.consultor": "Isabelle", atualizadoEm: SRV() }));
-await t("Isabelle NÃO cria lead em nome da Ana", "DENY", () => setDoc(doc(as("isa"), "leads", "NOVO"), { nome: "x", etapa: 1, ...TIT }));
+await t("Isabelle NÃO cria lead em nome da Ana", "DENY", () => { const db = as("isa"); const b = writeBatch(db); b.set(doc(db, "leads", "NOVO"), { nome: "x", telefone: "(41) 98888-7777", etapa: 1, ...TIT }); b.set(doc(db, "telefonesLeads", "4198887777"), { leadId: "NOVO", criadoEm: SRV(), criadoPorUid: "isa" }); return b.commit(); });
 await t("transferência de carteira continua negada a recepcionista (individual)", "DENY", () => updLead("isa", "LN", { responsavelUid: "lari", responsavel: "Larissa", consultora: "Larissa" }));
 
 console.log("\n=== G. HISTÓRICO APPEND-ONLY e EXCLUSÃO");
